@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>FixPro - ระบบแจ้งซ่อม</title>
+</head>
+<body>
+  <h2>แจ้งซ่อมอุปกรณ์</h2>
+
+  <form id="repairForm">
+    <input type="text" id="device" placeholder="ชื่ออุปกรณ์ (เช่น Notebook Dell)" required><br><br>
+    <input type="text" id="problem" placeholder="อาการเสีย" required><br><br>
+    <input type="file" id="imageFile" accept="image/*"><br><br>
+    <button type="submit">บันทึกข้อมูล</button>
+  </form>
+
+  <script type="module">
+    import { db } from "./firebase.js";
+    import { collection, addDoc } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-firestore.js";
+
+    // 🔴 ใส่ค่า Cloud Name ของคุณตรงนี้
+    const CLOUD_NAME = "drywvqdnb"; 
+    const UPLOAD_PRESET = "fixpro";
+
+    document.getElementById("repairForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      
+      const device = document.getElementById("device").value;
+      const problem = document.getElementById("problem").value;
+      const fileInput = document.getElementById("imageFile");
+      let imageUrl = "";
+
+      try {
+        // 1. อัปโหลดรูปไป Cloudinary (ถ้ามีการเลือกรูป)
+        if (fileInput.files.length > 0) {
+          const formData = new FormData();
+          formData.append("file", fileInput.files[0]);
+          formData.append("upload_preset", UPLOAD_PRESET);
+
+          const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+            method: "POST",
+            body: formData
+          });
+          const data = await res.json();
+          imageUrl = data.secure_url;
+        }
+
+        // 2. บันทึกลง Firestore
+        await addDoc(collection(db, "repair_orders"), {
+          device,
+          problem,
+          imageUrl,
+          status: "pending",
+          createdAt: new Date()
+        });
+
+        alert("บันทึกงานซ่อมสำเร็จ!");
+        e.target.reset();
+      } catch (err) {
+        console.error("Error:", err);
+        alert("เกิดข้อผิดพลาด: " + err.message);
+      }
+    });
+  </script>
+</body>
+</html>
