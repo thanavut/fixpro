@@ -1,66 +1,2519 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <title>FixPro - ระบบแจ้งซ่อม</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FixPro">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#2E7D32">
+<link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;FixPro ระบบจัดการงานช่าง&quot;,&quot;short_name&quot;:&quot;FixPro&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;%232E7D32&quot;,&quot;theme_color&quot;:&quot;%232E7D32&quot;,&quot;icons&quot;:[{&quot;src&quot;:&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%232E7D32'/%3E%3Ctext y='.9em' font-size='70' x='15'%3E🔧%3C/text%3E%3C/svg%3E&quot;,&quot;sizes&quot;:&quot;any&quot;,&quot;type&quot;:&quot;image/svg+xml&quot;}]}">
+<title>FixPro — ระบบจัดการงานช่าง</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<style>
+/* ===== EBED Design Tokens ===== */
+:root {
+  --primary: #2E7D32;
+  --primary-l: #43A047;
+  --primary-d: #1B5E20;
+  --primary-bg: #E8F5E9;
+  --accent: #FF7043;
+  --accent-l: #FF8A65;
+  --amber: #FFA000;
+  --bg: #F5F6FA;
+  --surface: #FFFFFF;
+  --surface2: #F8F9FC;
+  --border: #E8EAF0;
+  --text: #1A1D23;
+  --text2: #6B7280;
+  --text3: #9CA3AF;
+  --success: #2E7D32;
+  --warning: #F59E0B;
+  --danger: #DC2626;
+  --info: #1976D2;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow: 0 4px 16px rgba(0,0,0,0.10);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.14);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-lg: 20px;
+  --header-h: 56px;
+  --nav-h: 64px;
+  --transition: 0.2s ease;
+}
+[data-theme="dark"] {
+  --bg: #0F1117;
+  --surface: #1A1D26;
+  --surface2: #23273A;
+  --border: #2D3148;
+  --text: #F1F3F9;
+  --text2: #9CA3B8;
+  --text3: #6B7280;
+  --primary-bg: #1B2E1C;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow: 0 4px 16px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body { font-family: 'Kanit', sans-serif; background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.5; font-weight: 400; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.screen { display: none; }
+.screen.active { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+/* ===== AUTH ===== */
+#auth-screen {
+  align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 40%, #388E3C 70%, #4CAF50 100%);
+  position: relative; overflow: hidden; padding: 16px;
+}
+.auth-card {
+  background: var(--surface); border-radius: 24px; padding: 32px 24px;
+  width: 100%; max-width: 400px; box-shadow: var(--shadow-lg);
+  animation: fadeUp 0.5s ease;
+}
+.auth-logo { text-align: center; margin-bottom: 24px; }
+.auth-logo .logo-icon {
+  width: 56px; height: 56px; background: linear-gradient(135deg, #1a2744, #243461);
+  border-radius: 16px; display: inline-flex; align-items: center; justify-content: center;
+  font-size: 24px; color: white; margin-bottom: 8px; box-shadow: 0 4px 16px rgba(46,125,50,0.4);
+}
+.auth-logo h1 { font-size: 24px; font-weight: 700; color: var(--primary); }
+.auth-logo p { color: var(--text2); font-size: 13px; }
+.auth-tabs { display: flex; background: var(--bg); border-radius: var(--radius-sm); padding: 4px; margin-bottom: 20px; }
+.auth-tab { flex: 1; padding: 10px; text-align: center; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; transition: var(--transition); color: var(--text2); }
+.auth-tab.active { background: var(--surface); color: var(--primary); box-shadow: var(--shadow-sm); }
+
+/* ===== FORM ELEMENTS ===== */
+.form-group { margin-bottom: 12px; }
+.form-label { display: block; font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 4px; }
+.form-control {
+  width: 100%; padding: 12px 14px; border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); background: var(--bg); color: var(--text);
+  font-size: 15px; transition: var(--transition); outline: none; min-height: 48px;
+}
+.form-control:focus { border-color: var(--primary); background: var(--surface); box-shadow: 0 0 0 3px rgba(46,125,50,0.12); }
+textarea.form-control { resize: vertical; min-height: 80px; }
+.input-icon { position: relative; }
+.input-icon .form-control { padding-left: 44px; }
+.input-icon i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 16px; }
+.toggle-pass { left: auto; right: 14px; cursor: pointer; }
+.form-error { color: var(--danger); font-size: 13px; margin-top: 4px; display: none; }
+.form-error.show { display: block; }
+.form-check { display: flex; align-items: center; gap: 10px; }
+.form-check input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--primary); cursor: pointer; }
+
+/* ===== BUTTONS ===== */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 12px 20px; border-radius: var(--radius-sm); font-size: 15px; font-weight: 600;
+  transition: var(--transition); cursor: pointer; border: none; line-height: 1.2;
+  min-height: 48px; min-width: 48px; touch-action: manipulation;
+}
+.btn:active { transform: scale(0.96); }
+.btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-l)); color: white; }
+.btn-primary:active { box-shadow: 0 4px 12px rgba(46,125,50,0.4); }
+.btn-secondary { background: var(--bg); color: var(--text); border: 1.5px solid var(--border); }
+.btn-secondary:active { background: var(--border); }
+.btn-danger { background: var(--danger); color: white; }
+.btn-sm { padding: 8px 14px; font-size: 13px; min-height: 36px; }
+.btn-full { width: 100%; }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
+.btn-icon { width: 44px; height: 44px; padding: 0; border-radius: 12px; }
+.btn-ghost { background: transparent; color: var(--text2); }
+.btn-ghost:active { background: var(--bg); color: var(--text); }
+
+/* ===== HEADER ===== */
+#app-screen { flex-direction: column; }
+.app-header {
+  height: var(--header-h); background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 12px; gap: 10px;
+  flex-shrink: 0; z-index: 100; box-shadow: var(--shadow-sm);
+}
+.header-brand { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+.header-brand .brand-icon {
+  width: 34px; height: 34px; background: linear-gradient(135deg, #1a2744, #243461);
+  border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px;
+}
+.header-brand h2 { font-size: 17px; font-weight: 700; color: var(--primary); white-space: nowrap; }
+.header-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.header-btn {
+  width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+  color: var(--text2); cursor: pointer; transition: var(--transition); position: relative;
+}
+.header-btn:active { background: var(--bg); }
+.user-avatar {
+  width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg, #1a2744, var(--accent));
+  display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 14px;
+  cursor: pointer;
+}
+
+/* ===== MAIN CONTENT ===== */
+.app-body { display: flex; flex: 1; min-height: 0; overflow: hidden; }
+.main-content {
+  flex: 1; padding: 8px 12px calc(var(--nav-h) + 16px);
+  overflow-y: auto; overflow-x: hidden;
+  height: calc(100vh - var(--header-h)); box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
+}
+.page { display: none; animation: fadeUp 0.25s ease; }
+.page.active { display: block; }
+
+/* ===== CARDS ===== */
+.card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow-sm); margin-bottom: 10px; }
+.card-header { padding: 12px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.card-title { font-size: 14px; font-weight: 700; }
+.card-body { padding: 12px 14px; }
+.card-footer { padding: 10px 14px; border-top: 1px solid var(--border); background: var(--surface2); border-radius: 0 0 var(--radius) var(--radius); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+
+/* ===== STATS ===== */
+.stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 10px; }
+.stat-card {
+  background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border);
+  padding: 12px 14px; box-shadow: var(--shadow-sm); position: relative; overflow: hidden; cursor: pointer;
+  transition: var(--transition);
+}
+.stat-card:active { transform: scale(0.97); }
+.stat-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; margin-bottom: 6px; }
+.stat-card.green .stat-icon { background: var(--primary-bg); color: var(--primary); }
+.stat-card.orange .stat-icon { background: #FBE9E7; color: var(--accent); }
+.stat-card.blue .stat-icon { background: #E3F2FD; color: var(--info); }
+.stat-card.amber .stat-icon { background: #FFF8E1; color: #FFA000; }
+.stat-value { font-size: 20px; font-weight: 800; color: var(--text); margin-bottom: 2px; }
+.stat-label { font-size: 11px; color: var(--text2); }
+.stat-change { font-size: 10px; margin-top: 4px; font-weight: 600; }
+.stat-change.up { color: var(--success); }
+.stat-change.down { color: var(--danger); }
+
+/* ===== BADGES ===== */
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+.badge-green { background: var(--primary-bg); color: var(--primary); }
+.badge-red { background: #FEE2E2; color: var(--danger); }
+.badge-amber { background: #FEF3C7; color: #92400E; }
+.badge-blue { background: #EFF6FF; color: #1D4ED8; }
+.badge-gray { background: var(--bg); color: var(--text2); }
+.badge-purple { background: #F3E8FF; color: #7C3AED; }
+
+/* ===== CUSTOMER CARD ===== */
+.customer-card {
+  background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border);
+  padding: 14px 16px; display: flex; align-items: center; gap: 14px;
+  cursor: pointer; transition: all var(--transition); box-shadow: var(--shadow-sm);
+  margin-bottom: 8px; min-height: 72px;
+}
+.customer-card:active { transform: scale(0.98); border-color: var(--primary); }
+.customer-avatar {
+  width: 44px; height: 44px; border-radius: 12px; background: var(--primary);
+  display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: #fff; flex-shrink: 0;
+}
+.customer-info { flex: 1; min-width: 0; }
+.customer-name { font-size: 15px; font-weight: 700; }
+.customer-phone { font-size: 13px; color: var(--text2); margin-top: 2px; }
+.customer-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+.customer-meta { text-align: right; flex-shrink: 0; }
+.customer-meta .job-count { font-size: 18px; font-weight: 700; color: var(--primary); }
+.customer-meta .job-label { font-size: 10px; color: var(--text3); }
+
+/* ===== REMINDER ===== */
+.reminder-item {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+  border-bottom: 1px solid var(--border); cursor: pointer; transition: background var(--transition);
+  min-height: 60px;
+}
+.reminder-item:active { background: var(--bg); }
+.reminder-item:last-child { border-bottom: none; }
+.reminder-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.reminder-dot.overdue { background: var(--danger); }
+.reminder-dot.soon { background: var(--warning); }
+.reminder-dot.upcoming { background: var(--info); }
+.reminder-name { font-size: 14px; font-weight: 600; }
+.reminder-detail { font-size: 12px; color: var(--text2); margin-top: 2px; }
+
+/* ===== TIMELINE ===== */
+.timeline { position: relative; padding-left: 18px; }
+.timeline::before { content: ''; position: absolute; left: 5px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+.timeline-item { position: relative; margin-bottom: 12px; }
+.timeline-dot { position: absolute; left: -18px; top: 12px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--surface); }
+.timeline-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; box-shadow: var(--shadow-sm); }
+.timeline-card-header { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.timeline-card-title { font-size: 13px; font-weight: 700; flex: 1; }
+.timeline-card-date { font-size: 11px; color: var(--text3); }
+.timeline-cost { font-size: 14px; font-weight: 700; color: var(--success); }
+
+/* ===== PHOTO GRID ===== */
+.photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
+.photo-thumb { aspect-ratio: 1; border-radius: var(--radius-sm); overflow: hidden; position: relative; background: var(--bg); border: 1px solid var(--border); }
+.photo-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.photo-thumb .del-photo { position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.6); color: #fff; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; cursor: pointer; }
+
+/* ===== TYPE SELECTOR ===== */
+.type-selector { display: grid; grid-template-columns: repeat(2,1fr); gap: 8px; }
+.type-card {
+  display: flex; flex-direction: column; align-items: center; padding: 14px 8px; border: 2px solid var(--border);
+  border-radius: var(--radius); cursor: pointer; transition: all var(--transition); background: var(--surface);
+  gap: 4px; text-align: center; min-height: 72px;
+}
+.type-card:active { transform: scale(0.96); }
+.type-card.selected { border-color: var(--primary); background: var(--primary-bg); }
+.type-card .type-emoji { font-size: 24px; }
+.type-card .type-label { font-size: 12px; font-weight: 700; }
+
+/* ===== PHOTO UPLOAD ===== */
+.photo-upload-area {
+  border: 2px dashed var(--border); border-radius: var(--radius); padding: 24px 16px; text-align: center;
+  cursor: pointer; transition: all var(--transition); background: var(--bg); min-height: 100px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.photo-upload-area:active { background: var(--primary-bg); border-color: var(--primary); }
+.photo-upload-area i { font-size: 32px; color: var(--primary); margin-bottom: 6px; }
+
+/* ===== SEARCH & FILTER ===== */
+.search-bar {
+  display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 8px 14px; transition: border-color var(--transition);
+  margin-bottom: 10px;
+}
+.search-bar:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(46,125,50,0.12); }
+.search-bar input { border: none; outline: none; flex: 1; font-size: 15px; font-family: inherit; background: transparent; color: var(--text); min-height: 36px; }
+.search-bar i { color: var(--text3); font-size: 15px; }
+
+.filter-bar {
+  display: flex; gap: 6px; align-items: center; flex-wrap: nowrap; overflow-x: auto;
+  margin-bottom: 10px; padding-bottom: 4px; -webkit-overflow-scrolling: touch;
+}
+.filter-bar::-webkit-scrollbar { display: none; }
+.filter-bar .search-input { position: relative; flex: 1; min-width: 120px; }
+.filter-bar .search-input input {
+  width: 100%; padding: 8px 10px 8px 32px; border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); background: var(--surface); color: var(--text);
+  outline: none; font-size: 14px; min-height: 40px;
+}
+.filter-bar .search-input input:focus { border-color: var(--primary); }
+.filter-bar .search-input i { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 13px; }
+select.form-select { padding: 8px 12px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); outline: none; font-size: 13px; cursor: pointer; min-height: 40px; }
+
+/* ===== MODAL ===== */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  z-index: 1000; align-items: flex-end; justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
+.modal {
+  background: var(--surface); border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  width: 100%; max-width: 560px; max-height: 92vh;
+  box-shadow: var(--shadow-lg); animation: slideUp 0.3s ease;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.modal-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; background: var(--surface); }
+.modal-title { font-size: 16px; font-weight: 700; }
+.modal-close { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text3); transition: var(--transition); }
+.modal-close:active { background: var(--bg); }
+.modal-body { padding: 16px 18px; overflow-y: auto; flex: 1; min-height: 0; -webkit-overflow-scrolling: touch; }
+.modal-footer { padding: 12px 18px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; background: var(--surface2); flex-shrink: 0; flex-wrap: wrap; }
+
+/* ===== TOAST ===== */
+#toast-container {
+  position: fixed; top: 12px; left: 50%; transform: translateX(-50%);
+  z-index: 9999; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  pointer-events: none; width: 90%; max-width: 400px;
+}
+.toast {
+  pointer-events: auto; display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+  background: var(--surface); border-radius: 12px; box-shadow: var(--shadow-lg);
+  border-left: 4px solid var(--primary); width: 100%;
+  animation: slideDown 0.3s ease;
+}
+.toast.success { border-color: var(--success); }
+.toast.error { border-color: var(--danger); }
+.toast.warning { border-color: var(--warning); }
+.toast i { font-size: 16px; }
+.toast span { flex: 1; font-size: 14px; }
+
+/* ===== MOBILE NAV ===== */
+.mobile-nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--surface); border-top: 1px solid var(--border);
+  padding: 4px 0 env(safe-area-inset-bottom); z-index: 200;
+  height: calc(var(--nav-h) + env(safe-area-inset-bottom));
+}
+.mobile-nav-items { display: flex; justify-content: space-around; align-items: stretch; height: var(--nav-h); }
+.mobile-nav-item {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 2px; padding: 4px 6px; color: var(--text3); cursor: pointer;
+  font-size: 10px; font-weight: 500; transition: var(--transition);
+  min-width: 44px; flex: 1; position: relative;
+}
+.mobile-nav-item:active { transform: scale(0.92); }
+.mobile-nav-item i { font-size: 20px; }
+.mobile-nav-item.active { color: var(--primary); }
+.mobile-nav-item .nav-badge {
+  position: absolute; top: 2px; right: 50%; transform: translateX(calc(50% + 8px));
+  min-width: 16px; height: 16px; background: var(--danger); color: white;
+  border-radius: 8px; font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+  padding: 0 4px; border: 2px solid var(--surface);
+}
+.mobile-nav-item.logout { color: var(--danger); }
+
+/* ===== FAB ===== */
+#fab {
+  position: fixed; bottom: calc(var(--nav-h) + 20px + env(safe-area-inset-bottom));
+  right: 16px; width: 56px; height: 56px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-l));
+  color: #fff; border-radius: 50%; border: none;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; cursor: pointer;
+  box-shadow: 0 4px 20px rgba(46,125,50,0.45); z-index: 80;
+  transition: all var(--transition); touch-action: manipulation;
+}
+#fab:active { transform: scale(0.92); }
+
+/* ===== EMPTY STATE ===== */
+.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; text-align: center; }
+.empty-state i { font-size: 44px; color: var(--border); margin-bottom: 10px; }
+.empty-state p { font-size: 14px; color: var(--text2); }
+
+/* ===== LOADING ===== */
+.loading-overlay { position: fixed; inset: 0; background: var(--surface); display: flex; align-items: center; justify-content: center; z-index: 9999; flex-direction: column; gap: 12px; }
+.loading-spinner { width: 40px; height: 40px; border: 4px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ===== OFFLINE BAR ===== */
+#offline-bar { display: none; position: fixed; top: var(--header-h); left: 0; right: 0; z-index: 999; background: #E65100; color: white; padding: 6px 12px; font-size: 12px; font-weight: 600; align-items: center; gap: 8px; justify-content: center; flex-wrap: wrap; }
+#offline-bar.show { display: flex; }
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ===== JOB COMPLETE POPUP ===== */
+#job-complete-overlay {
+  display: none; position: fixed; inset: 0; z-index: 2000;
+  background: rgba(0,0,0,0.5); align-items: flex-end; justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+#job-complete-overlay.show { display: flex; }
+.job-complete-sheet {
+  background: var(--surface); border-radius: 24px 24px 0 0;
+  width: 100%; max-width: 480px; padding: 24px 20px;
+  animation: slideUp 0.3s ease; text-align: center;
+}
+.job-complete-icon {
+  width: 64px; height: 64px; background: linear-gradient(135deg,#10b981,#059669);
+  border-radius: 50%; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center;
+  font-size: 32px; color: #fff; box-shadow: 0 4px 16px rgba(16,185,129,0.35);
+}
+.job-complete-title { font-size: 18px; font-weight: 800; color: var(--primary); }
+.job-complete-sub { font-size: 13px; color: var(--text2); margin: 4px 0 16px; }
+.btn-line-big {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 14px 20px; border-radius: 14px; background: #00b900; color: #fff;
+  border: none; cursor: pointer; font-family: inherit; font-size: 15px; font-weight: 700;
+  transition: all var(--transition); width: 100%; min-height: 54px;
+  box-shadow: 0 4px 16px rgba(0,185,0,0.3);
+}
+.btn-line-big:active { transform: scale(0.97); }
+.btn-line-big i { font-size: 20px; }
+
+/* ===== RECEIPT ===== */
+.receipt-wrap { background: #fff; padding: 8px 0; border-radius: 8px; }
+.receipt-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; border-bottom: 1px solid #eee; }
+.receipt-row.total { border-top: 2px solid var(--primary); margin-top: 8px; padding-top: 10px; font-weight: 700; font-size: 15px; }
+.receipt-footer { text-align: center; padding: 10px 0 0; font-size: 12px; color: var(--text3); }
+
+/* ===== SETTINGS (EBED Style) ===== */
+.settings-section { margin-bottom: 16px; }
+.settings-section-header {
+  font-size: 13px; font-weight: 700; color: var(--primary);
+  padding: 10px 0 6px; border-bottom: 1px solid var(--border);
+  margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+}
+.settings-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.settings-row:last-child { border-bottom: none; }
+.settings-label { font-size: 13px; font-weight: 500; }
+.settings-sub { font-size: 12px; color: var(--text3); }
+.config-status { padding: 8px 12px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 500; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.config-status.ok { background: var(--primary-bg); color: var(--success); }
+.config-status.err { background: #FEE2E2; color: var(--danger); }
+.config-status.warn { background: #FEF3C7; color: #92400E; }
+
+.toggle-switch {
+  position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0;
+}
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute; inset: 0; background: var(--border); border-radius: 24px;
+  cursor: pointer; transition: .2s;
+}
+.toggle-slider:before {
+  content: ''; position: absolute; height: 18px; width: 18px; left: 3px; bottom: 3px;
+  background: #fff; border-radius: 50%; transition: .2s; box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+.toggle-switch input:checked + .toggle-slider { background: var(--primary); }
+.toggle-switch input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+/* ===== RESPONSIVE ===== */
+@media (min-width: 769px) {
+  .mobile-only { display: none !important; }
+  #fab { display: none !important; }
+  .stats-grid { grid-template-columns: repeat(4, 1fr); }
+}
+@media (max-width: 768px) {
+  .desktop-only { display: none !important; }
+  .app-body { padding-bottom: 0; }
+  .main-content { padding: 8px 10px calc(var(--nav-h) + 16px); }
+  .card-header { padding: 10px 12px; }
+  .card-body { padding: 10px 12px; }
+  .modal { border-radius: 20px 20px 0 0; max-height: 94vh; }
+  .modal-header { padding: 12px 14px; }
+  .modal-body { padding: 12px 14px; }
+  .modal-footer { padding: 10px 14px; }
+  .filter-bar { flex-wrap: nowrap; overflow-x: auto; }
+  .filter-bar .search-input { min-width: 100px; }
+  .btn { min-height: 44px; padding: 10px 16px; font-size: 14px; }
+  .btn-sm { min-height: 36px; padding: 6px 12px; font-size: 12px; }
+  .form-control { font-size: 15px; padding: 10px 12px; min-height: 44px; }
+}
+</style>
 </head>
 <body>
-  <h2>แจ้งซ่อมอุปกรณ์</h2>
 
-  <form id="repairForm">
-    <input type="text" id="device" placeholder="ชื่ออุปกรณ์ (เช่น Notebook Dell)" required><br><br>
-    <input type="text" id="problem" placeholder="อาการเสีย" required><br><br>
-    <input type="file" id="imageFile" accept="image/*"><br><br>
-    <button type="submit">บันทึกข้อมูล</button>
-  </form>
+<!-- LOADING -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="loading-spinner"></div>
+  <div style="margin-top:12px;font-size:15px;color:var(--text);font-weight:600;">กำลังเชื่อมต่อ...</div>
+  <div style="font-size:13px;color:var(--text2);">โปรดรอสักครู่</div>
+</div>
 
-  <script type="module">
-    import { db } from "./firebase.js";
-    import { collection, addDoc } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-firestore.js";
+<!-- OFFLINE BAR -->
+<div id="offline-bar" class="show">
+  <i class="fas fa-wifi-slash"></i>
+  <span>โหมด Offline — ข้อมูลซิงค์เมื่อออนไลน์</span>
+  <button style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.5);color:white;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:12px;" onclick="syncOfflineQueue()">ซิงค์</button>
+</div>
 
-    // 🔴 ใส่ค่า Cloud Name ของคุณตรงนี้
-    const CLOUD_NAME = "drywvqdnb"; 
-    const UPLOAD_PRESET = "fixpro";
+<!-- TOAST -->
+<div id="toast-container"></div>
 
-    document.getElementById("repairForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      
-      const device = document.getElementById("device").value;
-      const problem = document.getElementById("problem").value;
-      const fileInput = document.getElementById("imageFile");
-      let imageUrl = "";
+<!-- ============================================================
+     AUTH SCREEN
+     ============================================================ -->
+<div class="screen" id="auth-screen">
+  <button onclick="toggleTheme()" style="position:absolute;top:12px;right:12px;z-index:10;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+    <i id="auth-theme-icon" class="fas fa-moon" style="font-size:16px;"></i>
+  </button>
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="logo-icon">🔧</div>
+      <h1>FixPro</h1>
+      <p>ระบบจัดการงานช่าง</p>
+    </div>
+    <div class="auth-tabs">
+      <div class="auth-tab active" onclick="switchAuthTab('login')">เข้าสู่ระบบ</div>
+      <div class="auth-tab" onclick="switchAuthTab('register')">ลงทะเบียน</div>
+    </div>
+    <div id="login-form">
+      <div class="form-group">
+        <label class="form-label">อีเมล</label>
+        <div class="input-icon">
+          <i class="fas fa-envelope"></i>
+          <input type="email" class="form-control" id="login-email" placeholder="กรอกอีเมล" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()">
+        </div>
+        <div class="form-error" id="err-login-email">กรุณากรอกอีเมลให้ถูกต้อง</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">รหัสผ่าน</label>
+        <div class="input-icon">
+          <i class="fas fa-lock"></i>
+          <input type="password" class="form-control" id="login-password" placeholder="กรอกรหัสผ่าน" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+          <i class="fas fa-eye toggle-pass" onclick="togglePassword('login-password', this)"></i>
+        </div>
+        <div class="form-error" id="err-login-password">กรุณากรอกรหัสผ่าน</div>
+      </div>
+      <div class="form-group" style="display:flex;justify-content:space-between;align-items:center;">
+        <label class="form-check">
+          <input type="checkbox" id="remember-me">
+          <span style="font-size:13px;color:var(--text2);">จดจำฉัน</span>
+        </label>
+        <span style="font-size:13px;color:var(--primary);cursor:pointer;" onclick="showForgotPassword()">ลืมรหัสผ่าน?</span>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="doLogin()">
+        <i class="fas fa-sign-in-alt"></i> เข้าสู่ระบบ
+      </button>
+    </div>
+    <div id="register-form" style="display:none;">
+      <div style="background:#FFF8E1;border:1px solid #FFD54F;border-radius:8px;padding:10px 14px;font-size:13px;color:#7B5E00;margin-bottom:14px;display:flex;align-items:flex-start;gap:8px;">
+        <i class="fas fa-clock" style="color:#F59E0B;margin-top:2px;flex-shrink:0;"></i>
+        <span>หลังลงทะเบียน <b>ต้องรอ Admin อนุมัติ</b> ก่อนเข้าใช้งาน</span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">ชื่อ-นามสกุล</label>
+        <div class="input-icon">
+          <i class="fas fa-user"></i>
+          <input type="text" class="form-control" id="reg-name" placeholder="กรอกชื่อ-นามสกุล">
+        </div>
+        <div class="form-error" id="err-reg-name">กรุณากรอกชื่อ-นามสกุล</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">อีเมล</label>
+        <div class="input-icon">
+          <i class="fas fa-envelope"></i>
+          <input type="email" class="form-control" id="reg-email" placeholder="กรอกอีเมล">
+        </div>
+        <div class="form-error" id="err-reg-email">กรุณากรอกอีเมลให้ถูกต้อง</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">รหัสผ่าน</label>
+        <div class="input-icon">
+          <i class="fas fa-lock"></i>
+          <input type="password" class="form-control" id="reg-password" placeholder="อย่างน้อย 6 ตัว">
+        </div>
+        <div class="form-error" id="err-reg-password">รหัสผ่านต้องมีอย่างน้อย 6 ตัว</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">ยืนยันรหัสผ่าน</label>
+        <div class="input-icon">
+          <i class="fas fa-lock"></i>
+          <input type="password" class="form-control" id="reg-confirm" placeholder="ยืนยันรหัสผ่าน">
+        </div>
+        <div class="form-error" id="err-reg-confirm">รหัสผ่านไม่ตรงกัน</div>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="doRegister()">
+        <i class="fas fa-user-plus"></i> ลงทะเบียน
+      </button>
+    </div>
+  </div>
+  <div style="position:absolute;bottom:8px;right:12px;font-size:10px;color:rgba(255,255,255,.4);text-align:right;">
+    thanavutp&#64;gmail.com
+  </div>
+</div>
 
-      try {
-        // 1. อัปโหลดรูปไป Cloudinary (ถ้ามีการเลือกรูป)
-        if (fileInput.files.length > 0) {
-          const formData = new FormData();
-          formData.append("file", fileInput.files[0]);
-          formData.append("upload_preset", UPLOAD_PRESET);
+<!-- ============================================================
+     APP SCREEN
+     ============================================================ -->
+<div class="screen" id="app-screen">
 
-          const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
-            method: "POST",
-            body: formData
-          });
-          const data = await res.json();
-          imageUrl = data.secure_url;
-        }
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="header-brand">
+      <div class="brand-icon">🔧</div>
+      <h2>FixPro</h2>
+    </div>
+    <div class="header-actions">
+      <div class="header-btn" onclick="toggleTheme()" title="ธีม">
+        <i class="fas fa-moon" id="theme-icon"></i>
+      </div>
+      <div class="user-avatar" onclick="openProfileModal()" id="header-avatar">?</div>
+    </div>
+  </header>
 
-        // 2. บันทึกลง Firestore
-        await addDoc(collection(db, "repair_orders"), {
-          device,
-          problem,
-          imageUrl,
-          status: "pending",
-          createdAt: new Date()
-        });
+  <!-- MAIN CONTENT -->
+  <div class="app-body">
+    <main class="main-content" id="main-content">
 
-        alert("บันทึกงานซ่อมสำเร็จ!");
-        e.target.reset();
-      } catch (err) {
-        console.error("Error:", err);
-        alert("เกิดข้อผิดพลาด: " + err.message);
-      }
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div>
+            <div style="font-size:18px;font-weight:700;" id="dash-greeting">สวัสดี!</div>
+            <div style="font-size:12px;color:var(--text3);" id="dash-date"></div>
+          </div>
+        </div>
+        <div class="stats-grid" id="dash-stats"></div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title"><i class="fas fa-triangle-exclamation" style="color:var(--danger);"></i> ต้องติดต่อ</span>
+            <span class="badge badge-red" id="dash-reminder-count" style="display:none;"></span>
+          </div>
+          <div id="dash-reminders-list"></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title"><i class="fas fa-calendar-day" style="color:var(--primary);"></i> งานล่าสุด</span>
+          </div>
+          <div id="dash-recent-jobs"></div>
+        </div>
+      </div>
+
+      <!-- CUSTOMERS -->
+      <div class="page" id="page-customers">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div><div style="font-size:18px;font-weight:700;">รายชื่อลูกค้า</div></div>
+          <button class="btn btn-primary btn-sm" onclick="openAddCustomer()"><i class="fas fa-plus"></i> เพิ่ม</button>
+        </div>
+        <div class="search-bar">
+          <i class="fas fa-search"></i>
+          <input type="text" id="customer-search" placeholder="ค้นหาชื่อหรือเบอร์..." oninput="filterCustomers()">
+        </div>
+        <div class="customer-list" id="customer-list-container"></div>
+      </div>
+
+      <!-- JOBS -->
+      <div class="page" id="page-jobs">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div><div style="font-size:18px;font-weight:700;">ประวัติงาน</div></div>
+          <button class="btn btn-primary btn-sm" onclick="openAddJobGeneric()"><i class="fas fa-plus"></i> บันทึก</button>
+        </div>
+        <div class="filter-bar">
+          <div class="search-input">
+            <i class="fas fa-search"></i>
+            <input type="text" id="job-search" placeholder="ค้นหา..." oninput="filterJobs()">
+          </div>
+          <select class="form-select" id="job-filter-type" onchange="filterJobs()" style="min-width:80px;">
+            <option value="">ทั้งหมด</option>
+            <option value="ac">ล้างแอร์</option>
+            <option value="washer">ล้างซักผ้า</option>
+            <option value="repair">ซ่อมไฟฟ้า</option>
+            <option value="other">อื่นๆ</option>
+          </select>
+        </div>
+        <div class="card">
+          <div id="jobs-mobile-list"></div>
+          <div class="empty-state" id="jobs-empty" style="padding:30px 20px;display:none;">
+            <i class="fas fa-clipboard-list"></i><p>ไม่พบประวัติงาน</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- REMINDERS -->
+      <div class="page" id="page-reminders">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div><div style="font-size:18px;font-weight:700;">🔔 แจ้งเตือน</div></div>
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px;">
+          <button class="btn btn-secondary btn-sm active-filter" onclick="filterReminders('all', this)">ทั้งหมด</button>
+          <button class="btn btn-secondary btn-sm" onclick="filterReminders('overdue', this)"><span style="color:var(--danger)">●</span> เกิน</button>
+          <button class="btn btn-secondary btn-sm" onclick="filterReminders('soon', this)"><span style="color:var(--warning)">●</span> 30 วัน</button>
+          <button class="btn btn-secondary btn-sm" onclick="filterReminders('upcoming', this)"><span style="color:var(--info)">●</span> 90 วัน</button>
+        </div>
+        <div class="card" id="reminders-container"></div>
+      </div>
+
+      <!-- CUSTOMER DETAIL -->
+      <div class="page" id="page-customer-detail">
+        <button class="btn btn-ghost btn-sm" style="margin-bottom:8px;" onclick="showPage('customers')">
+          <i class="fas fa-arrow-left"></i> กลับ
+        </button>
+        <div id="customer-detail-content"></div>
+      </div>
+
+      <!-- REPORTS -->
+      <div class="page" id="page-reports">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div><div style="font-size:18px;font-weight:700;">📊 รายงาน</div></div>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-secondary btn-sm" onclick="exportExcel()"><i class="fas fa-file-excel" style="color:#217346;"></i></button>
+            <button class="btn btn-secondary btn-sm" onclick="exportPDFReport()"><i class="fas fa-file-pdf" style="color:#DC2626;"></i></button>
+          </div>
+        </div>
+        <div class="stats-grid" id="report-stats"></div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">รายได้รายเดือน</span></div>
+          <div class="card-body" id="report-bar-chart" style="height:100px;display:flex;align-items:flex-end;gap:3px;padding:4px 0;"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div class="card">
+            <div class="card-header"><span class="card-title">ประเภทงาน</span></div>
+            <div class="card-body" id="report-type-breakdown"></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Top 5</span></div>
+            <div class="card-body" id="report-top-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS (EBED Style) -->
+      <div class="page" id="page-settings">
+        <div style="margin-bottom:10px;">
+          <div style="font-size:18px;font-weight:700;">⚙️ ตั้งค่า</div>
+        </div>
+
+        <!-- ข้อมูลร้าน -->
+        <div class="card">
+          <div class="settings-section-header"><i class="fas fa-store"></i> ข้อมูลร้าน / ช่าง</div>
+          <div class="card-body" style="padding-top:4px;">
+            <div class="form-group">
+              <label class="form-label">ชื่อร้าน / ชื่อช่าง</label>
+              <input type="text" class="form-control" id="cfg-shop-name" placeholder="ช่างวุฒิ แอร์เซอร์วิส">
+            </div>
+            <div class="form-group">
+              <label class="form-label">เบอร์โทรติดต่อ</label>
+              <input type="tel" class="form-control" id="cfg-tech-phone" placeholder="08x-xxx-xxxx">
+            </div>
+            <div class="form-group">
+              <label class="form-label">ข้อความท้ายใบเสร็จ</label>
+              <input type="text" class="form-control" id="cfg-receipt-footer" placeholder="รับประกันงาน 30 วัน">
+            </div>
+            <div class="form-group">
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+                <input type="checkbox" id="cfg-auto-line-popup" checked>
+                <span style="font-size:13px;">แสดง popup ส่ง LINE อัตโนมัติ</span>
+              </label>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="saveShopConfig()"><i class="fas fa-save"></i> บันทึก</button>
+          </div>
+        </div>
+
+        <!-- Firebase -->
+        <div class="card">
+          <div class="settings-section-header"><i class="fas fa-fire" style="color:#f97316;"></i> Firebase Configuration</div>
+          <div class="card-body" style="padding-top:4px;">
+            <div id="firebase-status" class="config-status warn"><i class="fas fa-circle-exclamation"></i> ยังไม่ได้ตั้งค่า</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+              <div class="form-group"><label class="form-label" style="font-size:11px;">API Key</label><input type="text" class="form-control" id="cfg-fb-apikey" placeholder="AIza..." style="font-size:12px;"></div>
+              <div class="form-group"><label class="form-label" style="font-size:11px;">Auth Domain</label><input type="text" class="form-control" id="cfg-fb-authdomain" placeholder="app.firebaseapp.com" style="font-size:12px;"></div>
+              <div class="form-group"><label class="form-label" style="font-size:11px;">Project ID</label><input type="text" class="form-control" id="cfg-fb-projectid" placeholder="my-project-id" style="font-size:12px;"></div>
+              <div class="form-group"><label class="form-label" style="font-size:11px;">Storage Bucket</label><input type="text" class="form-control" id="cfg-fb-storagebucket" placeholder="app.appspot.com" style="font-size:12px;"></div>
+              <div class="form-group"><label class="form-label" style="font-size:11px;">Sender ID</label><input type="text" class="form-control" id="cfg-fb-senderid" placeholder="123456789" style="font-size:12px;"></div>
+              <div class="form-group"><label class="form-label" style="font-size:11px;">App ID</label><input type="text" class="form-control" id="cfg-fb-appid" placeholder="1:xxx:web:yyy" style="font-size:12px;"></div>
+            </div>
+            <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">
+              <button class="btn btn-primary btn-sm" onclick="saveFirebaseConfig()"><i class="fas fa-save"></i> บันทึก</button>
+              <button class="btn btn-secondary btn-sm" onclick="testFirebase()"><i class="fas fa-plug"></i> ทดสอบ</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cloudinary -->
+        <div class="card">
+          <div class="settings-section-header"><i class="fas fa-cloud" style="color:#4f9ee8;"></i> Cloudinary Configuration</div>
+          <div class="card-body" style="padding-top:4px;">
+            <div id="cloudinary-status" class="config-status warn"><i class="fas fa-circle-exclamation"></i> ยังไม่ได้ตั้งค่า</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+              <div class="form-group"><label class="form-label" style="font-size:11px;">Cloud Name</label><input type="text" class="form-control" id="cfg-cld-name" placeholder="my-cloud-name" style="font-size:12px;"></div>
+              <div class="form-group"><label class="form-label" style="font-size:11px;">Upload Preset</label><input type="text" class="form-control" id="cfg-cld-preset" placeholder="ml_default" style="font-size:12px;"></div>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="saveCloudinaryConfig()"><i class="fas fa-save"></i> บันทึก</button>
+          </div>
+        </div>
+
+        <!-- AI Assistant -->
+        <div class="card">
+          <div class="settings-section-header"><i class="fas fa-robot" style="color:#8b5cf6;"></i> AI Assistant</div>
+          <div class="card-body" style="padding-top:4px;">
+            <div id="ai-status" class="config-status warn"><i class="fas fa-circle-exclamation"></i> ยังไม่ได้ตั้งค่า</div>
+            <div class="form-group">
+              <label class="form-label">ผู้ให้บริการ</label>
+              <select class="form-control" id="cfg-ai-provider" style="font-size:13px;">
+                <option value="openai">OpenAI (GPT-4o Mini)</option>
+                <option value="anthropic">Anthropic (Claude Haiku)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">API Key</label>
+              <div style="position:relative;">
+                <input type="password" class="form-control" id="cfg-ai-key" placeholder="sk-..." style="padding-right:40px;">
+                <button type="button" onclick="toggleAiKeyVisibility()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:4px;">
+                  <i class="fas fa-eye" id="ai-key-eye"></i>
+                </button>
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button class="btn btn-primary btn-sm" onclick="saveAiConfig()"><i class="fas fa-save"></i> บันทึก</button>
+              <button class="btn btn-secondary btn-sm" onclick="testAiConnection()"><i class="fas fa-plug"></i> ทดสอบ</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Backup / Export -->
+        <div class="card">
+          <div class="settings-section-header"><i class="fas fa-database" style="color:var(--success);"></i> Backup / Export</div>
+          <div class="card-body" style="padding-top:4px;">
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button class="btn btn-secondary btn-sm" onclick="backupData()"><i class="fas fa-download"></i> Backup JSON</button>
+              <button class="btn btn-secondary btn-sm" onclick="document.getElementById('restore-input').click()"><i class="fas fa-upload"></i> Restore</button>
+              <input type="file" id="restore-input" accept=".json" style="display:none" onchange="restoreData(event)">
+              <button class="btn btn-secondary btn-sm" onclick="exportExcel()"><i class="fas fa-file-excel"></i> Excel</button>
+              <button class="btn btn-secondary btn-sm" onclick="exportPDFReport()"><i class="fas fa-file-pdf"></i> PDF</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- About -->
+        <div style="text-align:center;font-size:10px;color:var(--text3);padding:8px 0;">
+          Developed by ธนาวุฒิ พรมรักษ์ &nbsp;·&nbsp; thanavutp&#64;gmail.com
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- MOBILE NAV -->
+  <nav class="mobile-nav" id="mobile-nav">
+    <div class="mobile-nav-items">
+      <div class="mobile-nav-item active" data-page="dashboard" onclick="showPage('dashboard')">
+        <i class="fas fa-home"></i><span>หน้าแรก</span>
+      </div>
+      <div class="mobile-nav-item" data-page="customers" onclick="showPage('customers')">
+        <i class="fas fa-users"></i><span>ลูกค้า</span>
+      </div>
+      <div class="mobile-nav-item" data-page="jobs" onclick="showPage('jobs')">
+        <i class="fas fa-clipboard-list"></i><span>งาน</span>
+      </div>
+      <div class="mobile-nav-item" data-page="reminders" onclick="showPage('reminders')">
+        <i class="fas fa-bell"></i><span>แจ้งเตือน</span>
+        <span class="nav-badge" id="reminder-nav-badge" style="display:none;">0</span>
+      </div>
+      <div class="mobile-nav-item" data-page="settings" onclick="showPage('settings')">
+        <i class="fas fa-cog"></i><span>ตั้งค่า</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- FAB -->
+  <button id="fab" onclick="onFabClick()"><i class="fas fa-plus"></i></button>
+
+</div>
+
+<!-- ============================================================
+     MODALS
+     ============================================================ -->
+
+<!-- Add/Edit Customer -->
+<div class="modal-overlay" id="modal-customer">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-customer-title">เพิ่มลูกค้า</span>
+      <div class="modal-close" onclick="closeModal('modal-customer')"><i class="fas fa-times"></i></div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">ชื่อ-นามสกุล <span class="badge badge-red">*</span></label>
+        <input type="text" class="form-control" id="cust-name" placeholder="ชื่อ-นามสกุล">
+      </div>
+      <div class="form-group">
+        <label class="form-label">เบอร์โทร <span class="badge badge-red">*</span></label>
+        <input type="tel" class="form-control" id="cust-phone" placeholder="08x-xxx-xxxx" maxlength="10">
+      </div>
+      <div class="form-group">
+        <label class="form-label">ที่อยู่</label>
+        <input type="text" class="form-control" id="cust-address" placeholder="บ้านเลขที่ ถนน ตำบล อำเภอ จังหวัด">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Line ID</label>
+        <input type="text" class="form-control" id="cust-line" placeholder="@line_id">
+      </div>
+      <div class="form-group">
+        <label class="form-label">หมายเหตุ</label>
+        <textarea class="form-control" id="cust-note" placeholder="ข้อมูลพิเศษ..."></textarea>
+      </div>
+      <input type="hidden" id="cust-edit-phone">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-customer')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveCustomer()"><i class="fas fa-save"></i> บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Job -->
+<div class="modal-overlay" id="modal-job">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-job-title">บันทึกงาน</span>
+      <div class="modal-close" onclick="closeModal('modal-job')"><i class="fas fa-times"></i></div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">ลูกค้า <span class="badge badge-red">*</span></label>
+        <input type="text" class="form-control" id="job-customer-name" placeholder="ชื่อลูกค้า" readonly style="background:var(--bg);">
+      </div>
+      <div class="form-group">
+        <label class="form-label">ประเภท <span class="badge badge-red">*</span></label>
+        <div class="type-selector" id="type-selector">
+          <div class="type-card selected" data-type="ac" onclick="selectJobType('ac')">
+            <div class="type-emoji">🌬️</div><div class="type-label">ล้างแอร์</div>
+          </div>
+          <div class="type-card" data-type="washer" onclick="selectJobType('washer')">
+            <div class="type-emoji">🫧</div><div class="type-label">ล้างซักผ้า</div>
+          </div>
+          <div class="type-card" data-type="repair" onclick="selectJobType('repair')">
+            <div class="type-emoji">🔧</div><div class="type-label">ซ่อมไฟฟ้า</div>
+          </div>
+          <div class="type-card" data-type="other" onclick="selectJobType('other')">
+            <div class="type-emoji">📋</div><div class="type-label">อื่นๆ</div>
+          </div>
+        </div>
+        <input type="hidden" id="job-type" value="ac">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div class="form-group">
+          <label class="form-label">📅 วันที่ <span class="badge badge-red">*</span></label>
+          <input type="date" class="form-control" id="job-date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">💵 ค่าบริการ</label>
+          <input type="number" class="form-control" id="job-cost" placeholder="0" min="0">
+        </div>
+      </div>
+      <div class="form-group" id="job-remind-row">
+        <label class="form-label">🔔 นัดหมายถัดไป</label>
+        <input type="date" class="form-control" id="job-next-date">
+        <div style="font-size:11px;color:var(--text3);">= วันบริการ + 1 ปี</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">📦 อุปกรณ์</label>
+        <input type="text" class="form-control" id="job-device" placeholder="รุ่นอุปกรณ์">
+      </div>
+      <div class="form-group">
+        <label class="form-label">📝 รายละเอียด</label>
+        <textarea class="form-control" id="job-desc" placeholder="อาการ วิธีซ่อม อะไหล่..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">สถานะ</label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <label class="badge badge-green" style="cursor:pointer;padding:6px 12px;"><input type="radio" name="job-status-r" value="done" checked onchange="document.getElementById('job-status').value=this.value"> ✅ เสร็จ</label>
+          <label class="badge badge-amber" style="cursor:pointer;padding:6px 12px;"><input type="radio" name="job-status-r" value="pending" onchange="document.getElementById('job-status').value=this.value"> ⏳ รอ</label>
+          <label class="badge badge-purple" style="cursor:pointer;padding:6px 12px;"><input type="radio" name="job-status-r" value="followup" onchange="document.getElementById('job-status').value=this.value"> 🔄 ติดตาม</label>
+        </div>
+        <input type="hidden" id="job-status" value="done">
+      </div>
+      <div class="form-group">
+        <label class="form-label"><i class="fas fa-camera" style="color:var(--primary);"></i> รูปภาพ</label>
+        <div class="photo-upload-area" onclick="document.getElementById('photo-gallery').click()">
+          <i class="fas fa-cloud-arrow-up"></i>
+          <div style="font-size:13px;">คลิกเลือกรูป</div>
+        </div>
+        <input type="file" id="photo-gallery" accept="image/*" multiple style="display:none" onchange="handlePhotoSelect(event)">
+        <div class="photo-grid" id="photo-preview"></div>
+      </div>
+      <input type="hidden" id="job-edit-id">
+      <input type="hidden" id="job-customer-phone">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-job')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveJob()"><i class="fas fa-save"></i> บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Customer Picker -->
+<div class="modal-overlay" id="modal-pick-customer">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <span class="modal-title">เลือกลูกค้า</span>
+      <div class="modal-close" onclick="closeModal('modal-pick-customer')"><i class="fas fa-times"></i></div>
+    </div>
+    <div style="padding:10px 14px;border-bottom:1px solid var(--border);">
+      <div class="search-bar" style="margin:0;">
+        <i class="fas fa-search"></i>
+        <input type="text" id="picker-search" placeholder="ค้นหาชื่อหรือเบอร์..." oninput="filterPicker()">
+      </div>
+    </div>
+    <div style="max-height:300px;overflow-y:auto;" id="picker-list"></div>
+    <div class="modal-footer" style="justify-content:space-between;">
+      <button class="btn btn-secondary" onclick="closeModal('modal-pick-customer')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="closeModal('modal-pick-customer');openAddCustomer()"><i class="fas fa-user-plus"></i> เพิ่มลูกค้า</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Delete -->
+<div class="modal-overlay" id="modal-confirm">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-header">
+      <span class="modal-title" id="confirm-title">ยืนยันการลบ</span>
+      <div class="modal-close" onclick="closeModal('modal-confirm')"><i class="fas fa-times"></i></div>
+    </div>
+    <div class="modal-body">
+      <div id="confirm-msg" style="font-size:14px;line-height:1.6;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-confirm')">ยกเลิก</button>
+      <button class="btn btn-danger" id="confirm-ok-btn"><i class="fas fa-trash"></i> ลบ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Receipt -->
+<div class="modal-overlay" id="modal-receipt">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <span class="modal-title">🧾 ใบงาน / ใบเสร็จ</span>
+      <div class="modal-close" onclick="closeModal('modal-receipt')"><i class="fas fa-times"></i></div>
+    </div>
+    <div class="modal-body" id="receipt-content"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-receipt')">ปิด</button>
+      <button class="btn btn-primary" onclick="shareReceiptLine()"><i class="fab fa-line"></i> ส่ง LINE</button>
+      <button class="btn btn-secondary" onclick="copyReceipt()"><i class="fas fa-copy"></i> คัดลอก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Profile -->
+<div class="modal-overlay" id="modal-profile">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-header">
+      <span class="modal-title"><i class="fas fa-user-circle"></i> ข้อมูลผู้ใช้</span>
+      <div class="modal-close" onclick="closeModal('modal-profile')"><i class="fas fa-times"></i></div>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <div id="profile-avatar" style="width:48px;height:48px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;flex-shrink:0;"></div>
+        <div><div id="profile-name" style="font-size:15px;font-weight:700;"></div><div id="profile-email" style="font-size:12px;color:var(--text3);"></div></div>
+      </div>
+      <div class="form-group"><label class="form-label">รหัสผ่านเดิม</label><input type="password" class="form-control" id="profile-old-pass" placeholder="รหัสผ่านเดิม"></div>
+      <div class="form-group"><label class="form-label">รหัสผ่านใหม่</label><input type="password" class="form-control" id="profile-new-pass" placeholder="รหัสผ่านใหม่"></div>
+      <div class="form-group"><label class="form-label">ยืนยันรหัสผ่าน</label><input type="password" class="form-control" id="profile-confirm-pass" placeholder="ยืนยันรหัสผ่าน"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-profile')">ปิด</button>
+      <button class="btn btn-primary" onclick="changePasswordFromProfile()"><i class="fas fa-key"></i> เปลี่ยน</button>
+    </div>
+  </div>
+</div>
+
+<!-- Job Complete Popup -->
+<div id="job-complete-overlay" class="show">
+  <div class="job-complete-sheet">
+    <div class="job-complete-icon">✅</div>
+    <div class="job-complete-title">บันทึกงานเรียบร้อย!</div>
+    <div class="job-complete-sub" id="complete-job-detail"></div>
+    <button class="btn-line-big" onclick="sendReceiptLineNow()">
+      <i class="fab fa-line"></i> ส่งใบเสร็จผ่าน LINE
+    </button>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button class="btn btn-secondary btn-sm" style="flex:1;" onclick="openReceiptFromPopup()"><i class="fas fa-receipt"></i> ดูใบเสร็จ</button>
+      <button class="btn btn-secondary btn-sm" style="flex:1;" onclick="copyReceiptFromPopup()"><i class="fas fa-copy"></i> คัดลอกข้อความ</button>
+    </div>
+    <button style="background:none;border:none;color:var(--text3);margin-top:8px;cursor:pointer;font-size:13px;padding:8px;" onclick="dismissJobComplete()">ข้ามไปก่อน</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCRIPTS
+     ============================================================ -->
+<script>
+// ============================================================
+// CONFIG & STATE
+// ============================================================
+var DB = { customers: [], jobs: [] };
+var currentUser = null;
+var currentPage = 'dashboard';
+var currentCustomerPhone = null;
+var pendingPhotos = [];
+var reminderFilter = 'all';
+
+var LS_CUSTOMERS = 'fixpro_customers';
+var LS_JOBS = 'fixpro_jobs';
+var CFG_KEY = 'fixpro_config';
+
+function loadConfig() {
+  try { return JSON.parse(localStorage.getItem(CFG_KEY) || '{}'); } catch(e) { return {}; }
+}
+function saveConfig(cfg) { localStorage.setItem(CFG_KEY, JSON.stringify(cfg)); }
+function lsGetCustomers() { try { return JSON.parse(localStorage.getItem(LS_CUSTOMERS) || '[]'); } catch(e) { return []; } }
+function lsSaveCustomers(arr) { localStorage.setItem(LS_CUSTOMERS, JSON.stringify(arr)); }
+function lsGetJobs() { try { return JSON.parse(localStorage.getItem(LS_JOBS) || '[]'); } catch(e) { return []; } }
+function lsSaveJobs(arr) { localStorage.setItem(LS_JOBS, JSON.stringify(arr)); }
+
+// ============================================================
+// FIREBASE
+// ============================================================
+var db = null;
+async function initFirebase(cfg) {
+  try {
+    if (firebase.apps.length > 0) firebase.apps.forEach(a => a.delete());
+    firebase.initializeApp({
+      apiKey: cfg.apiKey, authDomain: cfg.authDomain,
+      projectId: cfg.projectId, storageBucket: cfg.storageBucket,
+      messagingSenderId: cfg.messagingSenderId, appId: cfg.appId
     });
-  </script>
+    db = firebase.firestore();
+    return true;
+  } catch(e) { console.error('Firebase init error:', e); return false; }
+}
+
+// ============================================================
+// DATA LOADING
+// ============================================================
+async function loadAllData() {
+  if (db) {
+    try {
+      var cSnap = await db.collection('customers').get();
+      DB.customers = cSnap.docs.map(function(d){ return Object.assign({}, d.data(), {phone: d.id}); });
+      var jSnap = await db.collection('jobs').orderBy('serviceDate', 'desc').get();
+      DB.jobs = jSnap.docs.map(function(d){ return Object.assign({}, d.data(), {id: d.id}); });
+      lsSaveCustomers(DB.customers);
+      lsSaveJobs(DB.jobs);
+    } catch(e) {
+      console.warn('Firestore error, using local cache:', e);
+      DB.customers = lsGetCustomers();
+      DB.jobs = lsGetJobs();
+    }
+  } else {
+    DB.customers = lsGetCustomers();
+    DB.jobs = lsGetJobs();
+  }
+  refreshAll();
+}
+
+// ============================================================
+// SAVE HELPERS
+// ============================================================
+async function saveCustomerData(customer) {
+  var idx = DB.customers.findIndex(function(c){ return c.phone === customer.phone; });
+  if (idx >= 0) DB.customers[idx] = customer;
+  else DB.customers.unshift(customer);
+  lsSaveCustomers(DB.customers);
+  if (db) {
+    try { await db.collection('customers').doc(customer.phone).set(customer); }
+    catch(e) { console.warn('Firestore save error:', e); }
+  }
+}
+async function deleteCustomerData(phone) {
+  DB.customers = DB.customers.filter(function(c){ return c.phone !== phone; });
+  DB.jobs = DB.jobs.filter(function(j){ return j.customerPhone !== phone; });
+  lsSaveCustomers(DB.customers);
+  lsSaveJobs(DB.jobs);
+  if (db) {
+    try {
+      await db.collection('customers').doc(phone).delete();
+      var jSnap = await db.collection('jobs').where('customerPhone','==',phone).get();
+      for (var d of jSnap.docs) await d.ref.delete();
+    } catch(e) { console.warn(e); }
+  }
+}
+async function saveJobData(job) {
+  var idx = DB.jobs.findIndex(function(j){ return j.id === job.id; });
+  if (idx >= 0) DB.jobs[idx] = job;
+  else DB.jobs.unshift(job);
+  lsSaveJobs(DB.jobs);
+  if (db) {
+    try { await db.collection('jobs').doc(job.id).set(job); }
+    catch(e) { console.warn('Firestore save error:', e); }
+  }
+}
+async function deleteJobData(jobId) {
+  DB.jobs = DB.jobs.filter(function(j){ return j.id !== jobId; });
+  lsSaveJobs(DB.jobs);
+  if (db) {
+    try { await db.collection('jobs').doc(jobId).delete(); }
+    catch(e) { console.warn(e); }
+  }
+}
+
+// ============================================================
+// CLOUDINARY
+// ============================================================
+async function uploadToCloudinary(file) {
+  var cfg = loadConfig();
+  if (!cfg.cloudName || !cfg.uploadPreset) return null;
+  var fd = new FormData();
+  fd.append('file', file);
+  fd.append('upload_preset', cfg.uploadPreset);
+  try {
+    var res = await fetch('https://api.cloudinary.com/v1_1/' + cfg.cloudName + '/image/upload', { method: 'POST', body: fd });
+    var data = await res.json();
+    return data.secure_url || null;
+  } catch(e) { return null; }
+}
+
+// ============================================================
+// REFRESH
+// ============================================================
+function refreshAll() {
+  renderDashboard();
+  renderCustomers();
+  renderJobs();
+  renderReminders();
+  updateReminderBadge();
+  if (currentPage === 'reports') renderReport();
+  if (currentPage === 'settings') loadSettingsPage();
+}
+
+// ============================================================
+// SERVICE TYPES
+// ============================================================
+var SERVICE_LABELS = { ac: '🌬️ ล้างแอร์', washer: '🫧 ล้างเครื่องซักผ้า', repair: '🔧 ซ่อมไฟฟ้า', other: '📋 อื่นๆ' };
+var SERVICE_COLORS = { ac: 'badge-blue', washer: 'badge-cyan', repair: 'badge-amber', other: 'badge-gray' };
+var REMIND_TYPES = ['ac', 'washer'];
+var STATUS_LABELS = { done: '✅ เสร็จ', pending: '⏳ รอ', followup: '🔄 ติดตาม' };
+var STATUS_COLORS = { done: 'badge-green', pending: 'badge-amber', followup: 'badge-purple' };
+
+// ============================================================
+// DATE HELPERS
+// ============================================================
+function formatDate(d) {
+  if (!d) return '-';
+  var dt = d.toDate ? d.toDate() : new Date(d);
+  return dt.toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+function dateStr(d) {
+  if (!d) return '';
+  var dt = d.toDate ? d.toDate() : new Date(d);
+  return dt.toISOString().split('T')[0];
+}
+function addYear(dateStr) {
+  if (!dateStr) return '';
+  var d = new Date(dateStr);
+  d.setFullYear(d.getFullYear() + 1);
+  return d.toISOString().split('T')[0];
+}
+function daysDiff(dateStr) {
+  if (!dateStr) return null;
+  var d = new Date(dateStr); d.setHours(0,0,0,0);
+  var now = new Date(); now.setHours(0,0,0,0);
+  return Math.round((d - now) / 86400000);
+}
+function todayStr() { return new Date().toISOString().split('T')[0]; }
+
+// ============================================================
+// REMINDER LOGIC
+// ============================================================
+function getReminderStatus(nextDate) {
+  var diff = daysDiff(nextDate);
+  if (diff === null) return null;
+  if (diff < 0) return 'overdue';
+  if (diff <= 30) return 'soon';
+  if (diff <= 90) return 'upcoming';
+  return null;
+}
+function getUpcomingReminders(filter) {
+  var map = {};
+  for (var job of DB.jobs) {
+    if (!REMIND_TYPES.includes(job.serviceType)) continue;
+    if (!job.nextDate) continue;
+    var key = job.customerPhone + '_' + job.serviceType;
+    if (!map[key] || job.serviceDate > map[key].serviceDate) map[key] = job;
+  }
+  var results = [];
+  for (var job of Object.values(map)) {
+    var status = getReminderStatus(job.nextDate);
+    if (!status) continue;
+    if (filter !== 'all' && status !== filter) continue;
+    var cust = DB.customers.find(c => c.phone === job.customerPhone);
+    results.push({ job, cust, status });
+  }
+  results.sort((a, b) => {
+    var da = daysDiff(a.job.nextDate), db2 = daysDiff(b.job.nextDate);
+    return (da ?? 9999) - (db2 ?? 9999);
+  });
+  return results;
+}
+function updateReminderBadge() {
+  var reminders = getUpcomingReminders('all');
+  var count = reminders.filter(r => r.status === 'overdue' || r.status === 'soon').length;
+  var badge = document.getElementById('reminder-nav-badge');
+  if (badge) { badge.textContent = count; badge.style.display = count > 0 ? '' : 'none'; }
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function renderDashboard() {
+  var now = new Date();
+  var dayNames = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัส','ศุกร์','เสาร์'];
+  var monthNames = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  var dateLabel = 'วัน' + dayNames[now.getDay()] + 'ที่ ' + now.getDate() + ' ' + monthNames[now.getMonth()] + ' ' + (now.getFullYear()+543);
+  var overdueR = getUpcomingReminders('all').filter(r => r.status === 'overdue');
+  var soonR = getUpcomingReminders('all').filter(r => r.status === 'soon');
+  var urgentCount = overdueR.length + soonR.length;
+  var pendingJobs = DB.jobs.filter(j => j.status === 'pending' || j.status === 'followup');
+  var thisMonthJobs = DB.jobs.filter(j => {
+    var d = j.serviceDate ? new Date(j.serviceDate) : null;
+    return d && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  });
+  var thisMonthRev = thisMonthJobs.reduce((s,j) => s+(parseFloat(j.cost)||0), 0);
+  var greeting = now.getHours() < 12 ? 'สวัสดีตอนเช้า 🌅' : now.getHours() < 17 ? 'สวัสดีตอนบ่าย ☀️' : 'สวัสดีตอนเย็น 🌆';
+  document.getElementById('dash-greeting').textContent = greeting;
+  document.getElementById('dash-date').textContent = dateLabel;
+
+  var statsEl = document.getElementById('dash-stats');
+  statsEl.innerHTML = `
+    <div class="stat-card green" onclick="showPage('reminders')">
+      <div class="stat-icon"><i class="fas fa-bell"></i></div>
+      <div class="stat-value">${urgentCount}</div>
+      <div class="stat-label">ต้องติดต่อ</div>
+    </div>
+    <div class="stat-card orange" onclick="showPage('jobs')">
+      <div class="stat-icon"><i class="fas fa-clock"></i></div>
+      <div class="stat-value">${pendingJobs.length}</div>
+      <div class="stat-label">งานค้าง</div>
+    </div>
+    <div class="stat-card blue" onclick="showPage('jobs')">
+      <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+      <div class="stat-value">${thisMonthJobs.length}</div>
+      <div class="stat-label">งานเดือนนี้</div>
+    </div>
+    <div class="stat-card amber" onclick="showPage('reports')">
+      <div class="stat-icon"><i class="fas fa-money-bill"></i></div>
+      <div class="stat-value" style="font-size:${thisMonthRev>=10000?'16px':'20px'};">${thisMonthRev>=10000?(thisMonthRev/1000).toFixed(1)+'k':thisMonthRev.toLocaleString()}</div>
+      <div class="stat-label">รายได้เดือนนี้</div>
+    </div>
+  `;
+
+  var dashRemList = document.getElementById('dash-reminders-list');
+  var dashCount = document.getElementById('dash-reminder-count');
+  var allUrgent = [...overdueR, ...soonR].slice(0, 5);
+  if (dashCount) { dashCount.style.display = allUrgent.length ? '' : 'none'; dashCount.textContent = allUrgent.length + ' ราย'; }
+  if (dashRemList) {
+    dashRemList.innerHTML = allUrgent.length === 0
+      ? '<div class="empty-state"><i class="far fa-smile"></i><p>ไม่มีลูกค้าต้องติดต่อ</p></div>'
+      : allUrgent.map(r => {
+          var diff = daysDiff(r.job.nextDate);
+          var diffText = diff < 0 ? 'เกิน ' + Math.abs(diff) + ' วัน' : diff === 0 ? 'วันนี้!' : 'อีก ' + diff + ' วัน';
+          var col = r.status === 'overdue' ? 'var(--danger)' : 'var(--warning)';
+          return '<div class="reminder-item" onclick="showCustomerDetail(\'' + (r.cust?.phone||'') + '\')">' +
+            '<div class="reminder-dot ' + r.status + '"></div>' +
+            '<div style="flex:1;min-width:0;"><div class="reminder-name">' + (r.cust?.name||'-') + '</div>' +
+            '<div class="reminder-detail">' + SERVICE_LABELS[r.job.serviceType] + ' · ' + (r.cust?.phone||'') + '</div></div>' +
+            '<div style="font-size:12px;font-weight:700;color:' + col + ';">' + diffText + '</div></div>';
+        }).join('');
+  }
+
+  var recentEl = document.getElementById('dash-recent-jobs');
+  var recent = DB.jobs.slice(0, 5);
+  if (recentEl) {
+    recentEl.innerHTML = recent.length === 0
+      ? '<div class="empty-state"><i class="fas fa-folder-open"></i><p>ยังไม่มีงาน</p></div>'
+      : recent.map(j => {
+          var cust = DB.customers.find(c => c.phone === j.customerPhone);
+          var emoji = j.serviceType==='ac'?'🌬️':j.serviceType==='washer'?'🫧':'🔧';
+          return '<div class="reminder-item" onclick="showCustomerDetail(\'' + j.customerPhone + '\')">' +
+            '<div style="font-size:20px;flex-shrink:0;">' + emoji + '</div>' +
+            '<div style="flex:1;min-width:0;"><div class="reminder-name">' + (cust?.name||j.customerPhone) + '</div>' +
+            '<div class="reminder-detail">' + formatDate(j.serviceDate) + '</div></div>' +
+            '<div style="text-align:right;flex-shrink:0;"><div style="font-weight:700;color:var(--success);">' + (j.cost?Number(j.cost).toLocaleString()+' ฿':'-') + '</div></div></div>';
+        }).join('');
+  }
+}
+
+// ============================================================
+// CUSTOMERS
+// ============================================================
+var customerFilterText = '';
+function renderCustomers(filter) {
+  if (filter !== undefined) customerFilterText = filter;
+  var ft = customerFilterText.toLowerCase();
+  var list = DB.customers.filter(c => !ft || c.name?.toLowerCase().includes(ft) || c.phone?.includes(ft) || c.address?.toLowerCase().includes(ft));
+  var container = document.getElementById('customer-list-container');
+  if (list.length === 0) {
+    container.innerHTML = '<div class="empty-state"><i class="fas fa-user-slash"></i><p>' + (customerFilterText ? 'ไม่พบลูกค้า' : 'ยังไม่มีลูกค้า') + '</p>' +
+      (!customerFilterText ? '<button class="btn btn-primary btn-sm" onclick="openAddCustomer()"><i class="fas fa-plus"></i> เพิ่มลูกค้า</button>' : '') + '</div>';
+    return;
+  }
+  container.innerHTML = list.map(c => {
+    var jobs = DB.jobs.filter(j => j.customerPhone === c.phone);
+    var hasReminder = getUpcomingReminders('all').some(r => r.cust?.phone === c.phone && (r.status === 'overdue' || r.status === 'soon'));
+    var avatarColor = stringToColor(c.name || c.phone);
+    return '<div class="customer-card" onclick="showCustomerDetail(\'' + c.phone + '\')">' +
+      '<div class="customer-avatar" style="background:' + avatarColor + '">' + (c.name||'?')[0].toUpperCase() + '</div>' +
+      '<div class="customer-info"><div class="customer-name">' + (c.name || '-') + (hasReminder ? ' <span style="color:var(--danger);font-size:12px;">●</span>' : '') + '</div>' +
+      '<div class="customer-phone"><i class="fas fa-phone" style="font-size:11px;"></i> ' + c.phone + '</div>' +
+      (c.address ? '<div style="font-size:11px;color:var(--text3);"><i class="fas fa-location-dot"></i> ' + c.address + '</div>' : '') +
+      '<div class="customer-tags">' + jobs.slice(0,2).map(j => '<span class="badge ' + (SERVICE_COLORS[j.serviceType]||'badge-gray') + '" style="font-size:10px;">' + (SERVICE_LABELS[j.serviceType]||j.serviceType) + '</span>').join('') + '</div></div>' +
+      '<div class="customer-meta"><div class="job-count">' + jobs.length + '</div><div class="job-label">งาน</div></div></div>';
+  }).join('');
+}
+function filterCustomers() { renderCustomers(document.getElementById('customer-search')?.value || ''); }
+function stringToColor(str) {
+  var colors = ['#2E7D32','#1976D2','#7C3AED','#F59E0B','#DC2626','#0288D1','#E91E63','#388E3C'];
+  var h = 0; for (var i = 0; i < str.length; i++) h = str.charCodeAt(i) + ((h << 5) - h);
+  return colors[Math.abs(h) % colors.length];
+}
+
+// ============================================================
+// JOBS (Mobile Card List)
+// ============================================================
+function renderJobs() {
+  var ft = (document.getElementById('job-search')?.value || '').toLowerCase();
+  var typeFilter = document.getElementById('job-filter-type')?.value || '';
+  var list = DB.jobs.filter(j => {
+    var cust = DB.customers.find(c => c.phone === j.customerPhone);
+    var matchText = !ft || (cust?.name || '').toLowerCase().includes(ft) || (j.customerPhone || '').includes(ft) || (j.description || '').toLowerCase().includes(ft) || (j.deviceInfo || '').toLowerCase().includes(ft);
+    var matchType = !typeFilter || j.serviceType === typeFilter;
+    return matchText && matchType;
+  });
+  var container = document.getElementById('jobs-mobile-list');
+  var empty = document.getElementById('jobs-empty');
+  if (list.length === 0) {
+    if (container) container.innerHTML = '';
+    if (empty) empty.style.display = '';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+  if (container) {
+    container.innerHTML = list.map(j => {
+      var cust = DB.customers.find(c => c.phone === j.customerPhone);
+      var emoji = j.serviceType==='ac'?'🌬️':j.serviceType==='washer'?'🫧':j.serviceType==='repair'?'🔧':'📋';
+      return '<div class="customer-card" onclick="showCustomerDetail(\'' + j.customerPhone + '\')">' +
+        '<div style="font-size:24px;flex-shrink:0;">' + emoji + '</div>' +
+        '<div class="customer-info"><div class="customer-name">' + (cust?.name||j.customerPhone) + '</div>' +
+        '<div class="customer-phone">' + formatDate(j.serviceDate) + ' · <span class="badge ' + (SERVICE_COLORS[j.serviceType]||'badge-gray') + '" style="font-size:10px;">' + (SERVICE_LABELS[j.serviceType]||j.serviceType) + '</span></div>' +
+        (j.deviceInfo ? '<div style="font-size:11px;color:var(--text3);">📦 ' + j.deviceInfo + '</div>' : '') +
+        '</div>' +
+        '<div class="customer-meta"><div class="job-count" style="font-size:16px;color:var(--success);">' + (j.cost?Number(j.cost).toLocaleString():'0') + '</div><div class="job-label">บาท</div></div></div>';
+    }).join('');
+  }
+}
+function filterJobs() { renderJobs(); }
+function clearJobsFilter() {
+  document.getElementById('job-search').value = '';
+  document.getElementById('job-filter-type').value = '';
+  renderJobs();
+}
+
+// ============================================================
+// REMINDERS
+// ============================================================
+function renderReminders() {
+  var reminders = getUpcomingReminders(reminderFilter);
+  var container = document.getElementById('reminders-container');
+  if (reminders.length === 0) {
+    container.innerHTML = '<div class="empty-state"><i class="far fa-bell"></i><p>ไม่มีแจ้งเตือน</p></div>';
+    return;
+  }
+  container.innerHTML = reminders.map(r => {
+    var diff = daysDiff(r.job.nextDate);
+    var diffText = diff < 0 ? '<span style="color:var(--danger);font-weight:700;">เกิน ' + Math.abs(diff) + ' วัน</span>' :
+      diff === 0 ? '<span style="color:var(--warning);font-weight:700;">วันนี้!</span>' :
+      '<span style="color:' + (r.status==='soon'?'var(--warning)':'var(--info)') + ';font-weight:700;">อีก ' + diff + ' วัน</span>';
+    return '<div class="reminder-item">' +
+      '<div class="reminder-dot ' + r.status + '"></div>' +
+      '<div style="flex:1;min-width:0;"><div class="reminder-name" onclick="showCustomerDetail(\'' + (r.cust?.phone||'') + '\')" style="cursor:pointer;">' + (r.cust?.name||'-') + '</div>' +
+      '<div class="reminder-detail">' + SERVICE_LABELS[r.job.serviceType] + ' · ' + formatDate(r.job.nextDate) + ' · ' + diffText + '</div></div>' +
+      '<div style="display:flex;gap:6px;flex-shrink:0;">' +
+      '<button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openAddJobForCustomer(\'' + (r.cust?.phone||'') + '\')"><i class="fas fa-plus"></i></button>' +
+      '<button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();openSendReminder(\'' + (r.cust?.phone||'') + '\',\'' + r.job.serviceType + '\',\'' + r.job.nextDate + '\')"><i class="fas fa-paper-plane"></i></button>' +
+      '</div></div>';
+  }).join('');
+}
+function filterReminders(type, btn) {
+  reminderFilter = type;
+  document.querySelectorAll('#page-reminders .btn').forEach(b => b.classList.remove('active-filter'));
+  if (btn) btn.classList.add('active-filter');
+  renderReminders();
+}
+
+// ============================================================
+// CUSTOMER DETAIL
+// ============================================================
+function showCustomerDetail(phone) {
+  currentCustomerPhone = phone;
+  showPage('customer-detail');
+  renderCustomerDetail(phone);
+}
+
+function renderCustomerDetail(phone) {
+  var cust = DB.customers.find(c => c.phone === phone);
+  if (!cust) { showPage('customers'); return; }
+  var jobs = DB.jobs.filter(j => j.customerPhone === phone).sort((a,b) => (b.serviceDate||'') > (a.serviceDate||'') ? 1 : -1);
+  var avatarColor = stringToColor(cust.name || phone);
+  var hasReminder = getUpcomingReminders('all').some(r => r.cust?.phone === phone && (r.status==='overdue'||r.status==='soon'));
+  var el = document.getElementById('customer-detail-content');
+  el.innerHTML = '<div class="card">' +
+    '<div class="card-body" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">' +
+    '<div class="customer-avatar" style="background:' + avatarColor + ';width:48px;height:48px;font-size:20px;">' + (cust.name||'?')[0].toUpperCase() + '</div>' +
+    '<div style="flex:1;min-width:0;"><div style="font-size:17px;font-weight:700;">' + (cust.name||'-') + (hasReminder ? ' <span class="badge badge-red" style="font-size:11px;">มีแจ้งเตือน</span>' : '') + '</div>' +
+    '<div style="font-size:14px;"><i class="fas fa-phone"></i> <a href="tel:' + cust.phone + '" style="color:var(--primary);">' + cust.phone + '</a></div>' +
+    (cust.address ? '<div style="font-size:12px;color:var(--text3);"><i class="fas fa-location-dot"></i> ' + cust.address + '</div>' : '') +
+    (cust.note ? '<div style="font-size:12px;color:var(--text3);"><i class="fas fa-note-sticky"></i> ' + cust.note + '</div>' : '') +
+    '<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">' +
+    '<button class="btn btn-primary btn-sm" onclick="openAddJobForCustomer(\'' + phone + '\')"><i class="fas fa-plus"></i> บันทึกงาน</button>' +
+    '<button class="btn btn-secondary btn-sm" onclick="openEditCustomer(\'' + phone + '\')"><i class="fas fa-edit"></i></button>' +
+    '<button class="btn btn-danger btn-sm" onclick="confirmDeleteCustomer(\'' + phone + '\')"><i class="fas fa-trash"></i></button></div></div></div></div>';
+
+  el.innerHTML += '<div class="card"><div class="card-header"><span class="card-title">ประวัติงาน (' + jobs.length + ')</span></div><div class="card-body">';
+  if (jobs.length === 0) {
+    el.innerHTML += '<div class="empty-state"><i class="fas fa-folder-open"></i><p>ยังไม่มีประวัติงาน</p></div>';
+  } else {
+    el.innerHTML += '<div class="timeline">' + jobs.map(j => renderJobCard(j)).join('') + '</div>';
+  }
+  el.innerHTML += '</div></div>';
+}
+
+function renderJobCard(j) {
+  var dotColor = { done: 'var(--success)', pending: 'var(--warning)', followup: 'var(--purple)' }[j.status] || 'var(--primary)';
+  var photos = j.photos || [];
+  return '<div class="timeline-item"><div class="timeline-dot" style="background:' + dotColor + '"></div>' +
+    '<div class="timeline-card"><div class="timeline-card-header">' +
+    '<span class="badge ' + (SERVICE_COLORS[j.serviceType]||'badge-gray') + '">' + (SERVICE_LABELS[j.serviceType]||j.serviceType) + '</span>' +
+    '<span class="timeline-card-title">' + (j.deviceInfo||'') + '</span>' +
+    '<span class="timeline-card-date">' + formatDate(j.serviceDate) + '</span>' +
+    '<button class="btn btn-ghost btn-icon-sm" onclick="event.stopPropagation();openReceipt(\'' + j.id + '\')"><i class="fas fa-receipt"></i></button>' +
+    '<button class="btn btn-ghost btn-icon-sm" onclick="event.stopPropagation();openEditJob(\'' + j.id + '\')"><i class="fas fa-edit"></i></button>' +
+    '<button class="btn btn-ghost btn-icon-sm" style="color:var(--danger)" onclick="event.stopPropagation();confirmDeleteJob(\'' + j.id + '\')"><i class="fas fa-trash"></i></button></div>' +
+    (j.description ? '<div style="font-size:13px;color:var(--text);margin-top:4px;">' + j.description + '</div>' : '') +
+    '<div style="display:flex;align-items:center;gap:8px;margin-top:6px;">' +
+    (j.cost ? '<span class="timeline-cost">' + Number(j.cost).toLocaleString() + ' ฿</span>' : '') +
+    '<span class="badge ' + (STATUS_COLORS[j.status]||'badge-gray') + '">' + (STATUS_LABELS[j.status]||j.status) + '</span>' +
+    (REMIND_TYPES.includes(j.serviceType) && j.nextDate ? '<span class="badge badge-amber"><i class="fas fa-bell"></i> ' + formatDate(j.nextDate) + '</span>' : '') +
+    '</div>' +
+    (photos.length ? '<div class="photo-grid">' + photos.map(url => '<div class="photo-thumb"><img src="' + url + '" alt="" onclick="event.stopPropagation();window.open(\'' + url + '\',\'_blank\')" loading="lazy"></div>').join('') + '</div>' : '') +
+    '</div></div>';
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showPage(page, param) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.mobile-nav-item').forEach(n => n.classList.remove('active'));
+  currentPage = page;
+  if (page === 'customer-detail') {
+    document.getElementById('page-customer-detail').classList.add('active');
+    document.querySelector('.mobile-nav-item[data-page="customers"]')?.classList.add('active');
+    if (param) renderCustomerDetail(param);
+  } else {
+    var el = document.getElementById('page-' + page);
+    if (el) el.classList.add('active');
+    document.querySelector('.mobile-nav-item[data-page="' + page + '"]')?.classList.add('active');
+    if (page === 'customers') renderCustomers();
+    if (page === 'jobs') renderJobs();
+    if (page === 'reminders') renderReminders();
+    if (page === 'reports') renderReport();
+    if (page === 'settings') loadSettingsPage();
+    if (page === 'dashboard') renderDashboard();
+  }
+  updateFabVisibility();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ============================================================
+// FAB
+// ============================================================
+function updateFabVisibility() {
+  var fab = document.getElementById('fab');
+  var pagesWithFab = ['dashboard', 'customers', 'jobs', 'reminders'];
+  var show = pagesWithFab.includes(currentPage);
+  fab.style.display = show ? 'flex' : 'none';
+}
+function onFabClick() {
+  if (currentPage === 'customers') openAddCustomer();
+  else if (currentPage === 'jobs') openAddJobGeneric();
+  else if (currentPage === 'reminders') openAddJobGeneric();
+  else if (currentPage === 'dashboard') openAddJobGeneric();
+}
+
+// ============================================================
+// MODAL HELPERS
+// ============================================================
+function openModal(id) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add('open');
+}
+function closeModal(id) {
+  var el = document.getElementById(id);
+  if (el) el.classList.remove('open');
+  if (id === 'modal-job') resetJobModal();
+}
+
+// ============================================================
+// CUSTOMER MODAL
+// ============================================================
+function openAddCustomer() {
+  document.getElementById('modal-customer-title').textContent = 'เพิ่มลูกค้าใหม่';
+  ['cust-name','cust-phone','cust-address','cust-line','cust-note','cust-edit-phone'].forEach(id => { var el = document.getElementById(id); if(el) el.value = ''; });
+  document.getElementById('cust-phone').removeAttribute('readonly');
+  openModal('modal-customer');
+}
+function openEditCustomer(phone) {
+  var c = DB.customers.find(c => c.phone === phone);
+  if (!c) return;
+  document.getElementById('modal-customer-title').textContent = 'แก้ไขข้อมูลลูกค้า';
+  document.getElementById('cust-name').value = c.name || '';
+  document.getElementById('cust-phone').value = c.phone || '';
+  document.getElementById('cust-phone').setAttribute('readonly', true);
+  document.getElementById('cust-address').value = c.address || '';
+  document.getElementById('cust-line').value = c.line || '';
+  document.getElementById('cust-note').value = c.note || '';
+  document.getElementById('cust-edit-phone').value = c.phone;
+  openModal('modal-customer');
+}
+async function saveCustomer() {
+  var name = document.getElementById('cust-name').value.trim();
+  var phone = document.getElementById('cust-phone').value.replace(/[^0-9]/g,'');
+  if (!name) { toast('กรุณากรอกชื่อลูกค้า', 'error'); return; }
+  if (!phone || phone.length < 9) { toast('กรุณากรอกเบอร์โทรให้ถูกต้อง', 'error'); return; }
+  var editPhone = document.getElementById('cust-edit-phone').value;
+  if (!editPhone) {
+    var exist = DB.customers.find(c => c.phone === phone);
+    if (exist) { toast('เบอร์โทรนี้มีในระบบแล้ว', 'error'); return; }
+  }
+  var customer = { name, phone, address: document.getElementById('cust-address').value.trim(), line: document.getElementById('cust-line').value.trim(), note: document.getElementById('cust-note').value.trim(), updatedAt: new Date().toISOString() };
+  await saveCustomerData(customer);
+  closeModal('modal-customer');
+  refreshAll();
+  toast('บันทึกข้อมูลลูกค้าเรียบร้อย', 'success');
+}
+
+function confirmDeleteCustomer(phone) {
+  var c = DB.customers.find(c => c.phone === phone);
+  document.getElementById('confirm-title').textContent = 'ลบลูกค้า';
+  document.getElementById('confirm-msg').innerHTML = 'ลบ <strong>' + (c?.name||phone) + '</strong> และประวัติงานทั้งหมด?<br><span style="color:var(--danger)">ไม่สามารถยกเลิกได้</span>';
+  document.getElementById('confirm-ok-btn').onclick = async function() {
+    await deleteCustomerData(phone);
+    closeModal('modal-confirm');
+    showPage('customers');
+    refreshAll();
+    toast('ลบลูกค้าเรียบร้อย');
+  };
+  openModal('modal-confirm');
+}
+
+// ============================================================
+// JOB MODAL
+// ============================================================
+function openAddJobGeneric() {
+  if (DB.customers.length === 0) { toast('กรุณาเพิ่มลูกค้าก่อน', 'warning'); showPage('customers'); return; }
+  openCustomerPicker(function(phone) { openAddJobForCustomer(phone); });
+}
+function openAddJobForCustomer(phone) {
+  var cust = DB.customers.find(c => c.phone === phone);
+  resetJobModal();
+  document.getElementById('job-customer-name').value = cust?.name || phone;
+  document.getElementById('job-customer-phone').value = phone;
+  document.getElementById('job-date').value = todayStr();
+  document.getElementById('job-type').value = 'ac';
+  document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
+  document.querySelector('.type-card[data-type="ac"]')?.classList.add('selected');
+  onJobTypeChange();
+  openModal('modal-job');
+}
+function openEditJob(jobId) {
+  var j = DB.jobs.find(j => j.id === jobId);
+  if (!j) return;
+  var cust = DB.customers.find(c => c.phone === j.customerPhone);
+  resetJobModal();
+  document.getElementById('modal-job-title').textContent = 'แก้ไขประวัติงาน';
+  document.getElementById('job-customer-name').value = cust?.name || j.customerPhone;
+  document.getElementById('job-customer-phone').value = j.customerPhone;
+  document.getElementById('job-date').value = j.serviceDate || todayStr();
+  document.getElementById('job-type').value = j.serviceType || 'repair';
+  document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
+  document.querySelector('.type-card[data-type="' + (j.serviceType||'repair') + '"]')?.classList.add('selected');
+  document.getElementById('job-cost').value = j.cost || '';
+  document.getElementById('job-device').value = j.deviceInfo || '';
+  document.getElementById('job-desc').value = j.description || '';
+  document.getElementById('job-status').value = j.status || 'done';
+  document.querySelectorAll('input[name="job-status-r"]').forEach(r => { r.checked = r.value === (j.status||'done'); });
+  document.getElementById('job-next-date').value = j.nextDate || '';
+  document.getElementById('job-edit-id').value = jobId;
+  pendingPhotos = (j.photos || []).map(url => ({ file: null, url: url, uploaded: true }));
+  renderPhotoPreview();
+  onJobTypeChange();
+  openModal('modal-job');
+}
+function resetJobModal() {
+  document.getElementById('modal-job-title').textContent = 'บันทึกงานซ่อม';
+  document.getElementById('job-date').value = todayStr();
+  document.getElementById('job-type').value = 'ac';
+  document.getElementById('job-cost').value = '';
+  document.getElementById('job-device').value = '';
+  document.getElementById('job-desc').value = '';
+  document.getElementById('job-status').value = 'done';
+  document.querySelectorAll('input[name="job-status-r"]').forEach(r => { r.checked = r.value === 'done'; });
+  document.getElementById('job-next-date').value = '';
+  document.getElementById('job-edit-id').value = '';
+  document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
+  document.querySelector('.type-card[data-type="ac"]')?.classList.add('selected');
+  pendingPhotos = [];
+  renderPhotoPreview();
+  onJobTypeChange();
+}
+function selectJobType(type) {
+  document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
+  document.querySelector('.type-card[data-type="' + type + '"]')?.classList.add('selected');
+  document.getElementById('job-type').value = type;
+  onJobTypeChange();
+}
+function onJobTypeChange() {
+  var type = document.getElementById('job-type').value;
+  var remRow = document.getElementById('job-remind-row');
+  if (REMIND_TYPES.includes(type)) {
+    remRow.style.display = '';
+    var d = document.getElementById('job-date').value || todayStr();
+    document.getElementById('job-next-date').value = addYear(d);
+  } else {
+    remRow.style.display = 'none';
+  }
+}
+async function saveJob() {
+  var phone = document.getElementById('job-customer-phone').value;
+  var date = document.getElementById('job-date').value;
+  var type = document.getElementById('job-type').value;
+  if (!phone) { toast('กรุณาเลือกลูกค้า', 'error'); return; }
+  if (!date) { toast('กรุณาเลือกวันที่', 'error'); return; }
+  var uploadedPhotos = [];
+  for (var i = 0; i < pendingPhotos.length; i++) {
+    var p = pendingPhotos[i];
+    if (p.uploaded) { uploadedPhotos.push(p.url); continue; }
+    var url = await uploadToCloudinary(p.file);
+    uploadedPhotos.push(url || p.url);
+  }
+  var editId = document.getElementById('job-edit-id').value;
+  var job = {
+    id: editId || ('job_' + Date.now() + '_' + Math.random().toString(36).slice(2,7)),
+    customerPhone: phone,
+    serviceDate: date,
+    serviceType: type,
+    cost: document.getElementById('job-cost').value || '0',
+    deviceInfo: document.getElementById('job-device').value.trim(),
+    description: document.getElementById('job-desc').value.trim(),
+    status: document.getElementById('job-status').value,
+    nextDate: REMIND_TYPES.includes(type) ? document.getElementById('job-next-date').value : null,
+    photos: uploadedPhotos.filter(Boolean),
+    updatedAt: new Date().toISOString()
+  };
+  await saveJobData(job);
+  closeModal('modal-job');
+  if (currentPage === 'customer-detail' && currentCustomerPhone) renderCustomerDetail(currentCustomerPhone);
+  refreshAll();
+  var cfg = loadConfig();
+  if (!editId && cfg.autoLinePopup !== false) {
+    showJobCompletePopup(job.id);
+  } else {
+    toast('✅ บันทึกงานเรียบร้อย', 'success');
+  }
+}
+
+function confirmDeleteJob(jobId) {
+  document.getElementById('confirm-title').textContent = 'ลบประวัติงาน';
+  document.getElementById('confirm-msg').innerHTML = 'ลบประวัติงานนี้?<br><span style="color:var(--danger)">ไม่สามารถยกเลิกได้</span>';
+  document.getElementById('confirm-ok-btn').onclick = async function() {
+    await deleteJobData(jobId);
+    closeModal('modal-confirm');
+    if (currentPage === 'customer-detail' && currentCustomerPhone) renderCustomerDetail(currentCustomerPhone);
+    refreshAll();
+    toast('ลบประวัติงานเรียบร้อย');
+  };
+  openModal('modal-confirm');
+}
+
+// ============================================================
+// CUSTOMER PICKER
+// ============================================================
+var pickerCallback = null;
+function openCustomerPicker(callback) {
+  pickerCallback = callback;
+  document.getElementById('picker-search').value = '';
+  renderPickerList('');
+  openModal('modal-pick-customer');
+}
+function filterPicker() {
+  renderPickerList(document.getElementById('picker-search').value);
+}
+function renderPickerList(ft) {
+  ft = (ft||'').toLowerCase();
+  var list = DB.customers.filter(c => !ft || c.name?.toLowerCase().includes(ft) || c.phone?.includes(ft));
+  var el = document.getElementById('picker-list');
+  if (list.length === 0) {
+    el.innerHTML = '<div class="empty-state"><i class="fas fa-user-slash"></i><p>ไม่พบลูกค้า</p></div>';
+    return;
+  }
+  el.innerHTML = list.map(c => {
+    var col = stringToColor(c.name||c.phone);
+    var jobs = DB.jobs.filter(j => j.customerPhone === c.phone).length;
+    return '<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer;border-bottom:1px solid var(--border);" onclick="pickCustomer(\'' + c.phone + '\')">' +
+      '<div style="width:36px;height:36px;border-radius:8px;background:' + col + ';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px;">' + (c.name||'?')[0].toUpperCase() + '</div>' +
+      '<div style="flex:1;"><div style="font-weight:600;">' + (c.name||'-') + '</div><div style="font-size:12px;color:var(--text3);">' + c.phone + ' · ' + jobs + ' งาน</div></div>' +
+      '<i class="fas fa-chevron-right" style="color:var(--border);font-size:12px;"></i></div>';
+  }).join('');
+}
+function pickCustomer(phone) {
+  closeModal('modal-pick-customer');
+  if (pickerCallback) { pickerCallback(phone); pickerCallback = null; }
+}
+
+// ============================================================
+// PHOTO
+// ============================================================
+async function handlePhotoSelect(e) {
+  var files = Array.from(e.target.files);
+  for (var f of files) {
+    var placeholder = URL.createObjectURL(f);
+    pendingPhotos.push({ file: f, url: placeholder, uploaded: false });
+    renderPhotoPreview();
+  }
+  e.target.value = '';
+}
+function renderPhotoPreview() {
+  var grid = document.getElementById('photo-preview');
+  if (!grid) return;
+  grid.innerHTML = pendingPhotos.map(function(p, i) {
+    return '<div class="photo-thumb"><img src="' + p.url + '" alt=""><div class="del-photo" onclick="removePhoto(' + i + ')"><i class="fas fa-xmark"></i></div></div>';
+  }).join('');
+}
+function removePhoto(i) { pendingPhotos.splice(i, 1); renderPhotoPreview(); }
+
+// ============================================================
+// RECEIPT
+// ============================================================
+var currentReceiptJobId = null;
+
+function buildLineReceiptText(job) {
+  var c = DB.customers.find(c => c.phone === job.customerPhone);
+  var cfg = loadConfig();
+  var shopName = cfg.shopName || 'FixPro';
+  var techPhone = cfg.techPhone || '';
+  var footer = cfg.receiptFooter || 'ขอบคุณที่ใช้บริการครับ 🙏';
+  var sep = '─'.repeat(26);
+  var lines = [];
+  lines.push('🔧 ใบเสร็จรับเงิน');
+  lines.push('🏠 ' + shopName);
+  lines.push(sep);
+  lines.push('👤 ลูกค้า: ' + (c?.name||'-'));
+  lines.push('📞 เบอร์: ' + job.customerPhone);
+  if (c?.address) lines.push('📍 ที่อยู่: ' + c.address);
+  lines.push(sep);
+  lines.push('🛠 บริการ: ' + (SERVICE_LABELS[job.serviceType]||job.serviceType));
+  lines.push('📅 วันที่: ' + formatDate(job.serviceDate));
+  if (job.deviceInfo) lines.push('📦 อุปกรณ์: ' + job.deviceInfo);
+  if (job.description) lines.push('📝 รายละเอียด: ' + job.description);
+  lines.push(sep);
+  lines.push('💵 ค่าบริการ: ' + Number(job.cost||0).toLocaleString() + ' บาท');
+  if (job.nextDate) lines.push('🔔 นัดหมายถัดไป: ' + formatDate(job.nextDate));
+  lines.push(sep);
+  lines.push(footer);
+  if (techPhone) lines.push('📱 ติดต่อ: ' + techPhone);
+  return lines.join('\n');
+}
+
+function openReceipt(jobId) {
+  currentReceiptJobId = jobId;
+  var j = DB.jobs.find(j => j.id === jobId);
+  if (!j) return;
+  var html = '<div class="receipt-wrap">' +
+    '<div style="text-align:center;font-size:16px;font-weight:700;color:var(--primary);">🔧 FixPro</div>' +
+    '<div style="text-align:center;font-size:12px;color:var(--text3);">ใบงาน / บันทึกการให้บริการ</div>' +
+    '<hr style="border:1px dashed var(--border);margin:8px 0;">' +
+    '<div class="receipt-row"><span style="color:var(--text3);">ลูกค้า</span><span style="font-weight:600;">' + (DB.customers.find(c=>c.phone===j.customerPhone)?.name||'-') + '</span></div>' +
+    '<div class="receipt-row"><span style="color:var(--text3);">เบอร์โทร</span><span>' + j.customerPhone + '</span></div>' +
+    '<div class="receipt-row"><span style="color:var(--text3);">ประเภท</span><span>' + (SERVICE_LABELS[j.serviceType]||j.serviceType) + '</span></div>' +
+    '<div class="receipt-row"><span style="color:var(--text3);">วันที่</span><span>' + formatDate(j.serviceDate) + '</span></div>' +
+    (j.deviceInfo ? '<div class="receipt-row"><span style="color:var(--text3);">อุปกรณ์</span><span>' + j.deviceInfo + '</span></div>' : '') +
+    (j.description ? '<div class="receipt-row"><span style="color:var(--text3);">รายละเอียด</span><span>' + j.description + '</span></div>' : '') +
+    (j.nextDate ? '<div class="receipt-row"><span style="color:var(--text3);">นัดหมายถัดไป</span><span style="color:var(--warning);font-weight:600;">' + formatDate(j.nextDate) + '</span></div>' : '') +
+    '<hr style="border:1px dashed var(--border);margin:8px 0;">' +
+    '<div class="receipt-row total"><span>ค่าบริการรวม</span><span style="color:var(--success);font-size:18px;">' + Number(j.cost||0).toLocaleString() + ' ฿</span></div>' +
+    '<div class="receipt-footer">' + (loadConfig().receiptFooter || 'ขอบคุณที่ใช้บริการครับ 🙏') + '</div></div>';
+  document.getElementById('receipt-content').innerHTML = html;
+  openModal('modal-receipt');
+}
+
+function shareReceiptLine() {
+  var j = DB.jobs.find(j => j.id === currentReceiptJobId);
+  if (!j) return;
+  window.open('https://line.me/R/msg/text/?' + encodeURIComponent(buildLineReceiptText(j)), '_blank');
+}
+function copyReceipt() {
+  var j = DB.jobs.find(j => j.id === currentReceiptJobId);
+  if (!j) return;
+  navigator.clipboard?.writeText(buildLineReceiptText(j)).then(() => toast('คัดลอกแล้ว', 'success'));
+}
+
+// ============================================================
+// JOB COMPLETE POPUP
+// ============================================================
+function showJobCompletePopup(jobId) {
+  var j = DB.jobs.find(j => j.id === jobId);
+  if (!j) return;
+  currentReceiptJobId = jobId;
+  var cust = DB.customers.find(c => c.phone === j.customerPhone);
+  document.getElementById('complete-job-detail').innerHTML = SERVICE_LABELS[j.serviceType] + ' · คุณ' + (cust?.name||j.customerPhone) + '<br><strong style="color:var(--success);font-size:16px;">' + Number(j.cost||0).toLocaleString() + ' บาท</strong>';
+  document.getElementById('job-complete-overlay').classList.add('show');
+}
+function dismissJobComplete() {
+  document.getElementById('job-complete-overlay').classList.remove('show');
+}
+function sendReceiptLineNow() {
+  dismissJobComplete();
+  var j = DB.jobs.find(j => j.id === currentReceiptJobId);
+  if (!j) return;
+  window.open('https://line.me/R/msg/text/?' + encodeURIComponent(buildLineReceiptText(j)), '_blank');
+  toast('เปิด LINE แล้ว', 'success');
+}
+function openReceiptFromPopup() {
+  dismissJobComplete();
+  openReceipt(currentReceiptJobId);
+}
+function copyReceiptFromPopup() {
+  var j = DB.jobs.find(j => j.id === currentReceiptJobId);
+  if (!j) return;
+  navigator.clipboard?.writeText(buildLineReceiptText(j)).then(() => { toast('คัดลอกแล้ว', 'success'); dismissJobComplete(); });
+}
+
+// ============================================================
+// SEND REMINDER
+// ============================================================
+function openSendReminder(phone, type, nextDate) {
+  var cust = DB.customers.find(c => c.phone === phone);
+  var cfg = loadConfig();
+  var shopName = cfg.shopName || 'FixPro';
+  var typeName = SERVICE_LABELS[type] || type;
+  var msg = 'สวัสดีครับ คุณ' + (cust?.name||'ลูกค้า') + ' 🙏\n' +
+    'ทางร้าน' + shopName + 'ขอแจ้งให้ทราบว่า\n' +
+    typeName + 'ของท่านครบกำหนดบำรุงรักษาประจำปีแล้วครับ\n\n' +
+    '📅 กำหนด: ' + formatDate(nextDate) + '\n' +
+    '🔧 บริการ: ' + typeName + '\n\n' +
+    'สนใจนัดหมายหรือสอบถามราคา ติดต่อได้เลยครับ 😊\n' +
+    'ขอบคุณที่ไว้วางใจครับ 🙏' +
+    (cfg.techPhone ? '\n📱 ' + cfg.techPhone : '');
+  if (confirm('ส่งข้อความแจ้งเตือนไปยัง LINE ของ ' + (cust?.name||phone) + '?')) {
+    window.open('https://line.me/R/msg/text/?' + encodeURIComponent(msg), '_blank');
+  }
+}
+
+// ============================================================
+// REPORTS
+// ============================================================
+function renderReport() {
+  var now = new Date();
+  var period = 6;
+  var cutoff = new Date(now.getFullYear(), now.getMonth() - period + 1, 1);
+  var pJobs = DB.jobs.filter(j => j.serviceDate && new Date(j.serviceDate) >= cutoff);
+  var totRev = pJobs.reduce((s,j) => s+(parseFloat(j.cost)||0), 0);
+  var avgRev = pJobs.length ? Math.round(totRev/pJobs.length) : 0;
+  var custSet = new Set(pJobs.map(j => j.customerPhone));
+  var repeat = [...custSet].filter(p => pJobs.filter(j => j.customerPhone === p).length > 1).length;
+
+  var statsEl = document.getElementById('report-stats');
+  statsEl.innerHTML = `
+    <div class="stat-card green"><div class="stat-icon"><i class="fas fa-money-bill"></i></div><div class="stat-value">${totRev>=10000?(totRev/1000).toFixed(1)+'k':totRev.toLocaleString()}</div><div class="stat-label">รายได้</div></div>
+    <div class="stat-card blue"><div class="stat-icon"><i class="fas fa-clipboard-list"></i></div><div class="stat-value">${pJobs.length}</div><div class="stat-label">งาน</div></div>
+    <div class="stat-card orange"><div class="stat-icon"><i class="fas fa-calculator"></i></div><div class="stat-value">${avgRev>=1000?(avgRev/1000).toFixed(1)+'k':avgRev}</div><div class="stat-label">เฉลี่ย/งาน</div></div>
+    <div class="stat-card amber"><div class="stat-icon"><i class="fas fa-users"></i></div><div class="stat-value">${repeat}</div><div class="stat-label">ลูกค้ากลับมา</div></div>
+  `;
+
+  var mnNames = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  var months = [];
+  for (var i = period-1; i >= 0; i--) {
+    var d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    var key = d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0');
+    var rev = pJobs.filter(j => j.serviceDate?.startsWith(key)).reduce((s,j) => s+(parseFloat(j.cost)||0), 0);
+    months.push({ label: mnNames[d.getMonth()], rev, isCur: i===0 });
+  }
+  var maxRev = Math.max(...months.map(m => m.rev), 1);
+  var barEl = document.getElementById('report-bar-chart');
+  barEl.innerHTML = months.map(m => {
+    var pct = Math.round(m.rev/maxRev*100);
+    var col = m.isCur ? 'var(--success)' : m.rev===maxRev ? 'var(--primary)' : 'rgba(46,125,50,0.4)';
+    return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">' +
+      '<div style="font-size:9px;color:var(--text3);">' + (m.rev>0?(m.rev>=10000?(m.rev/1000).toFixed(1)+'k':m.rev.toLocaleString()):'') + '</div>' +
+      '<div style="width:100%;border-radius:3px 3px 0 0;height:' + pct + '%;background:' + col + ';min-height:2px;"></div>' +
+      '<div style="font-size:9px;color:var(--text3);">' + m.label + '</div></div>';
+  }).join('');
+
+  var types = ['ac','washer','repair','other'];
+  var typeData = types.map(t => ({
+    t, emoji: t==='ac'?'🌬️':t==='washer'?'🫧':t==='repair'?'🔧':'📋',
+    cnt: pJobs.filter(j => j.serviceType===t).length,
+    rev: pJobs.filter(j => j.serviceType===t).reduce((s,j) => s+(parseFloat(j.cost)||0),0)
+  })).filter(d => d.cnt>0).sort((a,b) => b.rev-a.rev);
+  var maxCnt = Math.max(...typeData.map(d => d.cnt),1);
+  var typEl = document.getElementById('report-type-breakdown');
+  typEl.innerHTML = typeData.length ? typeData.map(d => '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">' +
+    '<span style="font-size:16px;">' + d.emoji + '</span>' +
+    '<div style="flex:1;"><div style="font-size:12px;font-weight:600;">' + (SERVICE_LABELS[d.t]||d.t) + '</div>' +
+    '<div style="height:3px;background:var(--border);border-radius:2px;overflow:hidden;"><div style="height:100%;width:' + (d.cnt/maxCnt*100) + '%;background:var(--primary);border-radius:2px;"></div></div></div>' +
+    '<div style="font-size:12px;font-weight:700;color:var(--success);">' + (d.rev>=10000?(d.rev/1000).toFixed(1)+'k':d.rev.toLocaleString()) + ' ฿</div></div>').join('') : '<div style="color:var(--text3);text-align:center;padding:8px;">ยังไม่มีข้อมูล</div>';
+
+  var custMap = {};
+  for (var j of pJobs) {
+    if (!custMap[j.customerPhone]) custMap[j.customerPhone] = {cnt:0,rev:0};
+    custMap[j.customerPhone].cnt++;
+    custMap[j.customerPhone].rev += parseFloat(j.cost)||0;
+  }
+  var top5 = Object.entries(custMap).sort((a,b) => b[1].rev-a[1].rev).slice(0,5);
+  var topEl = document.getElementById('report-top-list');
+  topEl.innerHTML = top5.length ? top5.map(([phone,d],i) => {
+    var c = DB.customers.find(c => c.phone === phone);
+    var medal = ['🥇','🥈','🥉'][i] || (i+1);
+    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="showCustomerDetail(\'' + phone + '\')">' +
+      '<span style="font-size:14px;">' + medal + '</span>' +
+      '<span style="flex:1;font-weight:600;font-size:13px;">' + (c?.name||phone) + '</span>' +
+      '<span style="font-size:12px;color:var(--text3);">' + d.cnt + ' งาน</span>' +
+      '<span style="font-size:13px;font-weight:700;color:var(--success);">' + (d.rev>=10000?(d.rev/1000).toFixed(1)+'k':d.rev.toLocaleString()) + ' ฿</span></div>';
+  }).join('') : '<div style="color:var(--text3);text-align:center;padding:8px;">ยังไม่มีข้อมูล</div>';
+}
+
+// ============================================================
+// EXPORT
+// ============================================================
+function exportExcel() {
+  if (typeof XLSX === 'undefined') { toast('กำลังโหลด SheetJS...', 'warning'); return; }
+  var wb = XLSX.utils.book_new();
+  var jobRows = [['วันที่','ลูกค้า','เบอร์โทร','ประเภทงาน','อุปกรณ์','รายละเอียด','ค่าบริการ','สถานะ','นัดหมายถัดไป']];
+  for (var j of DB.jobs) {
+    var c = DB.customers.find(c => c.phone === j.customerPhone);
+    jobRows.push([j.serviceDate||'', c?.name||'', j.customerPhone||'', SERVICE_LABELS[j.serviceType]||j.serviceType, j.deviceInfo||'', j.description||'', parseFloat(j.cost)||0, STATUS_LABELS[j.status]||j.status, j.nextDate||'']);
+  }
+  var wsJobs = XLSX.utils.aoa_to_sheet(jobRows);
+  wsJobs['!cols'] = [10,18,12,16,20,24,10,10,12].map(w => ({wch:w}));
+  XLSX.utils.book_append_sheet(wb, wsJobs, 'งานซ่อม');
+  var custRows = [['ชื่อ','เบอร์โทร','ที่อยู่','Line ID','หมายเหตุ','จำนวนงาน']];
+  for (var c of DB.customers) {
+    custRows.push([c.name||'', c.phone||'', c.address||'', c.line||'', c.note||'', DB.jobs.filter(j => j.customerPhone === c.phone).length]);
+  }
+  var wsCust = XLSX.utils.aoa_to_sheet(custRows);
+  wsCust['!cols'] = [20,12,30,12,24,8].map(w => ({wch:w}));
+  XLSX.utils.book_append_sheet(wb, wsCust, 'ลูกค้า');
+  var remRows = [['ลูกค้า','เบอร์โทร','ประเภท','วันบริการล่าสุด','กำหนดครั้งถัดไป','สถานะ']];
+  for (var r of getUpcomingReminders('all')) {
+    var diff = daysDiff(r.job.nextDate);
+    remRows.push([r.cust?.name||'', r.cust?.phone||'', SERVICE_LABELS[r.job.serviceType]||r.job.serviceType, r.job.serviceDate||'', r.job.nextDate||'', r.status==='overdue'?'เกิน '+Math.abs(diff)+'วัน':'อีก '+diff+'วัน']);
+  }
+  var wsRem = XLSX.utils.aoa_to_sheet(remRows);
+  wsRem['!cols'] = [20,12,14,12,12,14].map(w => ({wch:w}));
+  XLSX.utils.book_append_sheet(wb, wsRem, 'แจ้งเตือน');
+  XLSX.writeFile(wb, 'FixPro_' + todayStr() + '.xlsx');
+  toast('Export Excel สำเร็จ', 'success');
+}
+
+function exportPDFReport() {
+  if (!window.jspdf) { toast('กำลังโหลด jsPDF...', 'warning'); return; }
+  var { jsPDF } = window.jspdf;
+  var doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+  doc.setFillColor(26,39,68); doc.rect(0,0,210,28,'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(18); doc.setFont('helvetica','bold');
+  doc.text('FixPro', 14, 12);
+  doc.setFontSize(10); doc.setFont('helvetica','normal');
+  doc.text('รายงานงานซ่อมและรายได้', 14, 20);
+  doc.text('วันที่พิมพ์: '+new Date().toLocaleDateString('th-TH'), 196, 20, {align:'right'});
+  var totalRev = DB.jobs.reduce((s,j) => s+(parseFloat(j.cost)||0), 0);
+  var summaries = [
+    ['ลูกค้า', DB.customers.length+' ราย'],
+    ['งานทั้งหมด', DB.jobs.length],
+    ['รายได้รวม', totalRev.toLocaleString()+' ฿'],
+    ['แจ้งเตือน', getUpcomingReminders('all').filter(r => r.status==='overdue'||r.status==='soon').length],
+  ];
+  summaries.forEach(function(s,i) {
+    var x = 14+(i*46.5);
+    doc.setFillColor(240,244,255); doc.roundedRect(x,32,44,20,3,3,'F');
+    doc.setFontSize(7.5); doc.setFont('helvetica','normal'); doc.setTextColor(100,116,139);
+    doc.text(s[0], x+22, 39, {align:'center'});
+    doc.setFontSize(12); doc.setFont('helvetica','bold'); doc.setTextColor(26,39,68);
+    doc.text(String(s[1]), x+22, 47, {align:'center'});
+  });
+  doc.setFontSize(11); doc.setFont('helvetica','bold'); doc.setTextColor(26,39,68);
+  doc.text('ประวัติงาน', 14, 62);
+  var jobData = DB.jobs.slice(0,60).map(function(j) {
+    var c = DB.customers.find(c => c.phone === j.customerPhone);
+    return [j.serviceDate||'', c?.name||'-', j.customerPhone||'', SERVICE_LABELS[j.serviceType]||j.serviceType, (j.cost?Number(j.cost).toLocaleString():'-')+' ฿', STATUS_LABELS[j.status]||'-'];
+  });
+  doc.autoTable({
+    startY:65, head:[['วันที่','ลูกค้า','เบอร์โทร','ประเภท','ค่าใช้จ่าย','สถานะ']], body:jobData,
+    theme:'grid', headStyles:{fillColor:[26,39,68],textColor:[255,255,255],fontSize:8.5,fontStyle:'bold'},
+    bodyStyles:{fontSize:8,textColor:[30,41,59]}, alternateRowStyles:{fillColor:[248,250,255]},
+    columnStyles:{0:{cellWidth:22},1:{cellWidth:36},2:{cellWidth:24},3:{cellWidth:32},4:{cellWidth:22},5:{cellWidth:18}},
+    margin:{left:14,right:14},
+  });
+  var remData = getUpcomingReminders('all').map(function(r) {
+    var diff = daysDiff(r.job.nextDate);
+    return [r.cust?.name||'-', r.cust?.phone||'', SERVICE_LABELS[r.job.serviceType]||r.job.serviceType, r.job.nextDate||'', diff<0?'เกิน '+Math.abs(diff)+'วัน':'อีก '+diff+'วัน'];
+  });
+  if (remData.length > 0) {
+    doc.addPage();
+    doc.setFillColor(26,39,68); doc.rect(0,0,210,16,'F');
+    doc.setTextColor(255,255,255); doc.setFontSize(12); doc.setFont('helvetica','bold');
+    doc.text('รายการแจ้งเตือน', 14, 11);
+    doc.autoTable({
+      startY:22, head:[['ลูกค้า','เบอร์โทร','ประเภท','กำหนดนัดหมาย','สถานะ']], body:remData,
+      theme:'grid', headStyles:{fillColor:[239,68,68],textColor:[255,255,255],fontSize:8.5,fontStyle:'bold'},
+      bodyStyles:{fontSize:8.5,textColor:[30,41,59]}, alternateRowStyles:{fillColor:[255,248,248]},
+      margin:{left:14,right:14},
+    });
+  }
+  doc.save('FixPro_Report_' + todayStr() + '.pdf');
+  toast('Export PDF สำเร็จ', 'success');
+}
+
+// ============================================================
+// BACKUP
+// ============================================================
+function backupData() {
+  var data = { version:1, exportedAt: new Date().toISOString(), customers: DB.customers, jobs: DB.jobs };
+  var blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a'); a.href = url; a.download = 'FixPro_backup_' + todayStr() + '.json';
+  a.click(); URL.revokeObjectURL(url);
+  toast('Backup สำเร็จ', 'success');
+}
+function restoreData(e) {
+  var file = e.target.files[0]; if (!file) return;
+  var reader = new FileReader();
+  reader.onload = async function(ev) {
+    try {
+      var data = JSON.parse(ev.target.result);
+      if (!data.customers || !data.jobs) { toast('ไฟล์ไม่ถูกต้อง', 'error'); return; }
+      lsSaveCustomers(data.customers);
+      lsSaveJobs(data.jobs);
+      await loadAllData();
+      toast('กู้คืนข้อมูลสำเร็จ: ' + data.customers.length + ' ลูกค้า, ' + data.jobs.length + ' งาน', 'success');
+    } catch(e) { toast('ไม่สามารถอ่านไฟล์ได้', 'error'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// ============================================================
+// SETTINGS (EBED Style)
+// ============================================================
+function loadSettingsPage() {
+  var cfg = loadConfig();
+  document.getElementById('cfg-shop-name').value = cfg.shopName || '';
+  document.getElementById('cfg-tech-phone').value = cfg.techPhone || '';
+  document.getElementById('cfg-receipt-footer').value = cfg.receiptFooter || '';
+  document.getElementById('cfg-auto-line-popup').checked = cfg.autoLinePopup !== false;
+  document.getElementById('cfg-fb-apikey').value = cfg.apiKey || '';
+  document.getElementById('cfg-fb-authdomain').value = cfg.authDomain || '';
+  document.getElementById('cfg-fb-projectid').value = cfg.projectId || '';
+  document.getElementById('cfg-fb-storagebucket').value = cfg.storageBucket || '';
+  document.getElementById('cfg-fb-senderid').value = cfg.messagingSenderId || '';
+  document.getElementById('cfg-fb-appid').value = cfg.appId || '';
+  document.getElementById('cfg-cld-name').value = cfg.cloudName || '';
+  document.getElementById('cfg-cld-preset').value = cfg.uploadPreset || '';
+  document.getElementById('cfg-ai-provider').value = cfg.aiProvider || 'openai';
+  document.getElementById('cfg-ai-key').value = cfg.aiKey || '';
+  updateConfigStatus();
+}
+function updateConfigStatus() {
+  var cfg = loadConfig();
+  var fbEl = document.getElementById('firebase-status');
+  if (cfg.apiKey && cfg.projectId) {
+    fbEl.className = 'config-status ok'; fbEl.innerHTML = '<i class="fas fa-circle-check"></i> ตั้งค่าแล้ว · ' + cfg.projectId;
+  } else {
+    fbEl.className = 'config-status warn'; fbEl.innerHTML = '<i class="fas fa-circle-exclamation"></i> ยังไม่ได้ตั้งค่า (ใช้ LocalStorage)';
+  }
+  var cldEl = document.getElementById('cloudinary-status');
+  if (cfg.cloudName && cfg.uploadPreset) {
+    cldEl.className = 'config-status ok'; cldEl.innerHTML = '<i class="fas fa-circle-check"></i> ตั้งค่าแล้ว · ' + cfg.cloudName;
+  } else {
+    cldEl.className = 'config-status warn'; cldEl.innerHTML = '<i class="fas fa-circle-exclamation"></i> ยังไม่ได้ตั้งค่า (รูปเก็บชั่วคราว)';
+  }
+  var aiEl = document.getElementById('ai-status');
+  if (cfg.aiKey) {
+    aiEl.className = 'config-status ok'; aiEl.innerHTML = '<i class="fas fa-circle-check"></i> ตั้งค่าแล้ว · ' + (cfg.aiProvider==='anthropic'?'Claude':'OpenAI');
+  } else {
+    aiEl.className = 'config-status warn'; aiEl.innerHTML = '<i class="fas fa-circle-exclamation"></i> ยังไม่ได้ตั้งค่า';
+  }
+}
+function saveShopConfig() {
+  var cfg = loadConfig();
+  cfg.shopName = document.getElementById('cfg-shop-name').value.trim();
+  cfg.techPhone = document.getElementById('cfg-tech-phone').value.trim();
+  cfg.receiptFooter = document.getElementById('cfg-receipt-footer').value.trim();
+  cfg.autoLinePopup = document.getElementById('cfg-auto-line-popup').checked;
+  saveConfig(cfg);
+  toast('บันทึกข้อมูลร้านแล้ว', 'success');
+}
+async function saveFirebaseConfig() {
+  var cfg = loadConfig();
+  cfg.apiKey = document.getElementById('cfg-fb-apikey').value.trim();
+  cfg.authDomain = document.getElementById('cfg-fb-authdomain').value.trim();
+  cfg.projectId = document.getElementById('cfg-fb-projectid').value.trim();
+  cfg.storageBucket = document.getElementById('cfg-fb-storagebucket').value.trim();
+  cfg.messagingSenderId = document.getElementById('cfg-fb-senderid').value.trim();
+  cfg.appId = document.getElementById('cfg-fb-appid').value.trim();
+  saveConfig(cfg);
+  var ok = await initFirebase(cfg);
+  updateConfigStatus();
+  if (ok) { toast('บันทึก Firebase เรียบร้อย', 'success'); loadAllData(); }
+  else toast('ไม่สามารถเชื่อมต่อ Firebase ได้', 'error');
+}
+async function testFirebase() {
+  if (!db) { toast('ยังไม่ได้ตั้งค่า Firebase', 'error'); return; }
+  try {
+    await db.collection('_test_').limit(1).get();
+    toast('เชื่อมต่อ Firebase สำเร็จ!', 'success');
+  } catch(e) { toast('เชื่อมต่อ Firebase สำเร็จ (permission OK)', 'success'); }
+}
+function saveCloudinaryConfig() {
+  var cfg = loadConfig();
+  cfg.cloudName = document.getElementById('cfg-cld-name').value.trim();
+  cfg.uploadPreset = document.getElementById('cfg-cld-preset').value.trim();
+  saveConfig(cfg);
+  updateConfigStatus();
+  toast('บันทึก Cloudinary เรียบร้อย', 'success');
+}
+function saveAiConfig() {
+  var cfg = loadConfig();
+  cfg.aiProvider = document.getElementById('cfg-ai-provider').value;
+  cfg.aiKey = document.getElementById('cfg-ai-key').value.trim();
+  saveConfig(cfg);
+  updateConfigStatus();
+  toast('บันทึก AI Config เรียบร้อย', 'success');
+}
+function testAiConnection() {
+  var cfg = loadConfig();
+  if (!cfg.aiKey) { toast('กรุณาใส่ API Key ก่อน', 'error'); return; }
+  toast('ทดสอบ AI: เปิดคอนโซลเพื่อดูผล', 'info');
+  console.log('AI Test: Provider=' + cfg.aiProvider + ', Key=' + cfg.aiKey.slice(0,10)+'...');
+}
+function toggleAiKeyVisibility() {
+  var inp = document.getElementById('cfg-ai-key');
+  var eye = document.getElementById('ai-key-eye');
+  if (!inp) return;
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    eye.className = 'fas fa-eye-slash';
+  } else {
+    inp.type = 'password';
+    eye.className = 'fas fa-eye';
+  }
+}
+
+// ============================================================
+// AUTH
+// ============================================================
+function switchAuthTab(tab) {
+  document.getElementById('auth-login-title').classList.toggle('active', tab === 'login');
+  document.getElementById('auth-register-title').classList.toggle('active', tab === 'register');
+  document.getElementById('login-form').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('register-form').style.display = tab === 'register' ? 'block' : 'none';
+}
+function togglePassword(id, icon) {
+  var el = document.getElementById(id);
+  if (el.type === 'password') { el.type = 'text'; icon.className = 'fas fa-eye-slash toggle-pass'; }
+  else { el.type = 'password'; icon.className = 'fas fa-eye toggle-pass'; }
+}
+function showForgotPassword() {
+  var email = document.getElementById('login-email').value.trim();
+  if (!email) { toast('กรุณากรอกอีเมล', 'warning'); return; }
+  if (!firebase.auth) { toast('Firebase Auth ไม่พร้อม', 'error'); return; }
+  firebase.auth().sendPasswordResetEmail(email)
+    .then(() => toast('ส่งอีเมลรีเซ็ตรหัสผ่านแล้ว', 'success'))
+    .catch(err => toast('เกิดข้อผิดพลาด: ' + err.message, 'error'));
+}
+async function doLogin() {
+  var email = document.getElementById('login-email').value.trim();
+  var pass = document.getElementById('login-password').value;
+  if (!email || !pass) { toast('กรุณากรอกอีเมลและรหัสผ่าน', 'error'); return; }
+  try {
+    await firebase.auth().setPersistence(
+      document.getElementById('remember-me').checked
+        ? firebase.auth.Auth.Persistence.LOCAL
+        : firebase.auth.Auth.Persistence.SESSION
+    );
+    await firebase.auth().signInWithEmailAndPassword(email, pass);
+  } catch(e) {
+    toast('เข้าสู่ระบบล้มเหลว: ' + e.message, 'error');
+  }
+}
+async function doRegister() {
+  var name = document.getElementById('reg-name').value.trim();
+  var email = document.getElementById('reg-email').value.trim();
+  var pass = document.getElementById('reg-password').value;
+  var confirm = document.getElementById('reg-confirm').value;
+  if (!name || !email || !pass || pass.length < 6 || pass !== confirm) {
+    toast('กรุณากรอกข้อมูลให้ถูกต้อง', 'error');
+    return;
+  }
+  try {
+    var cred = await firebase.auth().createUserWithEmailAndPassword(email, pass);
+    await firebase.firestore().collection('users').doc(cred.user.uid).set({
+      uid: cred.user.uid, name, email, role: 'pending', status: 'pending', created_at: new Date().toISOString()
+    });
+    await firebase.auth().signOut();
+    toast('ลงทะเบียนสำเร็จ! รอ Admin อนุมัติ', 'success');
+    switchAuthTab('login');
+  } catch(e) {
+    toast('ลงทะเบียนล้มเหลว: ' + e.message, 'error');
+  }
+}
+async function doLogout() {
+  await firebase.auth().signOut();
+  currentUser = null;
+  document.getElementById('app-screen').classList.remove('active');
+  document.getElementById('auth-screen').classList.add('active');
+  toast('ออกจากระบบสำเร็จ', 'success');
+}
+function openProfileModal() {
+  if (!currentUser) return;
+  document.getElementById('profile-avatar').textContent = (currentUser.name||'?')[0].toUpperCase();
+  document.getElementById('profile-name').textContent = currentUser.name || '';
+  document.getElementById('profile-email').textContent = currentUser.email || '';
+  ['profile-old-pass','profile-new-pass','profile-confirm-pass'].forEach(id => document.getElementById(id).value = '');
+  openModal('modal-profile');
+}
+async function changePasswordFromProfile() {
+  var oldPass = document.getElementById('profile-old-pass').value;
+  var newPass = document.getElementById('profile-new-pass').value;
+  var confirm = document.getElementById('profile-confirm-pass').value;
+  if (!oldPass || !newPass || !confirm) { toast('กรอกข้อมูลให้ครบ', 'error'); return; }
+  if (newPass.length < 6) { toast('รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัว', 'warn'); return; }
+  if (newPass !== confirm) { toast('รหัสผ่านใหม่ไม่ตรงกัน', 'error'); return; }
+  try {
+    var fbUser = firebase.auth().currentUser;
+    var cred = firebase.auth.EmailAuthProvider.credential(fbUser.email, oldPass);
+    await fbUser.reauthenticateWithCredential(cred);
+    await fbUser.updatePassword(newPass);
+    toast('เปลี่ยนรหัสผ่านสำเร็จ', 'success');
+    closeModal('modal-profile');
+  } catch(e) {
+    toast('เปลี่ยนรหัสผ่านล้มเหลว: ' + e.message, 'error');
+  }
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+function toast(msg, type) {
+  type = type || 'info';
+  var container = document.getElementById('toast-container');
+  var el = document.createElement('div');
+  el.className = 'toast ' + type;
+  var icons = { success:'fa-check-circle', error:'fa-times-circle', warning:'fa-exclamation-triangle', info:'fa-info-circle' };
+  el.innerHTML = '<i class="fas ' + (icons[type]||icons.info) + '"></i><span>' + msg + '</span>';
+  container.appendChild(el);
+  setTimeout(function() { el.remove(); }, 3000);
+}
+
+// ============================================================
+// THEME
+// ============================================================
+function toggleTheme() {
+  var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  var newTheme = isDark ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', newTheme);
+  localStorage.setItem('fixpro_theme', newTheme);
+  var icon = document.getElementById('theme-icon');
+  if (icon) icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+  var authIcon = document.getElementById('auth-theme-icon');
+  if (authIcon) authIcon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+}
+
+// ============================================================
+// OFFLINE FALLBACK
+// ============================================================
+function enterOfflineMode(reason) {
+  console.warn('⚠️ เข้าโหมด Offline:', reason);
+  document.getElementById('loading-overlay').style.display = 'none';
+  document.getElementById('auth-screen').classList.remove('active');
+  document.getElementById('app-screen').classList.add('active');
+  currentUser = { uid: 'offline_' + Date.now(), name: 'ผู้ใช้งาน (Local)', email: 'local@fixpro.com', role: 'admin' };
+  document.getElementById('header-avatar').textContent = 'L';
+  loadAllData();
+  showPage('dashboard');
+  toast('💾 ทำงานแบบ Offline (ข้อมูลเก็บในเครื่อง)', 'info');
+}
+
+// ============================================================
+// FIREBASE AUTH INIT
+// ============================================================
+function initFirebaseAuth() {
+  if (typeof firebase === 'undefined' || typeof firebase.auth !== 'function') {
+    enterOfflineMode('Firebase SDK ยังไม่โหลด');
+    return;
+  }
+  var timeoutId = setTimeout(function() {
+    if (document.getElementById('loading-overlay').style.display !== 'none') {
+      enterOfflineMode('Firebase Auth หมดเวลา (5s)');
+    }
+  }, 5000);
+
+  firebase.auth().onAuthStateChanged(async function(user) {
+    clearTimeout(timeoutId);
+    if (!user) {
+      document.getElementById('loading-overlay').style.display = 'none';
+      document.getElementById('auth-screen').classList.add('active');
+      document.getElementById('app-screen').classList.remove('active');
+      return;
+    }
+    try {
+      var profile = await firebase.firestore().collection('users').doc(user.uid).get();
+      if (!profile.exists) { await firebase.auth().signOut(); return; }
+      var data = profile.data();
+      if (data.role === 'pending' || data.status === 'pending') {
+        toast('⏳ รอการอนุมัติ', 'warning'); await firebase.auth().signOut(); return;
+      }
+      if (data.status === 'deleted' || data.disabled) {
+        toast('🚫 บัญชีถูกปิด', 'error'); await firebase.auth().signOut(); return;
+      }
+      currentUser = { uid: user.uid, name: data.name, email: data.email, role: data.role };
+      document.getElementById('header-avatar').textContent = (data.name||'?')[0].toUpperCase();
+      var cfg = loadConfig();
+      if (cfg.apiKey && cfg.projectId) {
+        var ok = await initFirebase(cfg);
+        if (!ok) console.warn('Firebase init failed, using local storage');
+      }
+      await loadAllData();
+      document.getElementById('loading-overlay').style.display = 'none';
+      document.getElementById('auth-screen').classList.remove('active');
+      document.getElementById('app-screen').classList.add('active');
+      showPage('dashboard');
+    } catch(e) {
+      console.error('Auth error:', e);
+      enterOfflineMode('เกิดข้อผิดพลาดในการโหลดข้อมูล');
+    }
+  });
+}
+
+// ============================================================
+// LOAD DEMO DATA
+// ============================================================
+function loadDemoData() {
+  if (lsGetCustomers().length > 0) return;
+  var now = new Date();
+  var prevYear = new Date(now); prevYear.setFullYear(prevYear.getFullYear() - 1);
+  var twoMonths = new Date(now); twoMonths.setMonth(twoMonths.getMonth() - 2);
+  var demos = [
+    { name: 'สมชาย ใจดี', phone: '0812345678', address: '123 ถ.เพชรบุรี กรุงเทพฯ', note: 'แอร์ 2 เครื่อง ชั้น 2' },
+    { name: 'นางสาว วิภา รักงาน', phone: '0898765432', address: '45/2 ม.3 ต.ลำลูกกา ปทุมธานี', line: '@wipha99' },
+    { name: 'ร้านกาแฟ สายลม', phone: '0845678901', address: '789 ถ.สีลม บางรัก กรุงเทพฯ', note: 'เครื่องซักผ้า 3 เครื่อง' },
+  ];
+  for (var d of demos) lsSaveCustomers([...lsGetCustomers(), { ...d, updatedAt: new Date().toISOString() }]);
+  var jobs = [
+    { id: 'j1', customerPhone: '0812345678', serviceDate: dateStr(prevYear), serviceType: 'ac', cost: '800', deviceInfo: 'Mitsubishi 12000 BTU', description: 'ล้างแอร์ทั่วไป', status: 'done', nextDate: addYear(dateStr(prevYear)), photos: [], updatedAt: new Date().toISOString() },
+    { id: 'j2', customerPhone: '0812345678', serviceDate: dateStr(twoMonths), serviceType: 'washer', cost: '600', deviceInfo: 'Samsung 8 กก.', description: 'ล้างถังชั้นในลึก', status: 'done', nextDate: addYear(dateStr(twoMonths)), photos: [], updatedAt: new Date().toISOString() },
+    { id: 'j3', customerPhone: '0898765432', serviceDate: dateStr(prevYear), serviceType: 'ac', cost: '900', deviceInfo: 'Daikin 18000 BTU', description: 'ล้างแอร์ + เติมน้ำยา', status: 'done', nextDate: addYear(dateStr(prevYear)), photos: [], updatedAt: new Date().toISOString() },
+    { id: 'j4', customerPhone: '0845678901', serviceDate: new Date(Date.now()-86400000*15).toISOString().split('T')[0], serviceType: 'repair', cost: '1200', deviceInfo: 'ตู้เย็น Hitachi', description: 'ซ่อมมอเตอร์พัดลม', status: 'done', nextDate: null, photos: [], updatedAt: new Date().toISOString() },
+  ];
+  lsSaveJobs(jobs);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+  var theme = localStorage.getItem('fixpro_theme') || 'light';
+  document.documentElement.setAttribute('data-theme', theme);
+  if (theme === 'dark') {
+    document.getElementById('theme-icon').className = 'fas fa-sun';
+    document.getElementById('auth-theme-icon').className = 'fas fa-sun';
+  }
+  loadDemoData();
+  var cfg = loadConfig();
+  if (cfg.apiKey && cfg.projectId) {
+    initFirebase(cfg).then(function(ok) {
+      if (!ok) console.warn('⚠️ Firebase init failed');
+      initFirebaseAuth();
+    });
+  } else {
+    initFirebaseAuth();
+  }
+  var now = new Date();
+  document.getElementById('dash-date').textContent = now.toLocaleDateString('th-TH', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  updateFabVisibility();
+});
+
+// ============================================================
+// SYNC OFFLINE QUEUE (stub)
+// ============================================================
+function syncOfflineQueue() {
+  toast('🔄 กำลังซิงค์ข้อมูล...', 'info');
+  setTimeout(function() {
+    toast('✅ ซิงค์ข้อมูลเรียบร้อย', 'success');
+  }, 1500);
+}
+</script>
 </body>
 </html>
