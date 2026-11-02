@@ -2505,7 +2505,8 @@ function showAuthScreen(reason) {
   document.getElementById('app-screen').classList.remove('active');
 }
 // เริ่มใช้งานทันทีโดยไม่ต้องมีบัญชี — ข้อมูลอยู่ในเครื่อง (localStorage) เชื่อม Firebase ได้ภายหลัง
-function enterLocalMode() {
+// silent = เข้าอัตโนมัติตอนเปิดแอป (ไม่ต้องแจ้งเตือนทุกครั้ง)
+function enterLocalMode(silent) {
   hideLoadingOverlay();
   document.getElementById('auth-screen').classList.remove('active');
   document.getElementById('app-screen').classList.add('active');
@@ -2513,7 +2514,7 @@ function enterLocalMode() {
   document.getElementById('header-avatar').textContent = 'L';
   loadAllData();
   showPage('dashboard');
-  toast('⚡ เริ่มใช้งานแล้ว — ข้อมูลถูกเก็บในเครื่องนี้', 'success');
+  if (!silent) toast('⚡ เริ่มใช้งานแล้ว — ข้อมูลถูกเก็บในเครื่องนี้', 'success');
 }
 function enterOfflineMode(reason) {
   console.warn('⚠️ เข้าโหมด Offline:', reason);
@@ -2541,29 +2542,28 @@ window.addEventListener('offline', updateOfflineBar);
 // ============================================================
 function initFirebaseAuth() {
   if (typeof firebase === 'undefined' || typeof firebase.auth !== 'function') {
-    showAuthScreen('Firebase SDK ยังไม่โหลด');
+    enterLocalMode(true);
     return;
   }
   // ยังไม่มี initializeApp → firebase.auth() จะ throw (เดิมทำให้แอปค้างหน้าโหลดตลอดไป)
   try {
     firebase.app();
   } catch (e) {
-    showAuthScreen('ยังไม่ได้ตั้งค่า Firebase');
+    enterLocalMode(true);
     return;
   }
   var timeoutId = setTimeout(function() {
     var lo = document.getElementById('loading-overlay');
     if (lo && lo.style.display !== 'none') {
-      showAuthScreen('การเชื่อมต่อใช้เวลานานเกินไป');
+      enterLocalMode(true);
     }
   }, 8000);
 
   firebase.auth().onAuthStateChanged(async function(user) {
     clearTimeout(timeoutId);
     if (!user) {
-      document.getElementById('loading-overlay').style.display = 'none';
-      document.getElementById('auth-screen').classList.add('active');
-      document.getElementById('app-screen').classList.remove('active');
+      // ไม่ล็อกอิน → เข้าโหมดในเครื่องทันที (ข้ามหน้าล็อกอิน)
+      enterLocalMode(true);
       return;
     }
     try {
@@ -2642,8 +2642,8 @@ document.addEventListener('DOMContentLoaded', function() {
       initFirebaseAuth();
     });
   } else {
-    // ยังไม่ตั้งค่า Firebase → โชว์หน้าล็อกอินพร้อมปุ่ม "เริ่มใช้งานเลย" (ไม่ค้างหน้าโหลดอีกต่อไป)
-    showAuthScreen('ยังไม่ได้ตั้งค่า Firebase — กด เริ่มใช้งานเลย เพื่อใช้โหมดในเครื่อง');
+    // ใช้งานคนเดียว → เข้าแอปได้เลย ข้ามหน้าล็อกอิน (ข้อมูลเก็บในเครื่อง)
+    enterLocalMode(true);
   }
   // PWA service worker — แคชไฟล์แอปไว้ใช้ตอนออฟไลน์
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
