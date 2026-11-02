@@ -101,10 +101,11 @@ body { font-family: 'Kanit', sans-serif; background: var(--bg); color: var(--tex
 /* ===== FORM ELEMENTS ===== */
 .form-group { margin-bottom: 12px; }
 .form-label { display: block; font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 4px; }
+.form-label .req { color: var(--danger); font-weight: 700; margin-left: 1px; }
 .form-control {
-  width: 100%; padding: 12px 14px; border: 1.5px solid var(--border);
+  width: 100%; padding: 7px 11px; border: 1.5px solid var(--border);
   border-radius: var(--radius-sm); background: var(--bg); color: var(--text);
-  font-size: 15px; transition: var(--transition); outline: none; min-height: 48px;
+  font-size: 14px; transition: var(--transition); outline: none; min-height: 38px;
 }
 .form-control:focus { border-color: var(--primary); background: var(--surface); box-shadow: 0 0 0 3px rgba(46,125,50,0.12); }
 textarea.form-control { resize: vertical; min-height: 80px; }
@@ -120,9 +121,9 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 /* ===== BUTTONS ===== */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  padding: 12px 20px; border-radius: var(--radius-sm); font-size: 15px; font-weight: 600;
+  padding: 9px 18px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600;
   transition: var(--transition); cursor: pointer; border: none; line-height: 1.2;
-  min-height: 48px; min-width: 48px; touch-action: manipulation;
+  min-height: 42px; min-width: 42px; touch-action: manipulation;
 }
 .btn:active { transform: scale(0.96); }
 .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-l)); color: white; }
@@ -130,10 +131,10 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 .btn-secondary { background: var(--bg); color: var(--text); border: 1.5px solid var(--border); }
 .btn-secondary:active { background: var(--border); }
 .btn-danger { background: var(--danger); color: white; }
-.btn-sm { padding: 8px 14px; font-size: 13px; min-height: 36px; }
+.btn-sm { padding: 5px 12px; font-size: 12.5px; min-height: 34px; }
 .btn-full { width: 100%; }
 .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
-.btn-icon { width: 44px; height: 44px; padding: 0; border-radius: 12px; }
+.btn-icon { width: 40px; height: 40px; padding: 0; border-radius: 10px; }
 .btn-ghost { background: transparent; color: var(--text2); }
 .btn-ghost:active { background: var(--bg); color: var(--text); }
 
@@ -217,10 +218,6 @@ textarea.form-control { resize: vertical; min-height: 80px; }
   margin-bottom: 8px; min-height: 72px;
 }
 .customer-card:active { transform: scale(0.98); border-color: var(--primary); }
-.customer-avatar {
-  width: 44px; height: 44px; border-radius: 12px; background: var(--primary);
-  display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: #fff; flex-shrink: 0;
-}
 .customer-info { flex: 1; min-width: 0; }
 .customer-name { font-size: 15px; font-weight: 700; }
 .customer-phone { font-size: 13px; color: var(--text2); margin-top: 2px; }
@@ -297,7 +294,7 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 .map-actions { display: flex; gap: 8px; margin-top: 10px; }
 .map-btn {
   flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  min-height: 48px; border-radius: 12px; border: none; font-family: inherit;
+  min-height: 44px; border-radius: 12px; border: none; font-family: inherit;
   font-size: 14px; font-weight: 700; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 .map-btn:active { transform: scale(0.96); }
@@ -333,12 +330,12 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 }
 .jt-row:focus-within { border-color: var(--primary); }
 .jt-emoji {
-  width: 46px; height: 40px; text-align: center; font-size: 17px; padding: 4px 2px; flex-shrink: 0;
+  width: 46px; height: 38px; text-align: center; font-size: 17px; padding: 4px 2px; flex-shrink: 0;
   background: var(--surface); border: 1px solid var(--border); border-radius: 10px; font-family: inherit;
   box-sizing: border-box;
 }
 .jt-label {
-  flex: 1; min-width: 0; height: 40px; background: transparent; border: none; font-weight: 600;
+  flex: 1; min-width: 0; height: 38px; background: transparent; border: none; font-weight: 600;
   font-size: 14px; padding: 6px 4px; color: var(--text); font-family: inherit; box-sizing: border-box;
 }
 .jt-label::placeholder { color: var(--text3); font-weight: 400; }
@@ -382,13 +379,13 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 .filter-bar::-webkit-scrollbar { display: none; }
 .filter-bar .search-input { position: relative; flex: 1; min-width: 120px; }
 .filter-bar .search-input input {
-  width: 100%; padding: 8px 10px 8px 32px; border: 1.5px solid var(--border);
+  width: 100%; padding: 7px 10px 7px 32px; border: 1.5px solid var(--border);
   border-radius: var(--radius-sm); background: var(--surface); color: var(--text);
-  outline: none; font-size: 14px; min-height: 40px;
+  outline: none; font-size: 14px; min-height: 38px;
 }
 .filter-bar .search-input input:focus { border-color: var(--primary); }
 .filter-bar .search-input i { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 13px; }
-select.form-select { padding: 8px 12px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); outline: none; font-size: 13px; cursor: pointer; min-height: 40px; }
+select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); outline: none; font-size: 13px; cursor: pointer; min-height: 38px; }
 
 /* ===== MODAL ===== */
 .modal-overlay {
@@ -573,9 +570,9 @@ select.form-select { padding: 8px 12px; border: 1.5px solid var(--border); borde
   .modal-footer { padding: 10px 14px; }
   .filter-bar { flex-wrap: nowrap; overflow-x: auto; }
   .filter-bar .search-input { min-width: 100px; }
-  .btn { min-height: 44px; padding: 10px 16px; font-size: 14px; }
-  .btn-sm { min-height: 36px; padding: 6px 12px; font-size: 12px; }
-  .form-control { font-size: 15px; padding: 10px 12px; min-height: 44px; }
+  .btn { min-height: 42px; padding: 9px 16px; font-size: 14px; }
+  .btn-sm { min-height: 34px; padding: 5px 12px; font-size: 12.5px; }
+  .form-control { font-size: 14px; padding: 7px 11px; min-height: 38px; }
 }
 </style>
 </head>
@@ -1001,11 +998,11 @@ select.form-select { padding: 8px 12px; border: 1.5px solid var(--border); borde
     </div>
     <div class="modal-body">
       <div class="form-group">
-        <label class="form-label">ชื่อ-นามสกุล <span class="badge badge-red">*</span></label>
+        <label class="form-label">ชื่อ-นามสกุล <span class="req">*</span></label>
         <input type="text" class="form-control" id="cust-name" placeholder="ชื่อ-นามสกุล">
       </div>
       <div class="form-group">
-        <label class="form-label">เบอร์โทร <span class="badge badge-red">*</span></label>
+        <label class="form-label">เบอร์โทร <span class="req">*</span></label>
         <input type="tel" class="form-control" id="cust-phone" placeholder="08x-xxx-xxxx" maxlength="10">
       </div>
       <div class="opt-toggle" onclick="toggleCustExtra()"><i class="fas fa-chevron-down" id="cust-extra-chev"></i> ที่อยู่ / LINE / หมายเหตุ (ไม่บังคับ)</div>
@@ -1046,17 +1043,17 @@ select.form-select { padding: 8px 12px; border: 1.5px solid var(--border); borde
     </div>
     <div class="modal-body">
       <div class="form-group">
-        <label class="form-label">ลูกค้า <span class="badge badge-red">*</span></label>
+        <label class="form-label">ลูกค้า <span class="req">*</span></label>
         <input type="text" class="form-control" id="job-customer-name" placeholder="ชื่อลูกค้า" readonly style="background:var(--bg);">
       </div>
       <div class="form-group">
-        <label class="form-label">ประเภท <span class="badge badge-red">*</span></label>
+        <label class="form-label">ประเภท <span class="req">*</span></label>
         <div class="type-selector" id="type-selector"></div>
         <input type="hidden" id="job-type" value="ac">
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:end;">
         <div class="form-group">
-          <label class="form-label">📅 วันที่ <span class="badge badge-red">*</span></label>
+          <label class="form-label">📅 วันที่ <span class="req">*</span></label>
           <input type="date" class="form-control" id="job-date">
         </div>
         <div class="form-group">
@@ -1681,10 +1678,8 @@ function renderCustomers(filter) {
   container.innerHTML = list.map(c => {
     var jobs = DB.jobs.filter(j => j.customerPhone === c.phone);
     var hasReminder = urgentPhones.has(c.phone);
-    var avatarColor = stringToColor(c.name || c.phone);
-    return '<div class="customer-card" onclick="showCustomerDetail(\'' + escAttr(c.phone) + '\')">' +
-      '<div class="customer-avatar" style="background:' + avatarColor + '">' + esc((c.name||'?')[0]).toUpperCase() + '</div>' +
-      '<div class="customer-info"><div class="customer-name">' + esc(c.name || '-') + (hasReminder ? ' <span style="color:var(--danger);font-size:12px;">●</span>' : '') + '</div>' +
+  return '<div class="customer-card" onclick="showCustomerDetail(\'' + escAttr(c.phone) + '\')">' +
+    '<div class="customer-info"><div class="customer-name">' + esc(c.name || '-') + (hasReminder ? ' <span style="color:var(--danger);font-size:12px;">●</span>' : '') + '</div>' +
       '<div class="customer-phone"><i class="fas fa-phone" style="font-size:11px;"></i> ' + esc(c.phone) + '</div>' +
       (c.address ? '<div style="font-size:11px;color:var(--text3);"><i class="fas fa-location-dot"></i> ' + esc(c.address) + '</div>' : '') +
       '<div class="customer-tags">' + jobs.slice(0,2).map(j => '<span class="badge ' + (SERVICE_COLORS[j.serviceType]||'badge-gray') + '" style="font-size:10px;">' + (SERVICE_LABELS[j.serviceType]||j.serviceType) + '</span>').join('') + '</div></div>' +
@@ -1692,11 +1687,6 @@ function renderCustomers(filter) {
   }).join('');
 }
 function filterCustomers() { renderCustomers(document.getElementById('customer-search')?.value || ''); }
-function stringToColor(str) {
-  var colors = ['#2E7D32','#1976D2','#7C3AED','#F59E0B','#DC2626','#0288D1','#E91E63','#388E3C'];
-  var h = 0; for (var i = 0; i < str.length; i++) h = str.charCodeAt(i) + ((h << 5) - h);
-  return colors[Math.abs(h) % colors.length];
-}
 
 // ============================================================
 // JOBS (Mobile Card List)
@@ -1835,13 +1825,11 @@ function renderCustomerDetail(phone) {
   var cust = DB.customers.find(c => c.phone === phone);
   if (!cust) { showPage('customers'); return; }
   var jobs = DB.jobs.filter(j => j.customerPhone === phone).sort((a,b) => (b.serviceDate||'') > (a.serviceDate||'') ? 1 : -1);
-  var avatarColor = stringToColor(cust.name || phone);
   var hasReminder = getUpcomingReminders('all').some(r => r.cust?.phone === phone && (r.status==='overdue'||r.status==='soon'));
   var el = document.getElementById('customer-detail-content');
   el.innerHTML = '<div class="card">' +
-    '<div class="card-body" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">' +
-    '<div class="customer-avatar" style="background:' + avatarColor + ';width:48px;height:48px;font-size:20px;">' + esc((cust.name||'?')[0]).toUpperCase() + '</div>' +
-    '<div style="flex:1;min-width:0;"><div style="font-size:17px;font-weight:700;">' + esc(cust.name||'-') + (hasReminder ? ' <span class="badge badge-red" style="font-size:11px;">มีแจ้งเตือน</span>' : '') + '</div>' +
+    '<div class="card-body">' +
+    '<div><div style="font-size:17px;font-weight:700;">' + esc(cust.name||'-') + (hasReminder ? ' <span class="badge badge-red" style="font-size:11px;">มีแจ้งเตือน</span>' : '') + '</div>' +
     '<div style="font-size:14px;"><i class="fas fa-phone"></i> <a href="tel:' + escAttr(cust.phone) + '" style="color:var(--primary);">' + esc(cust.phone) + '</a></div>' +
     (cust.address ? '<div style="font-size:12px;color:var(--text3);"><i class="fas fa-location-dot"></i> ' + esc(cust.address) + '</div>' : '') +
     (cust.note ? '<div style="font-size:12px;color:var(--text3);"><i class="fas fa-note-sticky"></i> ' + esc(cust.note) + '</div>' : '') +
@@ -2219,10 +2207,8 @@ function renderPickerList(ft) {
     return;
   }
   el.innerHTML = list.map(c => {
-    var col = stringToColor(c.name||c.phone);
     var jobs = DB.jobs.filter(j => j.customerPhone === c.phone).length;
     return '<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer;border-bottom:1px solid var(--border);" onclick="pickCustomer(\'' + escAttr(c.phone) + '\')">' +
-      '<div style="width:36px;height:36px;border-radius:8px;background:' + col + ';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px;">' + esc((c.name||'?')[0]).toUpperCase() + '</div>' +
       '<div style="flex:1;"><div style="font-weight:600;">' + esc(c.name||'-') + '</div><div style="font-size:12px;color:var(--text3);">' + esc(c.phone) + ' · ' + jobs + ' งาน</div></div>' +
       '<i class="fas fa-chevron-right" style="color:var(--border);font-size:12px;"></i></div>';
   }).join('');
