@@ -194,6 +194,7 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 .stat-card.orange .stat-icon { background: #FBE9E7; color: var(--accent); }
 .stat-card.blue .stat-icon { background: #E3F2FD; color: var(--info); }
 .stat-card.amber .stat-icon { background: #FFF8E1; color: #FFA000; }
+.stat-card.red .stat-icon { background: #FEE2E2; color: var(--danger); }
 .stat-value { font-size: 15px; font-weight: 800; color: var(--text); margin-bottom: 1px; }
 .stat-label { font-size: 9.5px; color: var(--text2); line-height: 1.25; }
 .stat-change { font-size: 10px; margin-top: 4px; font-weight: 600; }
@@ -728,7 +729,8 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
             <div style="font-size:11px;color:var(--text3);" id="dash-date"></div>
           </div>
         </div>
-        <div class="stats-grid" id="dash-stats"></div>
+        <div id="dash-unpaid" style="display:none;"></div>
+      <div class="stats-grid" id="dash-stats"></div>
         <div class="card">
           <div class="card-header">
             <span class="card-title"><i class="fas fa-triangle-exclamation" style="color:var(--danger);"></i> ต้องติดต่อ</span>
@@ -780,6 +782,7 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
             <option value="">สถานะ</option>
             <option value="pending">⏳ รอ</option>
             <option value="followup">🔄 ติดตาม</option>
+            <option value="unpaid">💵 รอเก็บเงิน</option>
             <option value="done">✅ เสร็จ</option>
           </select>
         </div>
@@ -874,6 +877,12 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
               <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
                 <input type="checkbox" id="cfg-auto-line-popup" checked>
                 <span style="font-size:13px;">แสดง popup ส่ง LINE อัตโนมัติ</span>
+              </label>
+            </div>
+            <div class="form-group">
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+                <input type="checkbox" id="cfg-notify-local" onchange="saveNotifySetting(this.checked)">
+                <span style="font-size:13px;">🔔 แจ้งเตือนบนเครื่องนี้ (ลูกค้าถึงกำหนด / รอเก็บเงิน)</span>
               </label>
             </div>
             <button class="btn btn-primary btn-sm" onclick="saveShopConfig()"><i class="fas fa-save"></i> บันทึก</button>
@@ -1088,6 +1097,7 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
           <label class="badge badge-green" style="cursor:pointer;padding:6px 12px;"><input type="radio" name="job-status-r" value="done" checked onchange="document.getElementById('job-status').value=this.value"> ✅ เสร็จ</label>
           <label class="badge badge-amber" style="cursor:pointer;padding:6px 12px;"><input type="radio" name="job-status-r" value="pending" onchange="document.getElementById('job-status').value=this.value"> ⏳ รอ</label>
           <label class="badge badge-purple" style="cursor:pointer;padding:6px 12px;"><input type="radio" name="job-status-r" value="followup" onchange="document.getElementById('job-status').value=this.value"> 🔄 ติดตาม</label>
+          <label class="badge badge-red" style="cursor:pointer;padding:6px 12px;"><input type="radio" name="job-status-r" value="unpaid" onchange="document.getElementById('job-status').value=this.value"> 💵 รอเก็บเงิน</label>
         </div>
         <input type="hidden" id="job-status" value="done">
       </div>
@@ -1252,7 +1262,126 @@ function escAttr(s) {
 function loadConfig() {
   try { return JSON.parse(localStorage.getItem(CFG_KEY) || '{}'); } catch(e) { return {}; }
 }
-function saveConfig(cfg) { localStorage.setItem(CFG_KEY, JSON.stringify(cfg)); }
+function saveConfig(cfg) { localStorage.setItem(CFG_KEY, JSON.stringify(cfg)); queueConfigPush(); }
+
+// ===== ซิงค์การตั้งค่าข้ามเครื่อง (Firestore: shop/settings) =====
+// หลักการ: เครื่องที่มีข้อมูลจริงเครื่องแรกจะอัปโหลดอัตโนมัติ / เครื่องอื่นดึงลงตอนเปิดแอป / แก้ไขเมื่อไร push ทันที (timestamp ใหม่ชนะ)
+var CFG_SYNC_COL = 'shop';
+var CFG_SYNC_DOC = 'settings';
+var CFG_SYNC_KEYS = ['shopName','techPhone','receiptFooter','autoLinePopup','cloudName','uploadPreset','jobTypes'];
+var _cfgPushTimer = null;
+function queueConfigPush() {
+  clearTimeout(_cfgPushTimer);
+  _cfgPushTimer = setTimeout(pushConfigToCloud, 1500);
+}
+function cfgSyncPayload() {
+  var cfg = loadConfig(); var out = { updatedAt: new Date().toISOString() };
+  CFG_SYNC_KEYS.forEach(function(k){ out[k] = (cfg[k] !== undefined) ? cfg[k] : null; });
+  return out;
+}
+function cfgHasMeaningfulData() {
+  var cfg = loadConfig();
+  if (!cfg) return false;
+  if (cfg.shopName || cfg.techPhone || cfg.receiptFooter || cfg.cloudName || cfg.uploadPreset) return true;
+  if (cfg.autoLinePopup === false) return true;
+  var jt = cfg.jobTypes;
+  if (Array.isArray(jt)) {
+    if (jt.length !== DEFAULT_JOB_TYPES.length) return true;
+    for (var i = 0; i < jt.length; i++) {
+      var t = jt[i], d = DEFAULT_JOB_TYPES[i];
+      if (!d || t.id !== d.id || (t.label||'') !== d.label || (t.emoji||'') !== d.emoji || t.deleted) return true;
+    }
+  }
+  return false;
+}
+async function pushConfigToCloud() {
+  if (!db) return;
+  if (!cfgHasMeaningfulData() && !loadConfig().cfgSyncedAt) return; // ยังไม่เคยตั้งอะไร → ไม่ต้องอัปโหลด
+  try {
+    var p = cfgSyncPayload();
+    await db.collection(CFG_SYNC_COL).doc(CFG_SYNC_DOC).set(p);
+    var l = loadConfig(); l.cfgSyncedAt = p.updatedAt; localStorage.setItem(CFG_KEY, JSON.stringify(l));
+  } catch(e) { console.warn('อัปโหลดการตั้งค่าไม่สำเร็จ:', e); }
+}
+async function syncConfigFromCloud() {
+  if (!db) return;
+  try {
+    var snap = await db.collection(CFG_SYNC_COL).doc(CFG_SYNC_DOC).get();
+    if (!snap.exists) {
+      if (cfgHasMeaningfulData()) { clearTimeout(_cfgPushTimer); await pushConfigToCloud(); } // เครื่องแรกที่มีข้อมูลจริง → อัปขึ้นคลาวด์
+      return;
+    }
+    var remote = snap.data() || {};
+    var local = loadConfig();
+    var remoteTs = remote.updatedAt || '', localTs = local.cfgSyncedAt || '';
+    if (!remoteTs || remoteTs <= localTs) return;
+    var merged = Object.assign({}, local);
+    CFG_SYNC_KEYS.forEach(function(k) {
+      var v = remote[k];
+      if (v === undefined || v === null) return;
+      if (k === 'jobTypes' && !(Array.isArray(v) && v.length)) return; // ลิสต์ว่างไม่ทับของเดิม
+      merged[k] = v;
+    });
+    merged.cfgSyncedAt = remoteTs;
+    localStorage.setItem(CFG_KEY, JSON.stringify(merged));
+    applyJobTypes();
+    refreshAll();
+    console.info('ซิงค์การตั้งค่าจากคลาวด์แล้ว (' + remoteTs + ')');
+  } catch(e) { console.warn('ดึงการตั้งค่าจากคลาวด์ไม่สำเร็จ:', e); }
+}
+
+// ===== แจ้งเตือนบนเครื่อง (Notification API) =====
+function saveNotifySetting(on) {
+  var cfg = loadConfig(); cfg.notifyLocal = !!on; saveConfig(cfg);
+  if (!on) { toast('ปิดแจ้งเตือนบนเครื่องแล้ว', 'info'); return; }
+  requestNotifyPermission().then(function(p) {
+    if (p !== 'granted') {
+      cfg = loadConfig(); cfg.notifyLocal = false; saveConfig(cfg);
+      var cb = document.getElementById('cfg-notify-local'); if (cb) cb.checked = false;
+      toast('เบราว์เซอร์ไม่อนุญาต — เปิดสิทธิ์ Notification ในการตั้งค่าเบราว์เซอร์ก่อน', 'warning');
+    } else { toast('เปิดแจ้งเตือนแล้ว 🔔', 'success'); checkAndNotify(true); }
+  });
+}
+async function requestNotifyPermission() {
+  if (!('Notification' in window)) return 'denied';
+  if (Notification.permission === 'granted') return 'granted';
+  try { return await Notification.requestPermission(); } catch(e) { return 'denied'; }
+}
+function showLocalNotification(title, body) {
+  var opt = { body: body, tag: 'fixpro-daily', renotify: true, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png' };
+  try {
+    if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+      navigator.serviceWorker.ready.then(function(reg) {
+        if (reg && reg.showNotification) { reg.showNotification(title, opt); return; }
+        fallbackNotify(title, body, opt);
+      }).catch(function() { fallbackNotify(title, body, opt); });
+    } else fallbackNotify(title, body, opt);
+  } catch(e) { fallbackNotify(title, body, opt); }
+}
+function fallbackNotify(title, body, opt) { try { new Notification(title, opt); } catch(e) {} }
+function checkAndNotify(force) {
+  try {
+    var cfg = loadConfig();
+    if (!cfg.notifyLocal || !('Notification' in window) || Notification.permission !== 'granted') return;
+    var urgent = getUpcomingReminders('all').filter(function(r){ return r.status === 'overdue' || r.status === 'soon'; });
+    var overdue = urgent.filter(function(r){ return r.status === 'overdue'; }).length;
+    var soon = urgent.length - overdue;
+    var unpaid = DB.jobs.filter(function(j){ return j.status === 'unpaid'; });
+    var unpaidTotal = unpaid.reduce(function(s,j){ return s + (parseFloat(j.cost)||0); }, 0);
+    if (!urgent.length && !unpaid.length) return;
+    var parts = [];
+    if (overdue) parts.push('ติดต่อลูกค้า ' + overdue + ' ราย (เกินกำหนด)');
+    if (soon) parts.push('ใกล้กำหนด ' + soon + ' ราย');
+    if (unpaid.length) parts.push('รอเก็บเงิน ' + unpaid.length + ' งาน (' + unpaidTotal.toLocaleString() + ' บาท)');
+    if (!parts.length) return;
+    var key = parts.join('|');
+    if (!force && localStorage.getItem('fixpro_noti_last') === key) return; // กันแจ้งซ้ำข้อความเดิม
+    localStorage.setItem('fixpro_noti_last', key);
+    showLocalNotification('🔧 FixPro — มีสิ่งที่ต้องดู', parts.join(' · '));
+  } catch(e) {}
+}
+setInterval(function(){ checkAndNotify(); }, 30*60*1000);
+document.addEventListener('visibilitychange', function(){ if (document.visibilityState === 'visible') checkAndNotify(); });
 function lsGetCustomers() { try { return JSON.parse(localStorage.getItem(LS_CUSTOMERS) || '[]'); } catch(e) { return []; } }
 function lsSaveCustomers(arr) { localStorage.setItem(LS_CUSTOMERS, JSON.stringify(arr)); }
 function lsGetJobs() { try { return JSON.parse(localStorage.getItem(LS_JOBS) || '[]'); } catch(e) { return []; } }
@@ -1296,7 +1425,9 @@ async function loadAllData() {
     DB.customers = lsGetCustomers();
     DB.jobs = lsGetJobs();
   }
+  if (db) await syncConfigFromCloud();
   refreshAll();
+  checkAndNotify();
 }
 
 // ============================================================
@@ -1501,8 +1632,8 @@ function deleteJobType(id) {
   openModal('modal-confirm');
 }
 var REMIND_TYPES = ['ac', 'washer'];
-var STATUS_LABELS = { done: '✅ เสร็จ', pending: '⏳ รอ', followup: '🔄 ติดตาม' };
-var STATUS_COLORS = { done: 'badge-green', pending: 'badge-amber', followup: 'badge-purple' };
+var STATUS_LABELS = { done: '✅ เสร็จ', pending: '⏳ รอ', followup: '🔄 ติดตาม', unpaid: '💵 รอเก็บเงิน' };
+var STATUS_COLORS = { done: 'badge-green', pending: 'badge-amber', followup: 'badge-purple', unpaid: 'badge-red' };
 
 // ============================================================
 // DATE HELPERS
@@ -1607,6 +1738,18 @@ function renderDashboard() {
   var soonR = getUpcomingReminders('all').filter(r => r.status === 'soon');
   var urgentCount = overdueR.length + soonR.length;
   var pendingJobs = DB.jobs.filter(j => j.status === 'pending' || j.status === 'followup');
+  var unpaidJobs = DB.jobs.filter(j => j.status === 'unpaid');
+  var unpaidTotal = unpaidJobs.reduce((s,j) => s+(parseFloat(j.cost)||0), 0);
+  var unpaidStrip = document.getElementById('dash-unpaid');
+  if (unpaidStrip) {
+    unpaidStrip.style.display = unpaidJobs.length ? '' : 'none';
+    unpaidStrip.innerHTML = unpaidJobs.length === 0 ? '' :
+      '<div class="card" onclick="showJobsWithStatus(\'unpaid\')" style="display:flex;align-items:center;gap:10px;padding:10px 14px;margin-bottom:8px;border:1.5px solid #FECACA;background:#FFF5F5;cursor:pointer;">' +
+      '<div style="width:34px;height:34px;border-radius:10px;background:#FEE2E2;color:var(--danger);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;"><i class="fas fa-hand-holding-dollar"></i></div>' +
+      '<div style="flex:1;min-width:0;"><div style="font-size:13.5px;font-weight:800;color:var(--danger);">รอเก็บเงิน ' + unpaidJobs.length + ' งาน</div>' +
+      '<div style="font-size:11px;color:var(--text2);">รวม ' + unpaidTotal.toLocaleString() + ' บาท — แตะเพื่อดูรายการ</div></div>' +
+      '<i class="fas fa-chevron-right" style="color:var(--text3);font-size:12px;"></i></div>';
+  }
   var thisMonthJobs = DB.jobs.filter(j => {
     var d = j.serviceDate ? new Date(j.serviceDate) : null;
     return d && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
@@ -1742,9 +1885,16 @@ function renderJobs() {
   }
 }
 function filterJobs() { renderJobs(); }
+function showJobsWithStatus(st) {
+  showPage('jobs');
+  var s = document.getElementById('job-filter-status');
+  if (s) { s.value = st; if (s.value !== st) s.value = ''; }
+  renderJobs();
+}
 function clearJobsFilter() {
   document.getElementById('job-search').value = '';
   document.getElementById('job-filter-type').value = '';
+  var st = document.getElementById('job-filter-status'); if (st) st.value = '';
   renderJobs();
 }
 
@@ -1888,7 +2038,7 @@ function renderCustomerDetail(phone) {
 }
 
 function renderJobCard(j) {
-  var dotColor = { done: 'var(--success)', pending: 'var(--warning)', followup: 'var(--purple)' }[j.status] || 'var(--primary)';
+  var dotColor = { done: 'var(--success)', pending: 'var(--warning)', followup: 'var(--purple)', unpaid: 'var(--danger)' }[j.status] || 'var(--primary)';
   var photos = j.photos || [];
   return '<div class="timeline-item"><div class="timeline-dot" style="background:' + dotColor + '"></div>' +
     '<div class="timeline-card"><div class="timeline-card-header">' +
@@ -2650,6 +2800,7 @@ function loadSettingsPage() {
   document.getElementById('cfg-tech-phone').value = cfg.techPhone || '';
   document.getElementById('cfg-receipt-footer').value = cfg.receiptFooter || '';
   document.getElementById('cfg-auto-line-popup').checked = cfg.autoLinePopup !== false;
+  document.getElementById('cfg-notify-local').checked = !!cfg.notifyLocal;
   document.getElementById('cfg-fb-apikey').value = cfg.apiKey || '';
   document.getElementById('cfg-fb-authdomain').value = cfg.authDomain || '';
   document.getElementById('cfg-fb-projectid').value = cfg.projectId || '';
