@@ -73,7 +73,7 @@ body { font-family: 'Kanit', sans-serif; background: var(--bg); color: var(--tex
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
 .screen { display: none; }
-.screen.active { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+.screen.active { display: flex; flex-direction: column; height: 100vh; height: var(--app-vh, 100dvh); overflow: hidden; }
 
 /* ===== AUTH ===== */
 #auth-screen {
@@ -165,9 +165,9 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 /* ===== MAIN CONTENT ===== */
 .app-body { display: flex; flex: 1; min-height: 0; overflow: hidden; }
 .main-content {
-  flex: 1; padding: 8px 12px calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px);
+  flex: 1; padding: 8px 12px calc(var(--nav-h) + env(safe-area-inset-bottom) + 20px);
   overflow-y: auto; overflow-x: hidden;
-  height: calc(100vh - var(--header-h)); box-sizing: border-box;
+  height: calc(100vh - var(--header-h)); height: calc(var(--app-vh, 100dvh) - var(--header-h)); box-sizing: border-box;
   -webkit-overflow-scrolling: touch;
 }
 .page { display: none; animation: fadeUp 0.25s ease; }
@@ -399,7 +399,7 @@ select.form-select { padding: 8px 12px; border: 1.5px solid var(--border); borde
 .modal-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
 .modal {
   background: var(--surface); border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  width: 100%; max-width: 560px; max-height: 92vh;
+  width: 100%; max-width: 560px; max-height: 92vh; max-height: var(--app-vh, 92dvh);
   box-shadow: var(--shadow-lg); animation: slideUp 0.3s ease;
   display: flex; flex-direction: column; overflow: hidden;
 }
@@ -564,10 +564,10 @@ select.form-select { padding: 8px 12px; border: 1.5px solid var(--border); borde
 @media (max-width: 768px) {
   .desktop-only { display: none !important; }
   .app-body { padding-bottom: 0; }
-  .main-content { padding: 8px 10px calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); }
+  .main-content { padding: 8px 10px calc(var(--nav-h) + env(safe-area-inset-bottom) + 20px); }
   .card-header { padding: 8px 12px; }
   .card-body { padding: 8px 12px; }
-  .modal { border-radius: 20px 20px 0 0; max-height: 94vh; }
+  .modal { border-radius: 20px 20px 0 0; max-height: 94vh; max-height: var(--app-vh, 94dvh); }
   .modal-header { padding: 12px 14px; }
   .modal-body { padding: 12px 14px; }
   .modal-footer { padding: 10px 14px; }
@@ -3004,6 +3004,13 @@ function loadDemoData() {
 // INIT
 // ============================================================
 document.addEventListener('DOMContentLoaded', function() {
+  // ความสูง viewport จริง (ตัดแถบ URL ของเบราว์เซอร์ออก) — แก้เมนูล่างบังท้ายรายการบน Edge/Chrome Android
+  var vv = window.visualViewport;
+  if (vv) {
+    var setAppVH = function() { if (vv.scale <= 1.05) document.documentElement.style.setProperty('--app-vh', Math.round(vv.height) + 'px'); };
+    setAppVH();
+    vv.addEventListener('resize', setAppVH);
+  }
   var theme = localStorage.getItem('fixpro_theme') || 'light';
   document.documentElement.setAttribute('data-theme', theme);
   if (theme === 'dark') {
