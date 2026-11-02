@@ -13,13 +13,13 @@
 <title>FixPro — ระบบจัดการงานช่าง</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<script defer src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha384-/o6I2CkkWC//PSjvWC/eYN7l3xM3tJm8ZzVkCOfp//W05QcE3mlGskpoHB6XqI+B" crossorigin="anonymous">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" integrity="sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw" crossorigin="anonymous"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk" crossorigin="anonymous"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" integrity="sha384-fCAW/rDWORTbQXSiB7mOg0QtQ5c+r0f544y6XoKjuVva0nMBlCpNUjiFeG5iMdS3" crossorigin="anonymous"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" integrity="sha384-AQ3POAMqIhwS81FrUH95ekxqBZHeP5tG2JfEL3+7GuTtfRLWnrRh32UxwzM+//A9" crossorigin="anonymous"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js" integrity="sha384-qn4Jh88HhJA8dplNQyGjOh9OGI4izVhrfj/qIFgaKcdgOE06pXqIKGlsCILZcLAC" crossorigin="anonymous"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js" integrity="sha384-TnlRYaR4JYz/lpaGuaiU61PjNberSA4vjLjtF+oRC/IkohkJqnWxw5EmDSOt1vA1" crossorigin="anonymous"></script>
 <style>
 /* ===== EBED Design Tokens ===== */
 :root {
@@ -611,7 +611,7 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
     </div>
     <div class="auth-tabs">
       <div class="auth-tab active" onclick="switchAuthTab('login')">เข้าสู่ระบบ</div>
-      <div class="auth-tab" onclick="switchAuthTab('register')">ลงทะเบียน</div>
+      <div class="auth-tab" onclick="switchAuthTab('register')" style="display:none;">ลงทะเบียน</div>
     </div>
     <div id="login-form">
       <div class="form-group">
@@ -691,7 +691,7 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
     <button class="btn btn-secondary btn-full" onclick="enterLocalMode()">
       <i class="fas fa-bolt"></i> เริ่มใช้งานเลย (ไม่ต้องเข้าสู่ระบบ)
     </button>
-    <div style="font-size:11px;color:var(--text3);text-align:center;margin-top:10px;line-height:1.5;">ข้อมูลเก็บในเครื่องนี้ · อยากซิงค์ข้ามเครื่อง เชื่อมต่อ Firebase ได้ในหน้า <b>ตั้งค่า</b></div>
+    <div style="font-size:11px;color:var(--text3);text-align:center;margin-top:10px;line-height:1.5;">ข้อมูลเก็บในเครื่องนี้ · ซิงค์ข้ามเครื่อง = เข้าสู่ระบบด้วยอีเมลเจ้าของร้าน<br>(การลงทะเบียนใหม่ถูกปิดเพื่อความปลอดภัยของข้อมูลลูกค้า)</div>
   </div>
   <div style="position:absolute;bottom:8px;right:12px;font-size:10px;color:rgba(255,255,255,.4);text-align:right;">
     thanavutp&#64;gmail.com
@@ -1258,6 +1258,12 @@ function esc(s) {
 function escAttr(s) {
   return String(s == null ? '' : s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/[\r\n]+/g,' ');
 }
+// ===== v16 กันค่าที่ซิงค์จากคลาวด์ถูกฝังโค้ด =====
+// id ประเภทงานเหลือเฉพาะตัวอักษรปลอดภัย / อีโมจิตัด < > " ' ` \ ออก
+function safeTypeId(id) { return String(id == null ? '' : id).replace(/[^a-zA-Z0-9_-]/g, ''); }
+function safeEmoji(e) { var v = String(e == null ? '' : e).replace(/[<>"'`\\]/g, '').trim(); return v || '🛠️'; }
+// กัน Excel Formula Injection — ข้อความที่ขึ้นต้น = + - @ ใส่ ' นำหน้าให้เป็นข้อความธรรมดา
+function xlsxSafe(v) { return (typeof v === 'string' && /^[=+\-@\t\r]/.test(v)) ? "'" + v : v; }
 
 function loadConfig() {
   try { return JSON.parse(localStorage.getItem(CFG_KEY) || '{}'); } catch(e) { return {}; }
@@ -1522,19 +1528,20 @@ function jobTypesFromConfig() {
   var saved = cfg.jobTypes;
   if (Array.isArray(saved) && saved.length) {
     return saved.map(function(s) {
-      return { id: s.id, emoji: s.emoji || '🛠️', label: (s.label || '').trim() || 'ประเภทงาน', deleted: !!s.deleted };
+      return { id: safeTypeId(s.id), emoji: safeEmoji(s.emoji), label: (s.label || '').trim() || 'ประเภทงาน', deleted: !!s.deleted };
     });
   }
   // รูปแบบเก่า (object {id: {emoji,label,disabled}}) → แปลงเป็นลิสต์ ตามลำดับค่าเริ่มต้น
   var obj = (saved && typeof saved === 'object' && !Array.isArray(saved)) ? saved : {};
   var list = DEFAULT_JOB_TYPES.map(function(d) {
     var s = obj[d.id] || {};
-    return { id: d.id, emoji: s.emoji || d.emoji, label: (s.label !== undefined && s.label !== '') ? s.label : d.label, deleted: !!s.disabled };
+    var em = String(s.emoji || '').replace(/[<>"'`\\]/g, '').trim();
+    return { id: d.id, emoji: em || d.emoji, label: (s.label !== undefined && s.label !== '') ? s.label : d.label, deleted: !!s.disabled };
   });
   Object.keys(obj).forEach(function(k) {
     if (!list.some(function(t) { return t.id === k; })) {
       var s = obj[k] || {};
-      list.push({ id: k, emoji: s.emoji || '🛠️', label: s.label || k, deleted: !!s.disabled });
+      list.push({ id: safeTypeId(k), emoji: safeEmoji(s.emoji), label: s.label || k, deleted: !!s.disabled });
     }
   });
   return list;
@@ -1575,8 +1582,8 @@ function renderTypeSelector() {
   if (!el) return;
   var selected = document.getElementById('job-type') ? document.getElementById('job-type').value : '';
   el.innerHTML = types.map(function(t) {
-    return '<div class="type-card' + (t.id === selected ? ' selected' : '') + '" data-type="' + t.id + '" onclick="selectJobType(\'' + t.id + '\')">' +
-      '<span class="type-emoji">' + t.emoji + '</span><span class="type-label">' + esc(t.label) + '</span></div>';
+    return '<div class="type-card' + (t.id === selected ? ' selected' : '') + '" data-type="' + esc(t.id) + '" onclick="selectJobType(\'' + escAttr(t.id) + '\')">' +
+      '<span class="type-emoji">' + esc(t.emoji) + '</span><span class="type-label">' + esc(t.label) + '</span></div>';
   }).join('');
   if (types.length && !types.some(function(t){ return t.id === selected; })) {
     selectJobType(types[0].id);
@@ -1588,9 +1595,9 @@ function renderJobTypeSettings() {
   var types = getJobTypes();
   box.innerHTML = types.map(function(t) {
     return '<div class="jt-row">' +
-      '<input type="text" class="jt-emoji" data-id="' + t.id + '" value="' + escAttr(t.emoji) + '" maxlength="4" title="อีโมจิ" oninput="jtEdit(\'' + t.id + '\',\'emoji\',this.value)">' +
-      '<input type="text" class="jt-label" data-id="' + t.id + '" value="' + escAttr(t.label) + '" placeholder="ชื่อประเภทงาน" oninput="jtEdit(\'' + t.id + '\',\'label\',this.value)">' +
-      '<button type="button" class="jt-del" title="ลบประเภทนี้" onclick="deleteJobType(\'' + t.id + '\')"><i class="fas fa-trash-can"></i></button>' +
+      '<input type="text" class="jt-emoji" data-id="' + esc(t.id) + '" value="' + escAttr(t.emoji) + '" maxlength="4" title="อีโมจิ" oninput="jtEdit(\'' + escAttr(t.id) + '\',\'emoji\',this.value)">' +
+      '<input type="text" class="jt-label" data-id="' + esc(t.id) + '" value="' + escAttr(t.label) + '" placeholder="ชื่อประเภทงาน" oninput="jtEdit(\'' + escAttr(t.id) + '\',\'label\',this.value)">' +
+      '<button type="button" class="jt-del" title="ลบประเภทนี้" onclick="deleteJobType(\'' + escAttr(t.id) + '\')"><i class="fas fa-trash-can"></i></button>' +
       '</div>';
   }).join('') +
   '<button type="button" class="jt-add" onclick="addJobType()"><i class="fas fa-plus"></i> เพิ่มประเภทงาน</button>';
@@ -1621,7 +1628,8 @@ function deleteJobType(id) {
   var t = list.find(function(x) { return x.id === id; });
   if (!t || t.deleted) return;
   document.getElementById('confirm-title').textContent = 'ลบประเภทงาน';
-  document.getElementById('confirm-msg').innerHTML = 'ลบ <strong>' + t.emoji + ' ' + esc(t.label) + '</strong> ?<br><span style="font-size:12px;color:var(--text3);">งานเก่าที่บันทึกไว้จะยังแสดงชื่อประเภทเดิม</span>';
+  document.getElementById('confirm-ok-btn').innerHTML = '<i class="fas fa-trash"></i> ลบ';
+  document.getElementById('confirm-msg').innerHTML = 'ลบ <strong>' + esc(t.emoji) + ' ' + esc(t.label) + '</strong> ?<br><span style="font-size:12px;color:var(--text3);">งานเก่าที่บันทึกไว้จะยังแสดงชื่อประเภทเดิม</span>';
   document.getElementById('confirm-ok-btn').onclick = function() {
     t.deleted = true;
     saveJobTypesList(list);
@@ -1797,7 +1805,7 @@ function renderDashboard() {
           return '<div class="reminder-item" onclick="showCustomerDetail(\'' + escAttr(r.cust?.phone||'') + '\')">' +
             '<div class="reminder-dot ' + r.status + '"></div>' +
             '<div style="flex:1;min-width:0;"><div class="reminder-name">' + esc(r.cust?.name||'-') + '</div>' +
-            '<div class="reminder-detail">' + typeLabel(r.job.serviceType) + ' · ' + (r.cust?.phone||'') + '</div></div>' +
+            '<div class="reminder-detail">' + esc(typeLabel(r.job.serviceType)) + ' · ' + (r.cust?.phone||'') + '</div></div>' +
             '<div style="font-size:12px;font-weight:700;color:' + col + ';">' + diffText + '</div></div>';
         }).join('');
   }
@@ -1841,7 +1849,7 @@ function renderCustomers(filter) {
     '<div class="customer-info"><div class="customer-name">' + esc(c.name || '-') + (hasReminder ? ' <span style="color:var(--danger);font-size:12px;">●</span>' : '') + '</div>' +
       '<div class="customer-phone"><i class="fas fa-phone" style="font-size:11px;"></i> ' + esc(c.phone) + '</div>' +
       (c.address ? '<div style="font-size:11px;color:var(--text3);"><i class="fas fa-location-dot"></i> ' + esc(c.address) + '</div>' : '') +
-      '<div class="customer-tags">' + jobs.slice(0,2).map(j => '<span class="badge ' + (SERVICE_COLORS[j.serviceType]||'badge-gray') + '" style="font-size:10px;">' + typeLabel(j.serviceType) + '</span>').join('') + '</div></div>' +
+      '<div class="customer-tags">' + jobs.slice(0,2).map(j => '<span class="badge ' + (SERVICE_COLORS[j.serviceType]||'badge-gray') + '" style="font-size:10px;">' + esc(typeLabel(j.serviceType)) + '</span>').join('') + '</div></div>' +
       '<div class="customer-meta"><div class="job-count">' + jobs.length + '</div><div class="job-label">งาน</div></div></div>';
   }).join('');
 }
@@ -1876,8 +1884,8 @@ function renderJobs() {
       return '<div class="customer-card" onclick="showCustomerDetail(\'' + escAttr(j.customerPhone) + '\')">' +
         '<div style="font-size:24px;flex-shrink:0;">' + emoji + '</div>' +
         '<div class="customer-info"><div class="customer-name">' + esc(cust?.name||j.customerPhone) + '</div>' +
-        '<div class="customer-phone">' + formatDate(j.serviceDate) + ' · <span class="badge ' + (SERVICE_COLORS[j.serviceType]||'badge-gray') + '" style="font-size:10px;">' + typeName(j.serviceType) + '</span>' +
-        (j.status && j.status !== 'done' ? ' <span class="badge ' + (STATUS_COLORS[j.status]||'badge-gray') + '" style="font-size:10px;">' + (STATUS_LABELS[j.status]||j.status) + '</span>' : '') + '</div>' +
+        '<div class="customer-phone">' + formatDate(j.serviceDate) + ' · <span class="badge ' + (SERVICE_COLORS[j.serviceType]||'badge-gray') + '" style="font-size:10px;">' + esc(typeName(j.serviceType)) + '</span>' +
+        (j.status && j.status !== 'done' ? ' <span class="badge ' + (STATUS_COLORS[j.status]||'badge-gray') + '" style="font-size:10px;">' + esc(STATUS_LABELS[j.status]||j.status) + '</span>' : '') + '</div>' +
         (j.deviceInfo ? '<div style="font-size:11px;color:var(--text3);">📦 ' + esc(j.deviceInfo) + '</div>' : '') +
         '</div>' +
         '<div class="customer-meta"><div class="job-count" style="font-size:16px;color:var(--success);">' + (j.cost?Number(j.cost).toLocaleString():'0') + '</div><div class="job-label">บาท</div></div></div>';
@@ -1916,7 +1924,7 @@ function renderReminders() {
     return '<div class="reminder-item">' +
       '<div class="reminder-dot ' + r.status + '"></div>' +
       '<div style="flex:1;min-width:0;"><div class="reminder-name" onclick="showCustomerDetail(\'' + escAttr(r.cust?.phone||'') + '\')" style="cursor:pointer;">' + esc(r.cust?.name||'-') + '</div>' +
-      '<div class="reminder-detail">' + typeLabel(r.job.serviceType) + ' · ' + formatDate(r.job.nextDate) + ' · ' + diffText + '</div></div>' +
+      '<div class="reminder-detail">' + esc(typeLabel(r.job.serviceType)) + ' · ' + formatDate(r.job.nextDate) + ' · ' + diffText + '</div></div>' +
       '<div style="display:flex;gap:6px;flex-shrink:0;">' +
       '<button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openAddJobForCustomer(\'' + escAttr(r.cust?.phone||'') + '\')"><i class="fas fa-plus"></i></button>' +
       '<button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();openSendReminder(\'' + escAttr(r.cust?.phone||'') + '\',\'' + escAttr(r.job.serviceType) + '\',\'' + escAttr(r.job.nextDate) + '\')"><i class="fas fa-paper-plane"></i></button>' +
@@ -1943,7 +1951,12 @@ function showCustomerDetail(phone) {
 function custMapPin(c) {
   if (!c) return '';
   var s = c.mapUrl || c.mapLink || c.mapsUrl || c.pinUrl || c.pin || c.location || c.map || '';
-  if (typeof s === 'string' && s.trim()) return s.trim();
+  if (typeof s === 'string' && s.trim()) {
+    s = s.trim();
+    // v16 — ยอมรับเฉพาะลิงก์ http(s) หรือพิกัด lat,lng กัน javascript: URI หลุดเข้ามา
+    if (/^(https?:\/\/|-?\d{1,3}(\.\d+)?\s*,\s*-?\d{1,3}(\.\d+)?)/i.test(s)) return s;
+    return '';
+  }
   if (c.lat != null && c.lng != null && c.lat !== '' && c.lng !== '') return c.lat + ',' + c.lng;
   return '';
 }
@@ -2042,16 +2055,16 @@ function renderJobCard(j) {
   var photos = j.photos || [];
   return '<div class="timeline-item"><div class="timeline-dot" style="background:' + dotColor + '"></div>' +
     '<div class="timeline-card"><div class="timeline-card-header">' +
-    '<span class="badge ' + (SERVICE_COLORS[j.serviceType]||'badge-gray') + '">' + typeLabel(j.serviceType) + '</span>' +
+    '<span class="badge ' + (SERVICE_COLORS[j.serviceType]||'badge-gray') + '">' + esc(typeLabel(j.serviceType)) + '</span>' +
     '<span class="timeline-card-title">' + esc(j.deviceInfo||'') + '</span>' +
     '<span class="timeline-card-date">' + formatDate(j.serviceDate) + '</span>' +
-    '<button class="btn btn-ghost btn-icon-sm" onclick="event.stopPropagation();openReceipt(\'' + j.id + '\')"><i class="fas fa-receipt"></i></button>' +
-    '<button class="btn btn-ghost btn-icon-sm" onclick="event.stopPropagation();openEditJob(\'' + j.id + '\')"><i class="fas fa-edit"></i></button>' +
-    '<button class="btn btn-ghost btn-icon-sm" style="color:var(--danger)" onclick="event.stopPropagation();confirmDeleteJob(\'' + j.id + '\')"><i class="fas fa-trash"></i></button></div>' +
+    '<button class="btn btn-ghost btn-icon-sm" onclick="event.stopPropagation();openReceipt(\'' + escAttr(j.id) + '\')"><i class="fas fa-receipt"></i></button>' +
+    '<button class="btn btn-ghost btn-icon-sm" onclick="event.stopPropagation();openEditJob(\'' + escAttr(j.id) + '\')"><i class="fas fa-edit"></i></button>' +
+    '<button class="btn btn-ghost btn-icon-sm" style="color:var(--danger)" onclick="event.stopPropagation();confirmDeleteJob(\'' + escAttr(j.id) + '\')"><i class="fas fa-trash"></i></button></div>' +
     (j.description ? '<div style="font-size:13px;color:var(--text);margin-top:4px;">' + esc(j.description) + '</div>' : '') +
     '<div style="display:flex;align-items:center;gap:8px;margin-top:6px;">' +
     (j.cost ? '<span class="timeline-cost">' + Number(j.cost).toLocaleString() + ' ฿</span>' : '') +
-    '<span class="badge ' + (STATUS_COLORS[j.status] || (j.status ? 'badge-gray' : 'badge-green')) + '">' + (STATUS_LABELS[j.status] || (j.status ? j.status : '✅ เสร็จ')) + '</span>' +
+    '<span class="badge ' + (STATUS_COLORS[j.status] || (j.status ? 'badge-gray' : 'badge-green')) + '">' + esc(STATUS_LABELS[j.status] || (j.status ? j.status : '✅ เสร็จ')) + '</span>' +
     (REMIND_TYPES.includes(j.serviceType) && j.nextDate ? '<span class="badge badge-amber"><i class="fas fa-bell"></i> ' + formatDate(j.nextDate) + '</span>' : '') +
     '</div>' +
     (photos.length ? '<div class="photo-grid">' + photos.map(url => '<div class="photo-thumb"><img src="' + esc(url) + '" alt="" onclick="event.stopPropagation();openPhotoViewer(\'' + escAttr(url) + '\')" loading="lazy"></div>').join('') + '</div>' : '') +
@@ -2207,7 +2220,8 @@ async function saveCustomer() {
 function confirmDeleteCustomer(phone) {
   var c = DB.customers.find(c => c.phone === phone);
   document.getElementById('confirm-title').textContent = 'ลบลูกค้า';
-  document.getElementById('confirm-msg').innerHTML = 'ลบ <strong>' + (c?.name||phone) + '</strong> และประวัติงานทั้งหมด?<br><span style="color:var(--danger)">ไม่สามารถยกเลิกได้</span>';
+  document.getElementById('confirm-ok-btn').innerHTML = '<i class="fas fa-trash"></i> ลบ';
+  document.getElementById('confirm-msg').innerHTML = 'ลบ <strong>' + esc(c?.name||phone) + '</strong> และประวัติงานทั้งหมด?<br><span style="color:var(--danger)">ไม่สามารถยกเลิกได้</span>';
   document.getElementById('confirm-ok-btn').onclick = async function() {
     await deleteCustomerData(phone);
     closeModal('modal-confirm');
@@ -2344,6 +2358,7 @@ async function saveJob() {
 
 function confirmDeleteJob(jobId) {
   document.getElementById('confirm-title').textContent = 'ลบประวัติงาน';
+  document.getElementById('confirm-ok-btn').innerHTML = '<i class="fas fa-trash"></i> ลบ';
   document.getElementById('confirm-msg').innerHTML = 'ลบประวัติงานนี้?<br><span style="color:var(--danger)">ไม่สามารถยกเลิกได้</span>';
   document.getElementById('confirm-ok-btn').onclick = async function() {
     await deleteJobData(jobId);
@@ -2414,7 +2429,7 @@ function removePhoto(i) { pendingPhotos.splice(i, 1); renderPhotoPreview(); }
 // ============================================================
 var PV_URL = '';
 function openPhotoViewer(url) {
-  PV_URL = url || '';
+  PV_URL = /^https?:\/\//i.test(String(url||'')) ? url : ''; // v16 — อนุญาตเฉพาะลิงก์ http(s) กัน javascript: URI
   var v = document.getElementById('photo-viewer');
   document.getElementById('pv-img').src = PV_URL;
   v.classList.add('open');
@@ -2481,16 +2496,16 @@ function openReceipt(jobId) {
     '<div style="text-align:center;font-size:16px;font-weight:700;color:var(--primary);">🔧 ' + esc(loadConfig().shopName || 'FixPro') + '</div>' +
     '<div style="text-align:center;font-size:12px;color:var(--text3);">ใบงาน / บันทึกการให้บริการ</div>' +
     '<hr style="border:1px dashed var(--border);margin:8px 0;">' +
-    '<div class="receipt-row"><span style="color:var(--text3);">ลูกค้า</span><span style="font-weight:600;">' + (DB.customers.find(c=>c.phone===j.customerPhone)?.name||'-') + '</span></div>' +
-    '<div class="receipt-row"><span style="color:var(--text3);">เบอร์โทร</span><span>' + j.customerPhone + '</span></div>' +
-    '<div class="receipt-row"><span style="color:var(--text3);">ประเภท</span><span>' + typeLabel(j.serviceType) + '</span></div>' +
+    '<div class="receipt-row"><span style="color:var(--text3);">ลูกค้า</span><span style="font-weight:600;">' + esc(DB.customers.find(c=>c.phone===j.customerPhone)?.name||'-') + '</span></div>' +
+    '<div class="receipt-row"><span style="color:var(--text3);">เบอร์โทร</span><span>' + esc(j.customerPhone) + '</span></div>' +
+    '<div class="receipt-row"><span style="color:var(--text3);">ประเภท</span><span>' + esc(typeLabel(j.serviceType)) + '</span></div>' +
     '<div class="receipt-row"><span style="color:var(--text3);">วันที่</span><span>' + formatDate(j.serviceDate) + '</span></div>' +
-    (j.deviceInfo ? '<div class="receipt-row"><span style="color:var(--text3);">อุปกรณ์</span><span>' + j.deviceInfo + '</span></div>' : '') +
-    (j.description ? '<div class="receipt-row"><span style="color:var(--text3);">รายละเอียด</span><span>' + j.description + '</span></div>' : '') +
+    (j.deviceInfo ? '<div class="receipt-row"><span style="color:var(--text3);">อุปกรณ์</span><span>' + esc(j.deviceInfo) + '</span></div>' : '') +
+    (j.description ? '<div class="receipt-row"><span style="color:var(--text3);">รายละเอียด</span><span>' + esc(j.description) + '</span></div>' : '') +
     (j.nextDate ? '<div class="receipt-row"><span style="color:var(--text3);">นัดหมายถัดไป</span><span style="color:var(--warning);font-weight:600;">' + formatDate(j.nextDate) + '</span></div>' : '') +
     '<hr style="border:1px dashed var(--border);margin:8px 0;">' +
     '<div class="receipt-row total"><span>ค่าบริการรวม</span><span style="color:var(--success);font-size:18px;">' + Number(j.cost||0).toLocaleString() + ' ฿</span></div>' +
-    '<div class="receipt-footer">' + (loadConfig().receiptFooter || 'ขอบคุณที่ใช้บริการครับ 🙏') + '</div></div>';
+    '<div class="receipt-footer">' + esc(loadConfig().receiptFooter || 'ขอบคุณที่ใช้บริการครับ 🙏') + '</div></div>';
   document.getElementById('receipt-content').innerHTML = html;
   openModal('modal-receipt');
 }
@@ -2514,7 +2529,7 @@ function showJobCompletePopup(jobId) {
   if (!j) return;
   currentReceiptJobId = jobId;
   var cust = DB.customers.find(c => c.phone === j.customerPhone);
-  document.getElementById('complete-job-detail').innerHTML = typeLabel(j.serviceType) + ' · คุณ' + (cust?.name||j.customerPhone) + '<br><strong style="color:var(--success);font-size:16px;">' + Number(j.cost||0).toLocaleString() + ' บาท</strong>';
+  document.getElementById('complete-job-detail').innerHTML = esc(typeLabel(j.serviceType)) + ' · คุณ' + esc(cust?.name||j.customerPhone) + '<br><strong style="color:var(--success);font-size:16px;">' + Number(j.cost||0).toLocaleString() + ' บาท</strong>';
   document.getElementById('job-complete-overlay').classList.add('show');
 }
 function dismissJobComplete() {
@@ -2646,14 +2661,14 @@ function exportExcel() {
   var jobRows = [['วันที่','ลูกค้า','เบอร์โทร','ประเภทงาน','อุปกรณ์','รายละเอียด','ค่าบริการ','สถานะ','นัดหมายถัดไป']];
   for (var j of DB.jobs) {
     var c = DB.customers.find(c => c.phone === j.customerPhone);
-    jobRows.push([j.serviceDate||'', c?.name||'', j.customerPhone||'', typeLabel(j.serviceType), j.deviceInfo||'', j.description||'', parseFloat(j.cost)||0, STATUS_LABELS[j.status]||'เสร็จ', j.nextDate||'']);
+    jobRows.push([xlsxSafe(j.serviceDate||''), xlsxSafe(c?.name||''), xlsxSafe(j.customerPhone||''), xlsxSafe(typeLabel(j.serviceType)), xlsxSafe(j.deviceInfo||''), xlsxSafe(j.description||''), parseFloat(j.cost)||0, STATUS_LABELS[j.status]||'เสร็จ', xlsxSafe(j.nextDate||'')]);
   }
   var wsJobs = XLSX.utils.aoa_to_sheet(jobRows);
   wsJobs['!cols'] = [10,18,12,16,20,24,10,10,12].map(w => ({wch:w}));
   XLSX.utils.book_append_sheet(wb, wsJobs, 'งานซ่อม');
   var custRows = [['ชื่อ','เบอร์โทร','ที่อยู่','Line ID','หมายเหตุ','จำนวนงาน']];
   for (var c of DB.customers) {
-    custRows.push([c.name||'', c.phone||'', c.address||'', c.line||'', c.note||'', DB.jobs.filter(j => j.customerPhone === c.phone).length]);
+    custRows.push([xlsxSafe(c.name||''), xlsxSafe(c.phone||''), xlsxSafe(c.address||''), xlsxSafe(c.line||''), xlsxSafe(c.note||''), DB.jobs.filter(j => j.customerPhone === c.phone).length]);
   }
   var wsCust = XLSX.utils.aoa_to_sheet(custRows);
   wsCust['!cols'] = [20,12,30,12,24,8].map(w => ({wch:w}));
@@ -2661,7 +2676,7 @@ function exportExcel() {
   var remRows = [['ลูกค้า','เบอร์โทร','ประเภท','วันบริการล่าสุด','กำหนดครั้งถัดไป','สถานะ']];
   for (var r of getUpcomingReminders('all')) {
     var diff = daysDiff(r.job.nextDate);
-    remRows.push([r.cust?.name||'', r.cust?.phone||'', typeLabel(r.job.serviceType), r.job.serviceDate||'', r.job.nextDate||'', r.status==='overdue'?'เกิน '+Math.abs(diff)+'วัน':'อีก '+diff+'วัน']);
+    remRows.push([xlsxSafe(r.cust?.name||''), xlsxSafe(r.cust?.phone||''), xlsxSafe(typeLabel(r.job.serviceType)), r.job.serviceDate||'', r.job.nextDate||'', r.status==='overdue'?'เกิน '+Math.abs(diff)+'วัน':'อีก '+diff+'วัน']);
   }
   var wsRem = XLSX.utils.aoa_to_sheet(remRows);
   wsRem['!cols'] = [20,12,14,12,12,14].map(w => ({wch:w}));
@@ -2777,18 +2792,38 @@ function backupData() {
 function restoreData(e) {
   var file = e.target.files[0]; if (!file) return;
   var reader = new FileReader();
-  reader.onload = async function(ev) {
-    try {
-      var data = JSON.parse(ev.target.result);
-      if (!data.customers || !data.jobs) { toast('ไฟล์ไม่ถูกต้อง', 'error'); return; }
-      lsSaveCustomers(data.customers);
-      lsSaveJobs(data.jobs);
-      await loadAllData();
-      toast('กู้คืนข้อมูลสำเร็จ: ' + data.customers.length + ' ลูกค้า, ' + data.jobs.length + ' งาน', 'success');
-    } catch(e) { toast('ไม่สามารถอ่านไฟล์ได้', 'error'); }
+  reader.onload = function(ev) {
+    var data = null;
+    try { data = JSON.parse(ev.target.result); } catch (err) { data = null; }
+    e.target.value = '';
+    if (!data || !Array.isArray(data.customers) || !Array.isArray(data.jobs)) { toast('ไฟล์ไม่ถูกต้อง — ต้องเป็นไฟล์ Backup JSON ของ FixPro', 'error'); return; }
+    // ตรวจความถูกต้องทีละแถว — เอาเฉพาะรายการที่มี key จำเป็น (กันไฟล์เสียหาย/ไฟล์ปลอม)
+    var custs = data.customers.filter(function(c){ return c && typeof c.phone === 'string' && c.phone; }).map(function(c){ return Object.assign({ name:'', address:'', line:'', note:'' }, c); });
+    var jobsArr = data.jobs.filter(function(x){ return x && typeof x.id === 'string' && x.id && typeof x.customerPhone === 'string' && x.customerPhone; }).map(function(x){ return Object.assign({ serviceDate:'', serviceType:'other', cost:'0', status:'done', photos:[] }, x); });
+    document.getElementById('confirm-title').textContent = 'กู้คืนข้อมูล';
+    document.getElementById('confirm-ok-btn').innerHTML = '<i class="fas fa-upload"></i> กู้คืน';
+    document.getElementById('confirm-msg').textContent = 'กู้คืน ' + custs.length + ' ลูกค้า และ ' + jobsArr.length + ' งาน?\nข้อมูลชุดนี้จะถูกเขียนทับขึ้นคลาวด์ด้วย';
+    document.getElementById('confirm-msg').style.whiteSpace = 'pre-line';
+    document.getElementById('confirm-ok-btn').onclick = async function() {
+      closeModal('modal-confirm');
+      DB.customers = custs;
+      DB.jobs = jobsArr;
+      lsSaveCustomers(DB.customers);
+      lsSaveJobs(DB.jobs);
+      if (db) {
+        try {
+          for (var i = 0; i < DB.customers.length; i++) await db.collection('customers').doc(DB.customers[i].phone).set(DB.customers[i]);
+          for (var n = 0; n < DB.jobs.length; n++) await db.collection('jobs').doc(DB.jobs[n].id).set(DB.jobs[n]);
+        } catch (err2) {
+          toast('กู้ลงเครื่องแล้ว แต่อัปขึ้นคลาวด์ไม่สำเร็จ — ลองกู้ซ้ำตอนออนไลน์', 'warning');
+        }
+      }
+      refreshAll();
+      toast('กู้คืนข้อมูลสำเร็จ: ' + custs.length + ' ลูกค้า, ' + jobsArr.length + ' งาน', 'success');
+    };
+    openModal('modal-confirm');
   };
   reader.readAsText(file);
-  e.target.value = '';
 }
 
 // ============================================================
@@ -2816,13 +2851,13 @@ function updateConfigStatus() {
   var cfg = loadConfig();
   var fbEl = document.getElementById('firebase-status');
   if (cfg.apiKey && cfg.projectId) {
-    fbEl.className = 'config-status ok'; fbEl.innerHTML = '<i class="fas fa-circle-check"></i> ตั้งค่าแล้ว · ' + cfg.projectId;
+    fbEl.className = 'config-status ok'; fbEl.innerHTML = '<i class="fas fa-circle-check"></i> ตั้งค่าแล้ว · ' + esc(cfg.projectId);
   } else {
     fbEl.className = 'config-status warn'; fbEl.innerHTML = '<i class="fas fa-circle-exclamation"></i> ยังไม่ได้ตั้งค่า (ใช้ LocalStorage)';
   }
   var cldEl = document.getElementById('cloudinary-status');
   if (cfg.cloudName && cfg.uploadPreset) {
-    cldEl.className = 'config-status ok'; cldEl.innerHTML = '<i class="fas fa-circle-check"></i> ตั้งค่าแล้ว · ' + cfg.cloudName;
+    cldEl.className = 'config-status ok'; cldEl.innerHTML = '<i class="fas fa-circle-check"></i> ตั้งค่าแล้ว · ' + esc(cfg.cloudName);
   } else {
     cldEl.className = 'config-status warn'; cldEl.innerHTML = '<i class="fas fa-circle-exclamation"></i> ยังไม่ได้ตั้งค่า (รูปเก็บชั่วคราว)';
   }
@@ -2855,7 +2890,7 @@ async function testFirebase() {
   try {
     await db.collection('_test_').limit(1).get();
     toast('เชื่อมต่อ Firebase สำเร็จ!', 'success');
-  } catch(e) { toast('เชื่อมต่อ Firebase สำเร็จ (permission OK)', 'success'); }
+  } catch(e) { toast('ถึงโปรเจกต์ได้แต่อ่านข้อมูลไม่ได้ (' + (e.code || 'permission-denied') + ') — ล็อกอินด้วยอีเมลเจ้าของร้านก่อน', 'warning'); }
 }
 function saveCloudinaryConfig(silent) {
   var cfg = loadConfig();
@@ -3200,11 +3235,17 @@ document.addEventListener('DOMContentLoaded', function() {
 // ============================================================
 // SYNC OFFLINE QUEUE (stub)
 // ============================================================
-function syncOfflineQueue() {
-  toast('🔄 กำลังซิงค์ข้อมูล...', 'info');
-  setTimeout(function() {
+async function syncOfflineQueue() {
+  // v16 — ปุ่มซิงค์จากของปลอมเป็นของจริง: ดึงข้อมูลล่าสุดจากคลาวด์กลับมาแสดงทันที
+  if (!navigator.onLine) { toast('ยังออฟไลน์อยู่ — เชื่อมอินเทอร์เน็ตก่อนแล้วกดซิงค์อีกครั้ง', 'warning'); return; }
+  if (!db) { toast('ข้อมูลอยู่ในเครื่องนี้เท่านั้น (ยังไม่เชื่อมฐานข้อมูลคลาวด์)', 'info'); return; }
+  toast('🔄 กำลังดึงข้อมูลล่าสุดจากคลาวด์...', 'info');
+  try {
+    await loadAllData();
     toast('✅ ซิงค์ข้อมูลเรียบร้อย', 'success');
-  }, 1500);
+  } catch (e) {
+    toast('ซิงค์ไม่สำเร็จ — ใช้ข้อมูลในเครื่องชั่วคราว', 'warning');
+  }
 }
 </script>
 </body>

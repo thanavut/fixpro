@@ -1,0 +1,50 @@
+rules_version = '2';
+
+// ============================================================
+// FixPro — กฎความปลอดภัย Firestore (v16)
+// หลักการ: มีเพียงบัญชีเจ้าของร้านเท่านั้นที่อ่าน/เขียนข้อมูลได้
+// ใครก็ตามที่ยังไม่ล็อกอิน (หรือสมัครบัญชีใหม่เอง) จะโดนปฏิเสธทันที
+// ============================================================
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // บัญชีเจ้าของร้านเท่านั้น (UID เดียวที่มีในระบบ)
+    // ถ้าอนาคตต้องการเพิ่มบัญชีที่สอง เปลี่ยนฟังก์ชันนี้เป็น:
+    //   return request.auth != null;
+    // และปิด "Enable sign-up" ที่ Firebase Console → Authentication → Sign-in method ด้วย
+    function isOwner() {
+      return request.auth != null
+          && request.auth.uid == '1sTVPKuphcWLB7LjF7JKQkGLo1b2';
+    }
+
+    // ข้อมูลลูกค้า (doc id = เบอร์โทร)
+    match /customers/{phone} {
+      allow read, write: if isOwner();
+    }
+
+    // ประวัติงานซ่อม
+    match /jobs/{id} {
+      allow read, write: if isOwner();
+    }
+
+    // การตั้งค่าร้าน (ซิงค์ข้ามเครื่อง)
+    match /shop/{doc} {
+      allow read, write: if isOwner();
+    }
+
+    // โปรไฟล์ผู้ใช้ — เจ้าของแก้เฉพาะ doc ของตัวเอง
+    match /users/{uid} {
+      allow read, write: if isOwner() && request.auth.uid == uid;
+    }
+
+    // collection ทดสอบการเชื่อมต่อ (ปุ่ม "ทดสอบ" ในหน้าตั้งค่า)
+    match /_test_/{doc} {
+      allow read: if isOwner();
+    }
+
+    // นอกเหนือจากนี้ ปิดหมดทุกกรณี
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
