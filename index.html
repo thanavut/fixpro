@@ -1124,6 +1124,15 @@ var reminderFilter = 'all';
 var LS_CUSTOMERS = 'fixpro_customers';
 var LS_JOBS = 'fixpro_jobs';
 var CFG_KEY = 'fixpro_config';
+// Config Firebase ของร้าน (ฝังไว้ในแอป — ผู้ใช้ไม่ต้องตั้งค่าเอง; Firebase web key เป็นสาธารณะตามการออกแบบ ความปลอดภัยอยู่ที่กฎ Firestore)
+var DEFAULT_FIREBASE_CONFIG = {
+  apiKey: 'AIzaSyCsd7oFSWNE4XX64DKw_tu2hdmxQ4VUV_M',
+  authDomain: 'fixpro-7b397.firebaseapp.com',
+  projectId: 'fixpro-7b397',
+  storageBucket: 'fixpro-7b397.firebasestorage.app',
+  messagingSenderId: '47255768794',
+  appId: '1:47255768794:web:9730468e61489650545fe3'
+};
 
 // Escape helpers — ป้องกันข้อความที่มี ' " < > ทำให้ HTML/onclick พัง
 function esc(s) {
@@ -2562,8 +2571,8 @@ function initFirebaseAuth() {
   firebase.auth().onAuthStateChanged(async function(user) {
     clearTimeout(timeoutId);
     if (!user) {
-      // ไม่ล็อกอิน → เข้าโหมดในเครื่องทันที (ข้ามหน้าล็อกอิน)
-      enterLocalMode(true);
+      // ยังไม่ล็อกอิน → โชว์หน้าล็อกอิน (ล็อกอินครั้งเดียว ครั้งต่อไปเข้าเลย)
+      showAuthScreen();
       return;
     }
     try {
@@ -2636,13 +2645,14 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   loadDemoData();
   var cfg = loadConfig();
+  if (!cfg.apiKey || !cfg.projectId) { cfg = DEFAULT_FIREBASE_CONFIG; saveConfig(cfg); } // ยังไม่เคยตั้งค่า → ใช้ config ร้านที่ฝังไว้
   if (cfg.apiKey && cfg.projectId && typeof firebase !== 'undefined' && typeof firebase.initializeApp === 'function') {
     initFirebase(cfg).then(function(ok) {
       if (!ok) console.warn('⚠️ Firebase init failed');
       initFirebaseAuth();
     });
   } else {
-    // ใช้งานคนเดียว → เข้าแอปได้เลย ข้ามหน้าล็อกอิน (ข้อมูลเก็บในเครื่อง)
+    // โหลด Firebase SDK ไม่ได้ (เน็ตหลุด/SDK ล้มเหลว) → เข้าโหมดในเครื่องทันที
     enterLocalMode(true);
   }
   // PWA service worker — แคชไฟล์แอปไว้ใช้ตอนออฟไลน์
