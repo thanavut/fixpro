@@ -261,6 +261,40 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 .photo-thumb img { width: 100%; height: 100%; object-fit: cover; }
 .photo-thumb .del-photo { position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.6); color: #fff; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; cursor: pointer; }
 
+/* ===== PHOTO VIEWER (lightbox มีปุ่มปิด) ===== */
+.photo-viewer { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.93); z-index: 3000; align-items: center; justify-content: center; }
+.photo-viewer.open { display: flex; }
+.photo-viewer img { max-width: 94vw; max-height: 84vh; border-radius: 6px; box-shadow: 0 8px 40px rgba(0,0,0,0.55); }
+.pv-close {
+  position: absolute; top: 12px; right: 12px; width: 44px; height: 44px; border-radius: 50%; border: none;
+  background: rgba(255,255,255,0.16); color: #fff; font-size: 19px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; transition: background var(--transition);
+}
+.pv-close:active { background: rgba(255,255,255,0.35); }
+.pv-nav {
+  position: absolute; bottom: 14px; left: 0; right: 0; display: flex; justify-content: center; gap: 8px;
+}
+.pv-nav button {
+  padding: 9px 16px; border: none; border-radius: 20px; background: rgba(255,255,255,0.16); color: #fff;
+  font-size: 12.5px; font-weight: 600; cursor: pointer; font-family: inherit; display: flex; align-items: center; gap: 6px;
+}
+.pv-hint { position: absolute; bottom: 58px; left: 0; right: 0; text-align: center; color: rgba(255,255,255,0.55); font-size: 11.5px; }
+
+/* ===== REPORT TABS ===== */
+.report-tabs { display: flex; gap: 4px; margin-bottom: 10px; background: var(--surface2); border: 1px solid var(--border); padding: 4px; border-radius: 12px; }
+.rpt-tab {
+  flex: 1; padding: 9px 4px; border: none; background: transparent; border-radius: 9px;
+  font-size: 12.5px; font-weight: 600; color: var(--text2); cursor: pointer; font-family: inherit;
+  display: flex; align-items: center; justify-content: center; gap: 5px; transition: all var(--transition);
+}
+.rpt-tab.active { background: var(--surface); color: var(--primary); box-shadow: var(--shadow-sm); }
+.rpt-pane { display: none; }
+.rpt-pane.active { display: block; animation: fadeSlide 0.2s ease; }
+@keyframes fadeSlide { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+/* ===== MAP (แผนที่บ้านลูกค้า) ===== */
+.map-embed { width: 100%; height: 190px; border: 0; border-radius: var(--radius-sm); background: var(--surface2); }
+
 /* ===== TYPE SELECTOR (ชิปเล็ก) ===== */
 .type-selector { display: flex; flex-wrap: wrap; gap: 6px; }
 .type-card {
@@ -765,18 +799,27 @@ select.form-select { padding: 8px 12px; border: 1.5px solid var(--border); borde
             <button class="btn btn-secondary btn-sm" onclick="exportPDFReport()"><i class="fas fa-file-pdf" style="color:#DC2626;"></i></button>
           </div>
         </div>
-        <div class="stats-grid" id="report-stats"></div>
-        <div class="card">
-          <div class="card-header"><span class="card-title">รายได้รายเดือน</span></div>
-          <div class="card-body" id="report-bar-chart" style="height:100px;display:flex;align-items:flex-end;gap:3px;padding:4px 0;"></div>
+        <div class="report-tabs">
+          <button class="rpt-tab active" id="rtab-overview" onclick="switchReportTab('overview')"><i class="fas fa-chart-line"></i> ภาพรวม</button>
+          <button class="rpt-tab" id="rtab-types" onclick="switchReportTab('types')"><i class="fas fa-list-check"></i> ประเภทงาน</button>
+          <button class="rpt-tab" id="rtab-customers" onclick="switchReportTab('customers')"><i class="fas fa-users"></i> ลูกค้า</button>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div class="rpt-pane active" id="rpane-overview">
+          <div class="stats-grid" id="report-stats"></div>
           <div class="card">
-            <div class="card-header"><span class="card-title">ประเภทงาน</span></div>
+            <div class="card-header"><span class="card-title">รายได้รายเดือน</span></div>
+            <div class="card-body" id="report-bar-chart" style="height:100px;display:flex;align-items:flex-end;gap:3px;padding:4px 0;"></div>
+          </div>
+        </div>
+        <div class="rpt-pane" id="rpane-types">
+          <div class="card">
+            <div class="card-header"><span class="card-title">รายได้ตามประเภทงาน</span></div>
             <div class="card-body" id="report-type-breakdown"></div>
           </div>
+        </div>
+        <div class="rpt-pane" id="rpane-customers">
           <div class="card">
-            <div class="card-header"><span class="card-title">Top 5</span></div>
+            <div class="card-header"><span class="card-title">Top 5 ลูกค้า</span></div>
             <div class="card-body" id="report-top-list"></div>
           </div>
         </div>
@@ -903,6 +946,19 @@ select.form-select { padding: 8px 12px; border: 1.5px solid var(--border); borde
   <!-- FAB -->
   <button id="fab" onclick="onFabClick()"><i class="fas fa-plus"></i></button>
 
+</div>
+
+<!-- ============================================================
+     PHOTO VIEWER (กดดูรูปเต็มจอ — มีปุ่มปิด)
+     ============================================================ -->
+<div class="photo-viewer" id="photo-viewer" onclick="closePhotoViewer(event)">
+  <button class="pv-close" onclick="closePhotoViewer()" aria-label="ปิด"><i class="fas fa-times"></i></button>
+  <img id="pv-img" alt="รูปภาพ">
+  <div class="pv-hint">แตะพื้นที่ดำเพื่อปิด</div>
+  <div class="pv-nav">
+    <button onclick="event.stopPropagation();pvOpenExternally()"><i class="fas fa-up-right-from-square"></i> เปิดแท็บใหม่</button>
+    <button onclick="closePhotoViewer()"><i class="fas fa-times"></i> ปิด</button>
+  </div>
 </div>
 
 <!-- ============================================================
@@ -1702,6 +1758,23 @@ function renderCustomerDetail(phone) {
     '<button class="btn btn-secondary btn-sm" onclick="openEditCustomer(\'' + escAttr(phone) + '\')"><i class="fas fa-edit"></i></button>' +
     '<button class="btn btn-danger btn-sm" onclick="confirmDeleteCustomer(\'' + escAttr(phone) + '\')"><i class="fas fa-trash"></i></button></div></div></div></div>';
 
+  // แผนที่บ้านลูกค้า
+  var addr = (cust.address || '').trim();
+  var q = encodeURIComponent(addr);
+  var mapCard = '<div class="card"><div class="card-header"><span class="card-title"><i class="fas fa-map-location-dot" style="color:var(--primary);"></i> แผนที่บ้านลูกค้า</span></div><div class="card-body">';
+  if (addr) {
+    mapCard += '<iframe class="map-embed" src="https://maps.google.com/maps?q=' + q + '&z=16&output=embed&hl=th" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>' +
+      '<div style="font-size:12px;color:var(--text3);margin-top:6px;"><i class="fas fa-location-dot"></i> ' + esc(addr) + '</div>' +
+      '<div style="display:flex;gap:6px;margin-top:8px;">' +
+      '<button class="btn btn-primary btn-sm" style="flex:1;" onclick="window.open(\'https://www.google.com/maps/dir/?api=1&destination=' + q + '\',\'_blank\')"><i class="fas fa-diamond-turn-right"></i> นำทาง</button>' +
+      '<button class="btn btn-secondary btn-sm" style="flex:1;" onclick="window.open(\'https://www.google.com/maps/search/?api=1&query=' + q + '\',\'_blank\')"><i class="fas fa-up-right-from-square"></i> เปิดแผนที่</button></div>';
+  } else {
+    mapCard += '<div class="empty-state" style="padding:16px 10px;"><i class="fas fa-map-location-dot"></i><p>ยังไม่ได้ใส่ที่อยู่ — เพิ่มที่อยู่เพื่อดูแผนที่บ้าน</p>' +
+      '<button class="btn btn-secondary btn-sm" onclick="openEditCustomer(\'' + escAttr(phone) + '\')"><i class="fas fa-pen"></i> ใส่ที่อยู่</button></div>';
+  }
+  mapCard += '</div></div>';
+  el.innerHTML += mapCard;
+
   el.innerHTML += '<div class="card"><div class="card-header"><span class="card-title">ประวัติงาน (' + jobs.length + ')</span></div><div class="card-body">';
   if (jobs.length === 0) {
     el.innerHTML += '<div class="empty-state"><i class="fas fa-folder-open"></i><p>ยังไม่มีประวัติงาน</p></div>';
@@ -1728,7 +1801,7 @@ function renderJobCard(j) {
     '<span class="badge ' + (STATUS_COLORS[j.status]||'badge-gray') + '">' + (STATUS_LABELS[j.status]||j.status) + '</span>' +
     (REMIND_TYPES.includes(j.serviceType) && j.nextDate ? '<span class="badge badge-amber"><i class="fas fa-bell"></i> ' + formatDate(j.nextDate) + '</span>' : '') +
     '</div>' +
-    (photos.length ? '<div class="photo-grid">' + photos.map(url => '<div class="photo-thumb"><img src="' + esc(url) + '" alt="" onclick="event.stopPropagation();window.open(\'' + escAttr(url) + '\',\'_blank\')" loading="lazy"></div>').join('') + '</div>' : '') +
+    (photos.length ? '<div class="photo-grid">' + photos.map(url => '<div class="photo-thumb"><img src="' + esc(url) + '" alt="" onclick="event.stopPropagation();openPhotoViewer(\'' + escAttr(url) + '\')" loading="lazy"></div>').join('') + '</div>' : '') +
     '</div></div>';
 }
 
@@ -2070,10 +2143,41 @@ function renderPhotoPreview() {
   var grid = document.getElementById('photo-preview');
   if (!grid) return;
   grid.innerHTML = pendingPhotos.map(function(p, i) {
-    return '<div class="photo-thumb"><img src="' + p.url + '" alt=""><div class="del-photo" onclick="removePhoto(' + i + ')"><i class="fas fa-xmark"></i></div></div>';
+    return '<div class="photo-thumb"><img src="' + escAttr(p.url) + '" alt="" onclick="openPhotoViewer(\'' + escAttr(p.url) + '\')"><div class="del-photo" onclick="event.stopPropagation();removePhoto(' + i + ')"><i class="fas fa-xmark"></i></div></div>';
   }).join('');
 }
 function removePhoto(i) { pendingPhotos.splice(i, 1); renderPhotoPreview(); }
+
+// ============================================================
+// PHOTO VIEWER — เปิดรูปเต็มจอในแอป (มีปุ่มปิด)
+// ============================================================
+var PV_URL = '';
+function openPhotoViewer(url) {
+  PV_URL = url || '';
+  var v = document.getElementById('photo-viewer');
+  document.getElementById('pv-img').src = PV_URL;
+  v.classList.add('open');
+}
+function closePhotoViewer(e) {
+  if (e && e.target && e.target.tagName === 'IMG') return; // แตะที่รูป = ไม่ปิด
+  var v = document.getElementById('photo-viewer');
+  v.classList.remove('open');
+  document.getElementById('pv-img').src = '';
+  PV_URL = '';
+}
+function pvOpenExternally() {
+  if (PV_URL) window.open(PV_URL, '_blank');
+}
+
+// ============================================================
+// REPORT TABS — แท็บหน้ารายงาน
+// ============================================================
+function switchReportTab(name) {
+  document.querySelectorAll('#page-reports .rpt-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#page-reports .rpt-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById('rtab-' + name)?.classList.add('active');
+  document.getElementById('rpane-' + name)?.classList.add('active');
+}
 
 // ============================================================
 // RECEIPT
