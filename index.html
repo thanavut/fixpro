@@ -8,17 +8,18 @@
 <meta name="apple-mobile-web-app-title" content="FixPro">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
-<link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;FixPro ระบบจัดการงานช่าง&quot;,&quot;short_name&quot;:&quot;FixPro&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;%232E7D32&quot;,&quot;theme_color&quot;:&quot;%232E7D32&quot;,&quot;icons&quot;:[{&quot;src&quot;:&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%232E7D32'/%3E%3Ctext y='.9em' font-size='70' x='15'%3E🔧%3C/text%3E%3C/svg%3E&quot;,&quot;sizes&quot;:&quot;any&quot;,&quot;type&quot;:&quot;image/svg+xml&quot;}]}">
+<meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
+<link rel="manifest" href="manifest.webmanifest">
 <title>FixPro — ระบบจัดการงานช่าง</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <style>
 /* ===== EBED Design Tokens ===== */
 :root {
@@ -40,6 +41,7 @@
   --warning: #F59E0B;
   --danger: #DC2626;
   --info: #1976D2;
+  --purple: #7C3AED;
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
   --shadow: 0 4px 16px rgba(0,0,0,0.10);
   --shadow-lg: 0 8px 32px rgba(0,0,0,0.14);
@@ -500,9 +502,9 @@ select.form-select { padding: 8px 12px; border: 1.5px solid var(--border); borde
 </div>
 
 <!-- OFFLINE BAR -->
-<div id="offline-bar" class="show">
+<div id="offline-bar">
   <i class="fas fa-wifi-slash"></i>
-  <span>โหมด Offline — ข้อมูลซิงค์เมื่อออนไลน์</span>
+  <span>โหมด Offline — ข้อมูลถูกบันทึกในเครื่อง ซิงค์เมื่อกลับมาออนไลน์</span>
   <button style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.5);color:white;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:12px;" onclick="syncOfflineQueue()">ซิงค์</button>
 </div>
 
@@ -558,7 +560,7 @@ select.form-select { padding: 8px 12px; border: 1.5px solid var(--border); borde
     <div id="register-form" style="display:none;">
       <div style="background:#FFF8E1;border:1px solid #FFD54F;border-radius:8px;padding:10px 14px;font-size:13px;color:#7B5E00;margin-bottom:14px;display:flex;align-items:flex-start;gap:8px;">
         <i class="fas fa-clock" style="color:#F59E0B;margin-top:2px;flex-shrink:0;"></i>
-        <span>หลังลงทะเบียน <b>ต้องรอ Admin อนุมัติ</b> ก่อนเข้าใช้งาน</span>
+        <span>ลงทะเบียนเสร็จ <b>ใช้งานได้ทันที</b> — ข้อมูลซิงค์ผ่าน Firebase Cloud</span>
       </div>
       <div class="form-group">
         <label class="form-label">ชื่อ-นามสกุล</label>
@@ -596,6 +598,15 @@ select.form-select { padding: 8px 12px; border: 1.5px solid var(--border); borde
         <i class="fas fa-user-plus"></i> ลงทะเบียน
       </button>
     </div>
+    <div style="display:flex;align-items:center;gap:10px;margin:18px 0 12px;">
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+      <span style="font-size:12px;color:var(--text3);">หรือ</span>
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+    </div>
+    <button class="btn btn-secondary btn-full" onclick="enterLocalMode()">
+      <i class="fas fa-bolt"></i> เริ่มใช้งานเลย (ไม่ต้องเข้าสู่ระบบ)
+    </button>
+    <div style="font-size:11px;color:var(--text3);text-align:center;margin-top:10px;line-height:1.5;">ข้อมูลเก็บในเครื่องนี้ · อยากซิงค์ข้ามเครื่อง เชื่อมต่อ Firebase ได้ในหน้า <b>ตั้งค่า</b></div>
   </div>
   <div style="position:absolute;bottom:8px;right:12px;font-size:10px;color:rgba(255,255,255,.4);text-align:right;">
     thanavutp&#64;gmail.com
@@ -1080,7 +1091,7 @@ select.form-select { padding: 8px 12px; border: 1.5px solid var(--border); borde
 </div>
 
 <!-- Job Complete Popup -->
-<div id="job-complete-overlay" class="show">
+<div id="job-complete-overlay">
   <div class="job-complete-sheet">
     <div class="job-complete-icon">✅</div>
     <div class="job-complete-title">บันทึกงานเรียบร้อย!</div>
@@ -1113,6 +1124,14 @@ var reminderFilter = 'all';
 var LS_CUSTOMERS = 'fixpro_customers';
 var LS_JOBS = 'fixpro_jobs';
 var CFG_KEY = 'fixpro_config';
+
+// Escape helpers — ป้องกันข้อความที่มี ' " < > ทำให้ HTML/onclick พัง
+function esc(s) {
+  return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escAttr(s) {
+  return String(s == null ? '' : s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/[\r\n]+/g,' ');
+}
 
 function loadConfig() {
   try { return JSON.parse(localStorage.getItem(CFG_KEY) || '{}'); } catch(e) { return {}; }
@@ -1229,6 +1248,7 @@ async function uploadToCloudinary(file) {
 // REFRESH
 // ============================================================
 function refreshAll() {
+  invalidateReminders();
   renderDashboard();
   renderCustomers();
   renderJobs();
@@ -1257,22 +1277,40 @@ function formatDate(d) {
 }
 function dateStr(d) {
   if (!d) return '';
+  // สตริงรูปแบบ YYYY-MM-DD ใช้ตามเดิม — เลี่ยงบั๊ก timezone ของ toISOString()
+  if (typeof d === 'string' && _parseYMD(d)) return d.slice(0, 10);
   var dt = d.toDate ? d.toDate() : new Date(d);
-  return dt.toISOString().split('T')[0];
+  if (isNaN(dt.getTime())) return '';
+  return _toLocalYMD(dt);
+}
+function _pad2(n) { return (n < 10 ? '0' : '') + n; }
+function _toLocalYMD(dt) { return dt.getFullYear() + '-' + _pad2(dt.getMonth() + 1) + '-' + _pad2(dt.getDate()); }
+function _parseYMD(s) {
+  var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(s));
+  if (!m) return null;
+  return { y: +m[1], m: +m[2], d: +m[3] };
 }
 function addYear(dateStr) {
-  if (!dateStr) return '';
-  var d = new Date(dateStr);
-  d.setFullYear(d.getFullYear() + 1);
-  return d.toISOString().split('T')[0];
+  var p = _parseYMD(dateStr);
+  if (!p) return '';
+  var y = p.y + 1;
+  // ปีที่ไม่มี 29 ก.พ. ให้เลื่อนเป็น 28 ก.พ.
+  var maxDay = new Date(y, p.m, 0).getDate();
+  return y + '-' + _pad2(p.m) + '-' + _pad2(Math.min(p.d, maxDay));
 }
 function daysDiff(dateStr) {
-  if (!dateStr) return null;
-  var d = new Date(dateStr); d.setHours(0,0,0,0);
-  var now = new Date(); now.setHours(0,0,0,0);
-  return Math.round((d - now) / 86400000);
+  var p = _parseYMD(dateStr);
+  if (!p) return null;
+  var now = new Date();
+  var d = Date.UTC(p.y, p.m - 1, p.d);
+  var n = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.round((d - n) / 86400000);
 }
-function todayStr() { return new Date().toISOString().split('T')[0]; }
+function todayStr() {
+  // ใช้วันที่ตามเวลาเครื่องผู้ใช้ (เดิมใช้ toISOString ทำให้หลังเที่ยงคืนถึงตี 7 บันทึกเป็นเมื่อวาน)
+  var n = new Date();
+  return n.getFullYear() + '-' + _pad2(n.getMonth() + 1) + '-' + _pad2(n.getDate());
+}
 
 // ============================================================
 // REMINDER LOGIC
@@ -1285,27 +1323,33 @@ function getReminderStatus(nextDate) {
   if (diff <= 90) return 'upcoming';
   return null;
 }
+var _remCache = null;
+function invalidateReminders() { _remCache = null; }
 function getUpcomingReminders(filter) {
-  var map = {};
-  for (var job of DB.jobs) {
-    if (!REMIND_TYPES.includes(job.serviceType)) continue;
-    if (!job.nextDate) continue;
-    var key = job.customerPhone + '_' + job.serviceType;
-    if (!map[key] || job.serviceDate > map[key].serviceDate) map[key] = job;
+  // คำนวณครั้งเดียวต่อการเปลี่ยนข้อมูล (เดิมคำนวณใหม่ทุกแถว ทำให้หน้าลูกค้าเฉื่อยเมื่อข้อมูลเยอะ)
+  if (!_remCache) {
+    var map = {};
+    for (var job of DB.jobs) {
+      if (!REMIND_TYPES.includes(job.serviceType)) continue;
+      if (!job.nextDate) continue;
+      var key = job.customerPhone + '_' + job.serviceType;
+      if (!map[key] || job.serviceDate > map[key].serviceDate) map[key] = job;
+    }
+    var arr = [];
+    for (var job of Object.values(map)) {
+      var status = getReminderStatus(job.nextDate);
+      if (!status) continue;
+      var cust = DB.customers.find(c => c.phone === job.customerPhone);
+      arr.push({ job, cust, status });
+    }
+    arr.sort((a, b) => {
+      var da = daysDiff(a.job.nextDate), db2 = daysDiff(b.job.nextDate);
+      return (da ?? 9999) - (db2 ?? 9999);
+    });
+    _remCache = arr;
   }
-  var results = [];
-  for (var job of Object.values(map)) {
-    var status = getReminderStatus(job.nextDate);
-    if (!status) continue;
-    if (filter !== 'all' && status !== filter) continue;
-    var cust = DB.customers.find(c => c.phone === job.customerPhone);
-    results.push({ job, cust, status });
-  }
-  results.sort((a, b) => {
-    var da = daysDiff(a.job.nextDate), db2 = daysDiff(b.job.nextDate);
-    return (da ?? 9999) - (db2 ?? 9999);
-  });
-  return results;
+  if (filter !== 'all') return _remCache.filter(r => r.status === filter);
+  return _remCache;
 }
 function updateReminderBadge() {
   var reminders = getUpcomingReminders('all');
@@ -1370,9 +1414,9 @@ function renderDashboard() {
           var diff = daysDiff(r.job.nextDate);
           var diffText = diff < 0 ? 'เกิน ' + Math.abs(diff) + ' วัน' : diff === 0 ? 'วันนี้!' : 'อีก ' + diff + ' วัน';
           var col = r.status === 'overdue' ? 'var(--danger)' : 'var(--warning)';
-          return '<div class="reminder-item" onclick="showCustomerDetail(\'' + (r.cust?.phone||'') + '\')">' +
+          return '<div class="reminder-item" onclick="showCustomerDetail(\'' + escAttr(r.cust?.phone||'') + '\')">' +
             '<div class="reminder-dot ' + r.status + '"></div>' +
-            '<div style="flex:1;min-width:0;"><div class="reminder-name">' + (r.cust?.name||'-') + '</div>' +
+            '<div style="flex:1;min-width:0;"><div class="reminder-name">' + esc(r.cust?.name||'-') + '</div>' +
             '<div class="reminder-detail">' + SERVICE_LABELS[r.job.serviceType] + ' · ' + (r.cust?.phone||'') + '</div></div>' +
             '<div style="font-size:12px;font-weight:700;color:' + col + ';">' + diffText + '</div></div>';
         }).join('');
@@ -1386,9 +1430,9 @@ function renderDashboard() {
       : recent.map(j => {
           var cust = DB.customers.find(c => c.phone === j.customerPhone);
           var emoji = j.serviceType==='ac'?'🌬️':j.serviceType==='washer'?'🫧':'🔧';
-          return '<div class="reminder-item" onclick="showCustomerDetail(\'' + j.customerPhone + '\')">' +
+          return '<div class="reminder-item" onclick="showCustomerDetail(\'' + escAttr(j.customerPhone) + '\')">' +
             '<div style="font-size:20px;flex-shrink:0;">' + emoji + '</div>' +
-            '<div style="flex:1;min-width:0;"><div class="reminder-name">' + (cust?.name||j.customerPhone) + '</div>' +
+            '<div style="flex:1;min-width:0;"><div class="reminder-name">' + esc(cust?.name||j.customerPhone) + '</div>' +
             '<div class="reminder-detail">' + formatDate(j.serviceDate) + '</div></div>' +
             '<div style="text-align:right;flex-shrink:0;"><div style="font-weight:700;color:var(--success);">' + (j.cost?Number(j.cost).toLocaleString()+' ฿':'-') + '</div></div></div>';
         }).join('');
@@ -1409,15 +1453,16 @@ function renderCustomers(filter) {
       (!customerFilterText ? '<button class="btn btn-primary btn-sm" onclick="openAddCustomer()"><i class="fas fa-plus"></i> เพิ่มลูกค้า</button>' : '') + '</div>';
     return;
   }
+  var urgentPhones = new Set(getUpcomingReminders('all').filter(r => r.status === 'overdue' || r.status === 'soon').map(r => r.cust?.phone));
   container.innerHTML = list.map(c => {
     var jobs = DB.jobs.filter(j => j.customerPhone === c.phone);
-    var hasReminder = getUpcomingReminders('all').some(r => r.cust?.phone === c.phone && (r.status === 'overdue' || r.status === 'soon'));
+    var hasReminder = urgentPhones.has(c.phone);
     var avatarColor = stringToColor(c.name || c.phone);
-    return '<div class="customer-card" onclick="showCustomerDetail(\'' + c.phone + '\')">' +
-      '<div class="customer-avatar" style="background:' + avatarColor + '">' + (c.name||'?')[0].toUpperCase() + '</div>' +
-      '<div class="customer-info"><div class="customer-name">' + (c.name || '-') + (hasReminder ? ' <span style="color:var(--danger);font-size:12px;">●</span>' : '') + '</div>' +
-      '<div class="customer-phone"><i class="fas fa-phone" style="font-size:11px;"></i> ' + c.phone + '</div>' +
-      (c.address ? '<div style="font-size:11px;color:var(--text3);"><i class="fas fa-location-dot"></i> ' + c.address + '</div>' : '') +
+    return '<div class="customer-card" onclick="showCustomerDetail(\'' + escAttr(c.phone) + '\')">' +
+      '<div class="customer-avatar" style="background:' + avatarColor + '">' + esc((c.name||'?')[0]).toUpperCase() + '</div>' +
+      '<div class="customer-info"><div class="customer-name">' + esc(c.name || '-') + (hasReminder ? ' <span style="color:var(--danger);font-size:12px;">●</span>' : '') + '</div>' +
+      '<div class="customer-phone"><i class="fas fa-phone" style="font-size:11px;"></i> ' + esc(c.phone) + '</div>' +
+      (c.address ? '<div style="font-size:11px;color:var(--text3);"><i class="fas fa-location-dot"></i> ' + esc(c.address) + '</div>' : '') +
       '<div class="customer-tags">' + jobs.slice(0,2).map(j => '<span class="badge ' + (SERVICE_COLORS[j.serviceType]||'badge-gray') + '" style="font-size:10px;">' + (SERVICE_LABELS[j.serviceType]||j.serviceType) + '</span>').join('') + '</div></div>' +
       '<div class="customer-meta"><div class="job-count">' + jobs.length + '</div><div class="job-label">งาน</div></div></div>';
   }).join('');
@@ -1453,11 +1498,11 @@ function renderJobs() {
     container.innerHTML = list.map(j => {
       var cust = DB.customers.find(c => c.phone === j.customerPhone);
       var emoji = j.serviceType==='ac'?'🌬️':j.serviceType==='washer'?'🫧':j.serviceType==='repair'?'🔧':'📋';
-      return '<div class="customer-card" onclick="showCustomerDetail(\'' + j.customerPhone + '\')">' +
+      return '<div class="customer-card" onclick="showCustomerDetail(\'' + escAttr(j.customerPhone) + '\')">' +
         '<div style="font-size:24px;flex-shrink:0;">' + emoji + '</div>' +
-        '<div class="customer-info"><div class="customer-name">' + (cust?.name||j.customerPhone) + '</div>' +
+        '<div class="customer-info"><div class="customer-name">' + esc(cust?.name||j.customerPhone) + '</div>' +
         '<div class="customer-phone">' + formatDate(j.serviceDate) + ' · <span class="badge ' + (SERVICE_COLORS[j.serviceType]||'badge-gray') + '" style="font-size:10px;">' + (SERVICE_LABELS[j.serviceType]||j.serviceType) + '</span></div>' +
-        (j.deviceInfo ? '<div style="font-size:11px;color:var(--text3);">📦 ' + j.deviceInfo + '</div>' : '') +
+        (j.deviceInfo ? '<div style="font-size:11px;color:var(--text3);">📦 ' + esc(j.deviceInfo) + '</div>' : '') +
         '</div>' +
         '<div class="customer-meta"><div class="job-count" style="font-size:16px;color:var(--success);">' + (j.cost?Number(j.cost).toLocaleString():'0') + '</div><div class="job-label">บาท</div></div></div>';
     }).join('');
@@ -1487,11 +1532,11 @@ function renderReminders() {
       '<span style="color:' + (r.status==='soon'?'var(--warning)':'var(--info)') + ';font-weight:700;">อีก ' + diff + ' วัน</span>';
     return '<div class="reminder-item">' +
       '<div class="reminder-dot ' + r.status + '"></div>' +
-      '<div style="flex:1;min-width:0;"><div class="reminder-name" onclick="showCustomerDetail(\'' + (r.cust?.phone||'') + '\')" style="cursor:pointer;">' + (r.cust?.name||'-') + '</div>' +
+      '<div style="flex:1;min-width:0;"><div class="reminder-name" onclick="showCustomerDetail(\'' + escAttr(r.cust?.phone||'') + '\')" style="cursor:pointer;">' + esc(r.cust?.name||'-') + '</div>' +
       '<div class="reminder-detail">' + SERVICE_LABELS[r.job.serviceType] + ' · ' + formatDate(r.job.nextDate) + ' · ' + diffText + '</div></div>' +
       '<div style="display:flex;gap:6px;flex-shrink:0;">' +
-      '<button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openAddJobForCustomer(\'' + (r.cust?.phone||'') + '\')"><i class="fas fa-plus"></i></button>' +
-      '<button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();openSendReminder(\'' + (r.cust?.phone||'') + '\',\'' + r.job.serviceType + '\',\'' + r.job.nextDate + '\')"><i class="fas fa-paper-plane"></i></button>' +
+      '<button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openAddJobForCustomer(\'' + escAttr(r.cust?.phone||'') + '\')"><i class="fas fa-plus"></i></button>' +
+      '<button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();openSendReminder(\'' + escAttr(r.cust?.phone||'') + '\',\'' + escAttr(r.job.serviceType) + '\',\'' + escAttr(r.job.nextDate) + '\')"><i class="fas fa-paper-plane"></i></button>' +
       '</div></div>';
   }).join('');
 }
@@ -1520,15 +1565,15 @@ function renderCustomerDetail(phone) {
   var el = document.getElementById('customer-detail-content');
   el.innerHTML = '<div class="card">' +
     '<div class="card-body" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">' +
-    '<div class="customer-avatar" style="background:' + avatarColor + ';width:48px;height:48px;font-size:20px;">' + (cust.name||'?')[0].toUpperCase() + '</div>' +
-    '<div style="flex:1;min-width:0;"><div style="font-size:17px;font-weight:700;">' + (cust.name||'-') + (hasReminder ? ' <span class="badge badge-red" style="font-size:11px;">มีแจ้งเตือน</span>' : '') + '</div>' +
-    '<div style="font-size:14px;"><i class="fas fa-phone"></i> <a href="tel:' + cust.phone + '" style="color:var(--primary);">' + cust.phone + '</a></div>' +
-    (cust.address ? '<div style="font-size:12px;color:var(--text3);"><i class="fas fa-location-dot"></i> ' + cust.address + '</div>' : '') +
-    (cust.note ? '<div style="font-size:12px;color:var(--text3);"><i class="fas fa-note-sticky"></i> ' + cust.note + '</div>' : '') +
+    '<div class="customer-avatar" style="background:' + avatarColor + ';width:48px;height:48px;font-size:20px;">' + esc((cust.name||'?')[0]).toUpperCase() + '</div>' +
+    '<div style="flex:1;min-width:0;"><div style="font-size:17px;font-weight:700;">' + esc(cust.name||'-') + (hasReminder ? ' <span class="badge badge-red" style="font-size:11px;">มีแจ้งเตือน</span>' : '') + '</div>' +
+    '<div style="font-size:14px;"><i class="fas fa-phone"></i> <a href="tel:' + escAttr(cust.phone) + '" style="color:var(--primary);">' + esc(cust.phone) + '</a></div>' +
+    (cust.address ? '<div style="font-size:12px;color:var(--text3);"><i class="fas fa-location-dot"></i> ' + esc(cust.address) + '</div>' : '') +
+    (cust.note ? '<div style="font-size:12px;color:var(--text3);"><i class="fas fa-note-sticky"></i> ' + esc(cust.note) + '</div>' : '') +
     '<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">' +
-    '<button class="btn btn-primary btn-sm" onclick="openAddJobForCustomer(\'' + phone + '\')"><i class="fas fa-plus"></i> บันทึกงาน</button>' +
-    '<button class="btn btn-secondary btn-sm" onclick="openEditCustomer(\'' + phone + '\')"><i class="fas fa-edit"></i></button>' +
-    '<button class="btn btn-danger btn-sm" onclick="confirmDeleteCustomer(\'' + phone + '\')"><i class="fas fa-trash"></i></button></div></div></div></div>';
+    '<button class="btn btn-primary btn-sm" onclick="openAddJobForCustomer(\'' + escAttr(phone) + '\')"><i class="fas fa-plus"></i> บันทึกงาน</button>' +
+    '<button class="btn btn-secondary btn-sm" onclick="openEditCustomer(\'' + escAttr(phone) + '\')"><i class="fas fa-edit"></i></button>' +
+    '<button class="btn btn-danger btn-sm" onclick="confirmDeleteCustomer(\'' + escAttr(phone) + '\')"><i class="fas fa-trash"></i></button></div></div></div></div>';
 
   el.innerHTML += '<div class="card"><div class="card-header"><span class="card-title">ประวัติงาน (' + jobs.length + ')</span></div><div class="card-body">';
   if (jobs.length === 0) {
@@ -1545,18 +1590,18 @@ function renderJobCard(j) {
   return '<div class="timeline-item"><div class="timeline-dot" style="background:' + dotColor + '"></div>' +
     '<div class="timeline-card"><div class="timeline-card-header">' +
     '<span class="badge ' + (SERVICE_COLORS[j.serviceType]||'badge-gray') + '">' + (SERVICE_LABELS[j.serviceType]||j.serviceType) + '</span>' +
-    '<span class="timeline-card-title">' + (j.deviceInfo||'') + '</span>' +
+    '<span class="timeline-card-title">' + esc(j.deviceInfo||'') + '</span>' +
     '<span class="timeline-card-date">' + formatDate(j.serviceDate) + '</span>' +
     '<button class="btn btn-ghost btn-icon-sm" onclick="event.stopPropagation();openReceipt(\'' + j.id + '\')"><i class="fas fa-receipt"></i></button>' +
     '<button class="btn btn-ghost btn-icon-sm" onclick="event.stopPropagation();openEditJob(\'' + j.id + '\')"><i class="fas fa-edit"></i></button>' +
     '<button class="btn btn-ghost btn-icon-sm" style="color:var(--danger)" onclick="event.stopPropagation();confirmDeleteJob(\'' + j.id + '\')"><i class="fas fa-trash"></i></button></div>' +
-    (j.description ? '<div style="font-size:13px;color:var(--text);margin-top:4px;">' + j.description + '</div>' : '') +
+    (j.description ? '<div style="font-size:13px;color:var(--text);margin-top:4px;">' + esc(j.description) + '</div>' : '') +
     '<div style="display:flex;align-items:center;gap:8px;margin-top:6px;">' +
     (j.cost ? '<span class="timeline-cost">' + Number(j.cost).toLocaleString() + ' ฿</span>' : '') +
     '<span class="badge ' + (STATUS_COLORS[j.status]||'badge-gray') + '">' + (STATUS_LABELS[j.status]||j.status) + '</span>' +
     (REMIND_TYPES.includes(j.serviceType) && j.nextDate ? '<span class="badge badge-amber"><i class="fas fa-bell"></i> ' + formatDate(j.nextDate) + '</span>' : '') +
     '</div>' +
-    (photos.length ? '<div class="photo-grid">' + photos.map(url => '<div class="photo-thumb"><img src="' + url + '" alt="" onclick="event.stopPropagation();window.open(\'' + url + '\',\'_blank\')" loading="lazy"></div>').join('') + '</div>' : '') +
+    (photos.length ? '<div class="photo-grid">' + photos.map(url => '<div class="photo-thumb"><img src="' + esc(url) + '" alt="" onclick="event.stopPropagation();window.open(\'' + escAttr(url) + '\',\'_blank\')" loading="lazy"></div>').join('') + '</div>' : '') +
     '</div></div>';
 }
 
@@ -1583,7 +1628,10 @@ function showPage(page, param) {
     if (page === 'dashboard') renderDashboard();
   }
   updateFabVisibility();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  // รีเซ็ตตำแหน่งเลื่อนของหน้า (เดิม window.scrollTo ไม่ทำงานเพราะ body overflow:hidden)
+  var mc = document.getElementById('main-content');
+  if (mc) mc.scrollTop = 0;
+  updateOfflineBar();
 }
 
 // ============================================================
@@ -1753,11 +1801,14 @@ async function saveJob() {
   if (!phone) { toast('กรุณาเลือกลูกค้า', 'error'); return; }
   if (!date) { toast('กรุณาเลือกวันที่', 'error'); return; }
   var uploadedPhotos = [];
+  var droppedPhotos = 0;
   for (var i = 0; i < pendingPhotos.length; i++) {
     var p = pendingPhotos[i];
-    if (p.uploaded) { uploadedPhotos.push(p.url); continue; }
-    var url = await uploadToCloudinary(p.file);
-    uploadedPhotos.push(url || p.url);
+    var url = p.uploaded ? p.url : await uploadToCloudinary(p.file);
+    // เก็บเฉพาะลิงก์จริง http(s) — ลิงก์ blob: ใช้ต่อไม่ได้หลังปิดหน้าเว็บ
+    if (url && /^https?:\/\//i.test(url)) { uploadedPhotos.push(url); continue; }
+    if (p.uploaded && p.url && /^https?:\/\//i.test(p.url)) { uploadedPhotos.push(p.url); continue; }
+    droppedPhotos++;
   }
   var editId = document.getElementById('job-edit-id').value;
   var job = {
@@ -1783,6 +1834,7 @@ async function saveJob() {
   } else {
     toast('✅ บันทึกงานเรียบร้อย', 'success');
   }
+  if (droppedPhotos > 0) toast('📷 รูป ' + droppedPhotos + ' รูปไม่ได้ถูกเก็บ — ต้องตั้งค่า Cloudinary ในหน้า ตั้งค่า ก่อน', 'warning');
 }
 
 function confirmDeleteJob(jobId) {
@@ -1822,9 +1874,9 @@ function renderPickerList(ft) {
   el.innerHTML = list.map(c => {
     var col = stringToColor(c.name||c.phone);
     var jobs = DB.jobs.filter(j => j.customerPhone === c.phone).length;
-    return '<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer;border-bottom:1px solid var(--border);" onclick="pickCustomer(\'' + c.phone + '\')">' +
-      '<div style="width:36px;height:36px;border-radius:8px;background:' + col + ';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px;">' + (c.name||'?')[0].toUpperCase() + '</div>' +
-      '<div style="flex:1;"><div style="font-weight:600;">' + (c.name||'-') + '</div><div style="font-size:12px;color:var(--text3);">' + c.phone + ' · ' + jobs + ' งาน</div></div>' +
+    return '<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer;border-bottom:1px solid var(--border);" onclick="pickCustomer(\'' + escAttr(c.phone) + '\')">' +
+      '<div style="width:36px;height:36px;border-radius:8px;background:' + col + ';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px;">' + esc((c.name||'?')[0]).toUpperCase() + '</div>' +
+      '<div style="flex:1;"><div style="font-weight:600;">' + esc(c.name||'-') + '</div><div style="font-size:12px;color:var(--text3);">' + esc(c.phone) + ' · ' + jobs + ' งาน</div></div>' +
       '<i class="fas fa-chevron-right" style="color:var(--border);font-size:12px;"></i></div>';
   }).join('');
 }
@@ -1892,7 +1944,7 @@ function openReceipt(jobId) {
   var j = DB.jobs.find(j => j.id === jobId);
   if (!j) return;
   var html = '<div class="receipt-wrap">' +
-    '<div style="text-align:center;font-size:16px;font-weight:700;color:var(--primary);">🔧 FixPro</div>' +
+    '<div style="text-align:center;font-size:16px;font-weight:700;color:var(--primary);">🔧 ' + esc(loadConfig().shopName || 'FixPro') + '</div>' +
     '<div style="text-align:center;font-size:12px;color:var(--text3);">ใบงาน / บันทึกการให้บริการ</div>' +
     '<hr style="border:1px dashed var(--border);margin:8px 0;">' +
     '<div class="receipt-row"><span style="color:var(--text3);">ลูกค้า</span><span style="font-weight:600;">' + (DB.customers.find(c=>c.phone===j.customerPhone)?.name||'-') + '</span></div>' +
@@ -1967,9 +2019,15 @@ function openSendReminder(phone, type, nextDate) {
     'สนใจนัดหมายหรือสอบถามราคา ติดต่อได้เลยครับ 😊\n' +
     'ขอบคุณที่ไว้วางใจครับ 🙏' +
     (cfg.techPhone ? '\n📱 ' + cfg.techPhone : '');
-  if (confirm('ส่งข้อความแจ้งเตือนไปยัง LINE ของ ' + (cust?.name||phone) + '?')) {
+  document.getElementById('confirm-title').textContent = 'ส่งแจ้งเตือน';
+  document.getElementById('confirm-msg').textContent = 'ส่งข้อความแจ้งเตือนผ่าน LINE ถึง ' + (cust?.name||phone) + ' ?';
+  document.getElementById('confirm-ok-btn').innerHTML = '<i class="fas fa-paper-plane"></i> ส่ง';
+  document.getElementById('confirm-ok-btn').onclick = function() {
+    closeModal('modal-confirm');
     window.open('https://line.me/R/msg/text/?' + encodeURIComponent(msg), '_blank');
-  }
+    toast('เปิด LINE แล้ว', 'success');
+  };
+  openModal('modal-confirm');
 }
 
 // ============================================================
@@ -2037,9 +2095,9 @@ function renderReport() {
   topEl.innerHTML = top5.length ? top5.map(([phone,d],i) => {
     var c = DB.customers.find(c => c.phone === phone);
     var medal = ['🥇','🥈','🥉'][i] || (i+1);
-    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="showCustomerDetail(\'' + phone + '\')">' +
+    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="showCustomerDetail(\'' + escAttr(phone) + '\')">' +
       '<span style="font-size:14px;">' + medal + '</span>' +
-      '<span style="flex:1;font-weight:600;font-size:13px;">' + (c?.name||phone) + '</span>' +
+      '<span style="flex:1;font-weight:600;font-size:13px;">' + esc(c?.name||phone) + '</span>' +
       '<span style="font-size:12px;color:var(--text3);">' + d.cnt + ' งาน</span>' +
       '<span style="font-size:13px;font-weight:700;color:var(--success);">' + (d.rev>=10000?(d.rev/1000).toFixed(1)+'k':d.rev.toLocaleString()) + ' ฿</span></div>';
   }).join('') : '<div style="color:var(--text3);text-align:center;padding:8px;">ยังไม่มีข้อมูล</div>';
@@ -2078,14 +2136,49 @@ function exportExcel() {
   toast('Export Excel สำเร็จ', 'success');
 }
 
-function exportPDFReport() {
+// โหลดฟอนต์ไทย Sarabun (OFL license) สำหรับ jsPDF — แคชไว้ในตัวแปร
+var _thaiFontPromise = null;
+function loadThaiFontB64() {
+  if (_thaiFontPromise) return _thaiFontPromise;
+  _thaiFontPromise = (async function() {
+    var base = 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/sarabun/';
+    var out = {};
+    for (var f of ['Sarabun-Regular.ttf', 'Sarabun-Bold.ttf']) {
+      var res = await fetch(base + f);
+      if (!res.ok) throw new Error('fetch font failed: ' + f);
+      var buf = new Uint8Array(await res.arrayBuffer());
+      var bin = '';
+      for (var i = 0; i < buf.length; i += 0x8000) {
+        bin += String.fromCharCode.apply(null, buf.subarray(i, i + 0x8000));
+      }
+      out[f] = btoa(bin);
+    }
+    return out;
+  })().catch(function(e) { _thaiFontPromise = null; throw e; });
+  return _thaiFontPromise;
+}
+
+async function exportPDFReport() {
   if (!window.jspdf) { toast('กำลังโหลด jsPDF...', 'warning'); return; }
   var { jsPDF } = window.jspdf;
   var doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+  // ฝังฟอนต์ไทย — เดิมใช้ helvetica ทำให้ภาษาไทยใน PDF เป็นตัวอักษรเพี้ยนทั้งหมด
+  var F = 'helvetica';
+  try {
+    var fonts = await loadThaiFontB64();
+    doc.addFileToVFS('Sarabun-Regular.ttf', fonts['Sarabun-Regular.ttf']);
+    doc.addFont('Sarabun-Regular.ttf', 'Sarabun', 'normal');
+    doc.addFileToVFS('Sarabun-Bold.ttf', fonts['Sarabun-Bold.ttf']);
+    doc.addFont('Sarabun-Bold.ttf', 'Sarabun', 'bold');
+    F = 'Sarabun';
+  } catch (e) {
+    console.warn('โหลดฟอนต์ไทยไม่สำเร็จ:', e);
+    toast('โหลดฟอนต์ไทยไม่สำเร็จ — PDF อาจแสดงภาษาไทยผิด', 'warning');
+  }
   doc.setFillColor(26,39,68); doc.rect(0,0,210,28,'F');
-  doc.setTextColor(255,255,255); doc.setFontSize(18); doc.setFont('helvetica','bold');
+  doc.setTextColor(255,255,255); doc.setFontSize(18); doc.setFont(F,'bold');
   doc.text('FixPro', 14, 12);
-  doc.setFontSize(10); doc.setFont('helvetica','normal');
+  doc.setFontSize(10); doc.setFont(F,'normal');
   doc.text('รายงานงานซ่อมและรายได้', 14, 20);
   doc.text('วันที่พิมพ์: '+new Date().toLocaleDateString('th-TH'), 196, 20, {align:'right'});
   var totalRev = DB.jobs.reduce((s,j) => s+(parseFloat(j.cost)||0), 0);
@@ -2098,12 +2191,12 @@ function exportPDFReport() {
   summaries.forEach(function(s,i) {
     var x = 14+(i*46.5);
     doc.setFillColor(240,244,255); doc.roundedRect(x,32,44,20,3,3,'F');
-    doc.setFontSize(7.5); doc.setFont('helvetica','normal'); doc.setTextColor(100,116,139);
+    doc.setFontSize(7.5); doc.setFont(F,'normal'); doc.setTextColor(100,116,139);
     doc.text(s[0], x+22, 39, {align:'center'});
-    doc.setFontSize(12); doc.setFont('helvetica','bold'); doc.setTextColor(26,39,68);
+    doc.setFontSize(12); doc.setFont(F,'bold'); doc.setTextColor(26,39,68);
     doc.text(String(s[1]), x+22, 47, {align:'center'});
   });
-  doc.setFontSize(11); doc.setFont('helvetica','bold'); doc.setTextColor(26,39,68);
+  doc.setFontSize(11); doc.setFont(F,'bold'); doc.setTextColor(26,39,68);
   doc.text('ประวัติงาน', 14, 62);
   var jobData = DB.jobs.slice(0,60).map(function(j) {
     var c = DB.customers.find(c => c.phone === j.customerPhone);
@@ -2111,8 +2204,8 @@ function exportPDFReport() {
   });
   doc.autoTable({
     startY:65, head:[['วันที่','ลูกค้า','เบอร์โทร','ประเภท','ค่าใช้จ่าย','สถานะ']], body:jobData,
-    theme:'grid', headStyles:{fillColor:[26,39,68],textColor:[255,255,255],fontSize:8.5,fontStyle:'bold'},
-    bodyStyles:{fontSize:8,textColor:[30,41,59]}, alternateRowStyles:{fillColor:[248,250,255]},
+    theme:'grid', font:F, headStyles:{font:F,fillColor:[26,39,68],textColor:[255,255,255],fontSize:8.5,fontStyle:'bold'},
+    bodyStyles:{font:F,fontSize:8,textColor:[30,41,59]}, alternateRowStyles:{fillColor:[248,250,255]},
     columnStyles:{0:{cellWidth:22},1:{cellWidth:36},2:{cellWidth:24},3:{cellWidth:32},4:{cellWidth:22},5:{cellWidth:18}},
     margin:{left:14,right:14},
   });
@@ -2123,12 +2216,12 @@ function exportPDFReport() {
   if (remData.length > 0) {
     doc.addPage();
     doc.setFillColor(26,39,68); doc.rect(0,0,210,16,'F');
-    doc.setTextColor(255,255,255); doc.setFontSize(12); doc.setFont('helvetica','bold');
+    doc.setTextColor(255,255,255); doc.setFontSize(12); doc.setFont(F,'bold');
     doc.text('รายการแจ้งเตือน', 14, 11);
     doc.autoTable({
       startY:22, head:[['ลูกค้า','เบอร์โทร','ประเภท','กำหนดนัดหมาย','สถานะ']], body:remData,
-      theme:'grid', headStyles:{fillColor:[239,68,68],textColor:[255,255,255],fontSize:8.5,fontStyle:'bold'},
-      bodyStyles:{fontSize:8.5,textColor:[30,41,59]}, alternateRowStyles:{fillColor:[255,248,248]},
+      theme:'grid', font:F, headStyles:{font:F,fillColor:[239,68,68],textColor:[255,255,255],fontSize:8.5,fontStyle:'bold'},
+      bodyStyles:{font:F,fontSize:8.5,textColor:[30,41,59]}, alternateRowStyles:{fillColor:[255,248,248]},
       margin:{left:14,right:14},
     });
   }
@@ -2275,8 +2368,10 @@ function toggleAiKeyVisibility() {
 // AUTH
 // ============================================================
 function switchAuthTab(tab) {
-  document.getElementById('auth-login-title').classList.toggle('active', tab === 'login');
-  document.getElementById('auth-register-title').classList.toggle('active', tab === 'register');
+  // เดิมอ้าง id auth-login-title/auth-register-title ที่ไม่มีใน HTML ทำให้ error
+  var tabs = document.querySelectorAll('#auth-screen .auth-tab');
+  if (tabs[0]) tabs[0].classList.toggle('active', tab === 'login');
+  if (tabs[1]) tabs[1].classList.toggle('active', tab === 'register');
   document.getElementById('login-form').style.display = tab === 'login' ? 'block' : 'none';
   document.getElementById('register-form').style.display = tab === 'register' ? 'block' : 'none';
 }
@@ -2320,20 +2415,25 @@ async function doRegister() {
   try {
     var cred = await firebase.auth().createUserWithEmailAndPassword(email, pass);
     await firebase.firestore().collection('users').doc(cred.user.uid).set({
-      uid: cred.user.uid, name, email, role: 'pending', status: 'pending', created_at: new Date().toISOString()
+      uid: cred.user.uid, name, email, role: 'owner', status: 'approved', created_at: new Date().toISOString()
     });
-    await firebase.auth().signOut();
-    toast('ลงทะเบียนสำเร็จ! รอ Admin อนุมัติ', 'success');
-    switchAuthTab('login');
+    try {
+      // เข้าสู่ระบบทันทีหลังสมัคร — onAuthStateChanged จะพาเข้าแอปเอง
+      await firebase.auth().signInWithEmailAndPassword(email, pass);
+      toast('ลงทะเบียนสำเร็จ! ยินดีต้อนรับ 🎉', 'success');
+    } catch (e2) {
+      toast('ลงทะเบียนสำเร็จ กรุณาเข้าสู่ระบบ', 'success');
+      switchAuthTab('login');
+    }
   } catch(e) {
     toast('ลงทะเบียนล้มเหลว: ' + e.message, 'error');
   }
 }
 async function doLogout() {
-  await firebase.auth().signOut();
+  try { if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) await firebase.auth().signOut(); } catch (e) { console.warn(e); }
   currentUser = null;
-  document.getElementById('app-screen').classList.remove('active');
-  document.getElementById('auth-screen').classList.add('active');
+  showAuthScreen();
+  updateOfflineBar();
   toast('ออกจากระบบสำเร็จ', 'success');
 }
 function openProfileModal() {
@@ -2394,9 +2494,30 @@ function toggleTheme() {
 // ============================================================
 // OFFLINE FALLBACK
 // ============================================================
+function hideLoadingOverlay() {
+  var el = document.getElementById('loading-overlay');
+  if (el) el.style.display = 'none';
+}
+function showAuthScreen(reason) {
+  console.warn('แสดงหน้าเข้าสู่ระบบ:', reason || '');
+  hideLoadingOverlay();
+  document.getElementById('auth-screen').classList.add('active');
+  document.getElementById('app-screen').classList.remove('active');
+}
+// เริ่มใช้งานทันทีโดยไม่ต้องมีบัญชี — ข้อมูลอยู่ในเครื่อง (localStorage) เชื่อม Firebase ได้ภายหลัง
+function enterLocalMode() {
+  hideLoadingOverlay();
+  document.getElementById('auth-screen').classList.remove('active');
+  document.getElementById('app-screen').classList.add('active');
+  currentUser = { uid: 'local_' + Date.now(), name: 'โหมดใช้งานส่วนตัว', email: '', role: 'owner' };
+  document.getElementById('header-avatar').textContent = 'L';
+  loadAllData();
+  showPage('dashboard');
+  toast('⚡ เริ่มใช้งานแล้ว — ข้อมูลถูกเก็บในเครื่องนี้', 'success');
+}
 function enterOfflineMode(reason) {
   console.warn('⚠️ เข้าโหมด Offline:', reason);
-  document.getElementById('loading-overlay').style.display = 'none';
+  hideLoadingOverlay();
   document.getElementById('auth-screen').classList.remove('active');
   document.getElementById('app-screen').classList.add('active');
   currentUser = { uid: 'offline_' + Date.now(), name: 'ผู้ใช้งาน (Local)', email: 'local@fixpro.com', role: 'admin' };
@@ -2405,20 +2526,37 @@ function enterOfflineMode(reason) {
   showPage('dashboard');
   toast('💾 ทำงานแบบ Offline (ข้อมูลเก็บในเครื่อง)', 'info');
 }
+// แสดงแถบ Offline เฉพาะเมื่ออยู่ในแอปและเน็ตหลุดจริง
+function updateOfflineBar() {
+  var bar = document.getElementById('offline-bar');
+  if (!bar) return;
+  var appActive = document.getElementById('app-screen').classList.contains('active');
+  bar.classList.toggle('show', appActive && !navigator.onLine);
+}
+window.addEventListener('online', updateOfflineBar);
+window.addEventListener('offline', updateOfflineBar);
 
 // ============================================================
 // FIREBASE AUTH INIT
 // ============================================================
 function initFirebaseAuth() {
   if (typeof firebase === 'undefined' || typeof firebase.auth !== 'function') {
-    enterOfflineMode('Firebase SDK ยังไม่โหลด');
+    showAuthScreen('Firebase SDK ยังไม่โหลด');
+    return;
+  }
+  // ยังไม่มี initializeApp → firebase.auth() จะ throw (เดิมทำให้แอปค้างหน้าโหลดตลอดไป)
+  try {
+    firebase.app();
+  } catch (e) {
+    showAuthScreen('ยังไม่ได้ตั้งค่า Firebase');
     return;
   }
   var timeoutId = setTimeout(function() {
-    if (document.getElementById('loading-overlay').style.display !== 'none') {
-      enterOfflineMode('Firebase Auth หมดเวลา (5s)');
+    var lo = document.getElementById('loading-overlay');
+    if (lo && lo.style.display !== 'none') {
+      showAuthScreen('การเชื่อมต่อใช้เวลานานเกินไป');
     }
-  }, 5000);
+  }, 8000);
 
   firebase.auth().onAuthStateChanged(async function(user) {
     clearTimeout(timeoutId);
@@ -2430,10 +2568,16 @@ function initFirebaseAuth() {
     }
     try {
       var profile = await firebase.firestore().collection('users').doc(user.uid).get();
-      if (!profile.exists) { await firebase.auth().signOut(); return; }
-      var data = profile.data();
+      var data = profile.exists ? (profile.data() || {}) : {};
+      if (!profile.exists) {
+        // บัญชีไม่มี profile (สร้างนอกแอป/หลุดระหว่างสมัคร) — สร้างให้เอง ใช้งานได้เลย
+        data = { uid: user.uid, name: user.email ? user.email.split('@')[0] : 'ผู้ใช้', email: user.email || '', role: 'owner', status: 'approved', created_at: new Date().toISOString() };
+        try { await firebase.firestore().collection('users').doc(user.uid).set(data); } catch (e2) { console.warn('สร้าง profile ไม่สำเร็จ (ไปต่อด้วยข้อมูลในเครื่อง):', e2); }
+      }
+      // สมาชิกเดิมที่ติดสถานะ pending ให้ปลดล็อกเป็น owner อัตโนมัติ (ระบบไม่มีหน้าอนุมัติ)
       if (data.role === 'pending' || data.status === 'pending') {
-        toast('⏳ รอการอนุมัติ', 'warning'); await firebase.auth().signOut(); return;
+        try { await firebase.firestore().collection('users').doc(user.uid).set({ role: 'owner', status: 'approved' }, { merge: true }); } catch (e2) {}
+        data.role = 'owner'; data.status = 'approved';
       }
       if (data.status === 'deleted' || data.disabled) {
         toast('🚫 บัญชีถูกปิด', 'error'); await firebase.auth().signOut(); return;
@@ -2492,13 +2636,18 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   loadDemoData();
   var cfg = loadConfig();
-  if (cfg.apiKey && cfg.projectId) {
+  if (cfg.apiKey && cfg.projectId && typeof firebase !== 'undefined' && typeof firebase.initializeApp === 'function') {
     initFirebase(cfg).then(function(ok) {
       if (!ok) console.warn('⚠️ Firebase init failed');
       initFirebaseAuth();
     });
   } else {
-    initFirebaseAuth();
+    // ยังไม่ตั้งค่า Firebase → โชว์หน้าล็อกอินพร้อมปุ่ม "เริ่มใช้งานเลย" (ไม่ค้างหน้าโหลดอีกต่อไป)
+    showAuthScreen('ยังไม่ได้ตั้งค่า Firebase — กด เริ่มใช้งานเลย เพื่อใช้โหมดในเครื่อง');
+  }
+  // PWA service worker — แคชไฟล์แอปไว้ใช้ตอนออฟไลน์
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+    navigator.serviceWorker.register('sw.js').catch(function() {});
   }
   var now = new Date();
   document.getElementById('dash-date').textContent = now.toLocaleDateString('th-TH', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
