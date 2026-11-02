@@ -174,27 +174,27 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 .page.active { display: block; }
 
 /* ===== CARDS ===== */
-.card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow-sm); margin-bottom: 10px; }
+.card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow-sm); margin-bottom: 8px; }
 .card-header { padding: 12px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .card-title { font-size: 14px; font-weight: 700; }
 .card-body { padding: 12px 14px; }
 .card-footer { padding: 10px 14px; border-top: 1px solid var(--border); background: var(--surface2); border-radius: 0 0 var(--radius) var(--radius); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
 
 /* ===== STATS ===== */
-.stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 10px; }
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 8px; }
 .stat-card {
   background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border);
-  padding: 12px 14px; box-shadow: var(--shadow-sm); position: relative; overflow: hidden; cursor: pointer;
+  padding: 8px 7px; box-shadow: var(--shadow-sm); position: relative; overflow: hidden; cursor: pointer;
   transition: var(--transition);
 }
 .stat-card:active { transform: scale(0.97); }
-.stat-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; margin-bottom: 6px; }
+.stat-icon { width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 10px; margin-bottom: 3px; }
 .stat-card.green .stat-icon { background: var(--primary-bg); color: var(--primary); }
 .stat-card.orange .stat-icon { background: #FBE9E7; color: var(--accent); }
 .stat-card.blue .stat-icon { background: #E3F2FD; color: var(--info); }
 .stat-card.amber .stat-icon { background: #FFF8E1; color: #FFA000; }
-.stat-value { font-size: 20px; font-weight: 800; color: var(--text); margin-bottom: 2px; }
-.stat-label { font-size: 11px; color: var(--text2); }
+.stat-value { font-size: 15px; font-weight: 800; color: var(--text); margin-bottom: 1px; }
+.stat-label { font-size: 9.5px; color: var(--text2); line-height: 1.25; }
 .stat-change { font-size: 10px; margin-top: 4px; font-weight: 600; }
 .stat-change.up { color: var(--success); }
 .stat-change.down { color: var(--danger); }
@@ -207,6 +207,7 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 .badge-blue { background: #EFF6FF; color: #1D4ED8; }
 .badge-gray { background: var(--bg); color: var(--text2); }
 .badge-purple { background: #F3E8FF; color: #7C3AED; }
+.badge-cyan { background: #E0F7FA; color: #00838F; }
 
 /* ===== CUSTOMER CARD ===== */
 .customer-card {
@@ -230,9 +231,9 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 
 /* ===== REMINDER ===== */
 .reminder-item {
-  display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+  display: flex; align-items: center; gap: 10px; padding: 9px 12px;
   border-bottom: 1px solid var(--border); cursor: pointer; transition: background var(--transition);
-  min-height: 60px;
+  min-height: 46px;
 }
 .reminder-item:active { background: var(--bg); }
 .reminder-item:last-child { border-bottom: none; }
@@ -383,7 +384,7 @@ select.form-select { padding: 8px 12px; border: 1.5px solid var(--border); borde
 #fab:active { transform: scale(0.92); }
 
 /* ===== EMPTY STATE ===== */
-.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; text-align: center; }
+.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 26px 16px; text-align: center; }
 .empty-state i { font-size: 44px; color: var(--border); margin-bottom: 10px; }
 .empty-state p { font-size: 14px; color: var(--text2); }
 
@@ -481,8 +482,8 @@ select.form-select { padding: 8px 12px; border: 1.5px solid var(--border); borde
   .desktop-only { display: none !important; }
   .app-body { padding-bottom: 0; }
   .main-content { padding: 8px 10px calc(var(--nav-h) + 16px); }
-  .card-header { padding: 10px 12px; }
-  .card-body { padding: 10px 12px; }
+  .card-header { padding: 8px 12px; }
+  .card-body { padding: 8px 12px; }
   .modal { border-radius: 20px 20px 0 0; max-height: 94vh; }
   .modal-header { padding: 12px 14px; }
   .modal-body { padding: 12px 14px; }
@@ -641,10 +642,10 @@ select.form-select { padding: 8px 12px; border: 1.5px solid var(--border); borde
 
       <!-- DASHBOARD -->
       <div class="page active" id="page-dashboard">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
           <div>
-            <div style="font-size:18px;font-weight:700;" id="dash-greeting">สวัสดี!</div>
-            <div style="font-size:12px;color:var(--text3);" id="dash-date"></div>
+            <div style="font-size:16px;font-weight:700;" id="dash-greeting">สวัสดี!</div>
+            <div style="font-size:11px;color:var(--text3);" id="dash-date"></div>
           </div>
         </div>
         <div class="stats-grid" id="dash-stats"></div>
@@ -784,6 +785,16 @@ select.form-select { padding: 8px 12px; border: 1.5px solid var(--border); borde
           </div>
         </div>
 
+        <!-- ประเภทงาน -->
+        <div class="card">
+          <div class="settings-section-header"><i class="fas fa-list-check" style="color:var(--primary);"></i> ประเภทงาน</div>
+          <div class="card-body" style="padding-top:4px;">
+            <div style="font-size:11px;color:var(--text3);margin-bottom:8px;">แก้ชื่อ/อีโมจิ หรือใช้สวิตช์ซ่อนประเภทที่ไม่รับ — จะมีผลในฟอร์มบันทึกงาน หน้าแรก และรายงาน</div>
+            <div id="jobtypes-rows"></div>
+            <button class="btn btn-primary btn-sm" onclick="saveJobTypes()"><i class="fas fa-save"></i> บันทึกประเภทงาน</button>
+          </div>
+        </div>
+
         <!-- Firebase -->
         <div class="card">
           <div class="settings-section-header"><i class="fas fa-fire" style="color:#f97316;"></i> Firebase Configuration</div>
@@ -813,34 +824,9 @@ select.form-select { padding: 8px 12px; border: 1.5px solid var(--border); borde
               <div class="form-group"><label class="form-label" style="font-size:11px;">Cloud Name</label><input type="text" class="form-control" id="cfg-cld-name" placeholder="my-cloud-name" style="font-size:12px;"></div>
               <div class="form-group"><label class="form-label" style="font-size:11px;">Upload Preset</label><input type="text" class="form-control" id="cfg-cld-preset" placeholder="ml_default" style="font-size:12px;"></div>
             </div>
-            <button class="btn btn-primary btn-sm" onclick="saveCloudinaryConfig()"><i class="fas fa-save"></i> บันทึก</button>
-          </div>
-        </div>
-
-        <!-- AI Assistant -->
-        <div class="card">
-          <div class="settings-section-header"><i class="fas fa-robot" style="color:#8b5cf6;"></i> AI Assistant</div>
-          <div class="card-body" style="padding-top:4px;">
-            <div id="ai-status" class="config-status warn"><i class="fas fa-circle-exclamation"></i> ยังไม่ได้ตั้งค่า</div>
-            <div class="form-group">
-              <label class="form-label">ผู้ให้บริการ</label>
-              <select class="form-control" id="cfg-ai-provider" style="font-size:13px;">
-                <option value="openai">OpenAI (GPT-4o Mini)</option>
-                <option value="anthropic">Anthropic (Claude Haiku)</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">API Key</label>
-              <div style="position:relative;">
-                <input type="password" class="form-control" id="cfg-ai-key" placeholder="sk-..." style="padding-right:40px;">
-                <button type="button" onclick="toggleAiKeyVisibility()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:4px;">
-                  <i class="fas fa-eye" id="ai-key-eye"></i>
-                </button>
-              </div>
-            </div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;">
-              <button class="btn btn-primary btn-sm" onclick="saveAiConfig()"><i class="fas fa-save"></i> บันทึก</button>
-              <button class="btn btn-secondary btn-sm" onclick="testAiConnection()"><i class="fas fa-plug"></i> ทดสอบ</button>
+            <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">
+              <button class="btn btn-primary btn-sm" onclick="saveCloudinaryConfig()"><i class="fas fa-save"></i> บันทึก</button>
+              <button class="btn btn-secondary btn-sm" onclick="testCloudinary(this)"><i class="fas fa-plug"></i> ทดสอบ</button>
             </div>
           </div>
         </div>
@@ -949,20 +935,7 @@ select.form-select { padding: 8px 12px; border: 1.5px solid var(--border); borde
       </div>
       <div class="form-group">
         <label class="form-label">ประเภท <span class="badge badge-red">*</span></label>
-        <div class="type-selector" id="type-selector">
-          <div class="type-card selected" data-type="ac" onclick="selectJobType('ac')">
-            <div class="type-emoji">🌬️</div><div class="type-label">ล้างแอร์</div>
-          </div>
-          <div class="type-card" data-type="washer" onclick="selectJobType('washer')">
-            <div class="type-emoji">🫧</div><div class="type-label">ล้างซักผ้า</div>
-          </div>
-          <div class="type-card" data-type="repair" onclick="selectJobType('repair')">
-            <div class="type-emoji">🔧</div><div class="type-label">ซ่อมไฟฟ้า</div>
-          </div>
-          <div class="type-card" data-type="other" onclick="selectJobType('other')">
-            <div class="type-emoji">📋</div><div class="type-label">อื่นๆ</div>
-          </div>
-        </div>
+        <div class="type-selector" id="type-selector"></div>
         <input type="hidden" id="job-type" value="ac">
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
@@ -1278,6 +1251,75 @@ function refreshAll() {
 // ============================================================
 var SERVICE_LABELS = { ac: '🌬️ ล้างแอร์', washer: '🫧 ล้างเครื่องซักผ้า', repair: '🔧 ซ่อมไฟฟ้า', other: '📋 อื่นๆ' };
 var SERVICE_COLORS = { ac: 'badge-blue', washer: 'badge-cyan', repair: 'badge-amber', other: 'badge-gray' };
+// ===== ประเภทงาน (แก้ได้ในหน้าตั้งค่า) =====
+var DEFAULT_JOB_TYPES = [
+  { id: 'ac',     emoji: '🌬️', label: 'ล้างแอร์' },
+  { id: 'washer', emoji: '🫧', label: 'ล้างเครื่องซักผ้า' },
+  { id: 'repair', emoji: '🔧', label: 'ซ่อมไฟฟ้า' },
+  { id: 'other',  emoji: '📋', label: 'อื่นๆ' }
+];
+function getJobTypes() {
+  var cfg = loadConfig();
+  var saved = cfg.jobTypes || {};
+  return DEFAULT_JOB_TYPES.map(function(d) {
+    var s = saved[d.id] || {};
+    return { id: d.id, emoji: s.emoji || d.emoji, label: (s.label !== undefined && s.label !== '') ? s.label : d.label, disabled: !!s.disabled };
+  });
+}
+function typeLabel(id) { var t = getJobTypes().find(function(t){ return t.id === id; }); return t ? (t.emoji + ' ' + t.label) : id; }
+function typeName(id) { var t = getJobTypes().find(function(t){ return t.id === id; }); return t ? t.label : id; }
+function typeEmoji(id) { var t = getJobTypes().find(function(t){ return t.id === id; }); return t ? t.emoji : '🔧'; }
+function firstEnabledTypeId() { var t = getJobTypes().find(function(t){ return !t.disabled; }); return t ? t.id : 'ac'; }
+function applyJobTypes() {
+  var types = getJobTypes();
+  SERVICE_LABELS = {};
+  types.forEach(function(t) { SERVICE_LABELS[t.id] = t.emoji + ' ' + t.label; });
+  renderTypeSelector();
+}
+function renderTypeSelector() {
+  var el = document.getElementById('type-selector');
+  if (!el) return;
+  var types = getJobTypes().filter(function(t){ return !t.disabled; });
+  var selected = document.getElementById('job-type') ? document.getElementById('job-type').value : '';
+  el.innerHTML = types.map(function(t) {
+    return '<div class="type-card' + (t.id === selected ? ' selected' : '') + '" data-type="' + t.id + '" onclick="selectJobType(\'' + t.id + '\')">' +
+      '<div class="type-emoji">' + t.emoji + '</div><div class="type-label">' + esc(t.label) + '</div></div>';
+  }).join('');
+  if (types.length && !types.some(function(t){ return t.id === selected; })) {
+    selectJobType(types[0].id);
+  }
+}
+function renderJobTypeSettings() {
+  var box = document.getElementById('jobtypes-rows');
+  if (!box) return;
+  box.innerHTML = getJobTypes().map(function(t) {
+    return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">' +
+      '<input type="text" class="form-control jt-emoji" data-id="' + t.id + '" value="' + escAttr(t.emoji) + '" maxlength="4" style="width:54px;min-height:38px;text-align:center;font-size:18px;padding:4px;flex-shrink:0;">' +
+      '<input type="text" class="form-control jt-label" data-id="' + t.id + '" value="' + escAttr(t.label) + '" style="flex:1;min-height:38px;min-width:0;">' +
+      '<label class="toggle-switch" style="flex-shrink:0;" title="แสดง/ซ่อนในฟอร์มบันทึกงาน"><input type="checkbox" class="jt-show" data-id="' + t.id + '"' + (t.disabled ? '' : ' checked') + '><span class="toggle-slider"></span></label>' +
+      '</div>';
+  }).join('');
+}
+function saveJobTypes() {
+  var cfg = loadConfig();
+  var saved = {};
+  var enabledCount = 0;
+  DEFAULT_JOB_TYPES.forEach(function(d) {
+    var emojiEl = document.querySelector('.jt-emoji[data-id="' + d.id + '"]');
+    var labelEl = document.querySelector('.jt-label[data-id="' + d.id + '"]');
+    var showEl = document.querySelector('.jt-show[data-id="' + d.id + '"]');
+    if (!emojiEl || !labelEl || !showEl) return;
+    var show = showEl.checked;
+    if (show) enabledCount++;
+    saved[d.id] = { emoji: emojiEl.value.trim() || d.emoji, label: labelEl.value.trim() || d.label, disabled: !show };
+  });
+  if (enabledCount === 0) { toast('ต้องเปิดแสดงอย่างน้อย 1 ประเภทงาน', 'warning'); return; }
+  cfg.jobTypes = saved;
+  saveConfig(cfg);
+  applyJobTypes();
+  refreshAll();
+  toast('บันทึกประเภทงานแล้ว', 'success');
+}
 var REMIND_TYPES = ['ac', 'washer'];
 var STATUS_LABELS = { done: '✅ เสร็จ', pending: '⏳ รอ', followup: '🔄 ติดตาม' };
 var STATUS_COLORS = { done: 'badge-green', pending: 'badge-amber', followup: 'badge-purple' };
@@ -1413,14 +1455,14 @@ function renderDashboard() {
     </div>
     <div class="stat-card amber" onclick="showPage('reports')">
       <div class="stat-icon"><i class="fas fa-money-bill"></i></div>
-      <div class="stat-value" style="font-size:${thisMonthRev>=10000?'16px':'20px'};">${thisMonthRev>=10000?(thisMonthRev/1000).toFixed(1)+'k':thisMonthRev.toLocaleString()}</div>
+      <div class="stat-value">${thisMonthRev>=10000?(thisMonthRev/1000).toFixed(1)+'k':thisMonthRev.toLocaleString()}</div>
       <div class="stat-label">รายได้เดือนนี้</div>
     </div>
   `;
 
   var dashRemList = document.getElementById('dash-reminders-list');
   var dashCount = document.getElementById('dash-reminder-count');
-  var allUrgent = [...overdueR, ...soonR].slice(0, 5);
+  var allUrgent = [...overdueR, ...soonR].slice(0, 3);
   if (dashCount) { dashCount.style.display = allUrgent.length ? '' : 'none'; dashCount.textContent = allUrgent.length + ' ราย'; }
   if (dashRemList) {
     dashRemList.innerHTML = allUrgent.length === 0
@@ -1438,15 +1480,15 @@ function renderDashboard() {
   }
 
   var recentEl = document.getElementById('dash-recent-jobs');
-  var recent = DB.jobs.slice(0, 5);
+  var recent = DB.jobs.slice(0, 3);
   if (recentEl) {
     recentEl.innerHTML = recent.length === 0
       ? '<div class="empty-state"><i class="fas fa-folder-open"></i><p>ยังไม่มีงาน</p></div>'
       : recent.map(j => {
           var cust = DB.customers.find(c => c.phone === j.customerPhone);
-          var emoji = j.serviceType==='ac'?'🌬️':j.serviceType==='washer'?'🫧':'🔧';
+          var emoji = typeEmoji(j.serviceType);
           return '<div class="reminder-item" onclick="showCustomerDetail(\'' + escAttr(j.customerPhone) + '\')">' +
-            '<div style="font-size:20px;flex-shrink:0;">' + emoji + '</div>' +
+            '<div style="font-size:18px;flex-shrink:0;">' + emoji + '</div>' +
             '<div style="flex:1;min-width:0;"><div class="reminder-name">' + esc(cust?.name||j.customerPhone) + '</div>' +
             '<div class="reminder-detail">' + formatDate(j.serviceDate) + '</div></div>' +
             '<div style="text-align:right;flex-shrink:0;"><div style="font-weight:700;color:var(--success);">' + (j.cost?Number(j.cost).toLocaleString()+' ฿':'-') + '</div></div></div>';
@@ -1512,11 +1554,11 @@ function renderJobs() {
   if (container) {
     container.innerHTML = list.map(j => {
       var cust = DB.customers.find(c => c.phone === j.customerPhone);
-      var emoji = j.serviceType==='ac'?'🌬️':j.serviceType==='washer'?'🫧':j.serviceType==='repair'?'🔧':'📋';
+      var emoji = typeEmoji(j.serviceType);
       return '<div class="customer-card" onclick="showCustomerDetail(\'' + escAttr(j.customerPhone) + '\')">' +
         '<div style="font-size:24px;flex-shrink:0;">' + emoji + '</div>' +
         '<div class="customer-info"><div class="customer-name">' + esc(cust?.name||j.customerPhone) + '</div>' +
-        '<div class="customer-phone">' + formatDate(j.serviceDate) + ' · <span class="badge ' + (SERVICE_COLORS[j.serviceType]||'badge-gray') + '" style="font-size:10px;">' + (SERVICE_LABELS[j.serviceType]||j.serviceType) + '</span></div>' +
+        '<div class="customer-phone">' + formatDate(j.serviceDate) + ' · <span class="badge ' + (SERVICE_COLORS[j.serviceType]||'badge-gray') + '" style="font-size:10px;">' + (typeName(j.serviceType)||j.serviceType) + '</span></div>' +
         (j.deviceInfo ? '<div style="font-size:11px;color:var(--text3);">📦 ' + esc(j.deviceInfo) + '</div>' : '') +
         '</div>' +
         '<div class="customer-meta"><div class="job-count" style="font-size:16px;color:var(--success);">' + (j.cost?Number(j.cost).toLocaleString():'0') + '</div><div class="job-label">บาท</div></div></div>';
@@ -1684,10 +1726,10 @@ function toggleCustExtra(force) {
   var c = document.getElementById('cust-extra-chev');
   if (c) c.className = 'fas fa-chevron-' + (show ? 'up' : 'down');
 }
-// หน้าตั้งค่า: ยุบส่วนขั้นสูง (Firebase/Cloudinary/AI) ให้หน้าสั้นลง
+// หน้าตั้งค่า: ยุบส่วนขั้นสูง (Firebase/Cloudinary) ให้หน้าสั้นลง
 function collapseAdvancedSettings() {
   var headers = document.querySelectorAll('#page-settings .settings-section-header');
-  [1, 2, 3].forEach(function(idx) {
+  [2, 3].forEach(function(idx) {
     var h = headers[idx]; if (!h) return;
     var body = h.parentElement.querySelector('.card-body'); if (!body) return;
     h.style.display = 'flex'; h.style.alignItems = 'center'; h.style.gap = '8px'; h.style.cursor = 'pointer';
@@ -1783,9 +1825,10 @@ function openAddJobForCustomer(phone) {
   document.getElementById('job-customer-name').value = cust?.name || phone;
   document.getElementById('job-customer-phone').value = phone;
   document.getElementById('job-date').value = todayStr();
-  document.getElementById('job-type').value = 'ac';
+  var firstType = firstEnabledTypeId();
+  document.getElementById('job-type').value = firstType;
   document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
-  document.querySelector('.type-card[data-type="ac"]')?.classList.add('selected');
+  document.querySelector('.type-card[data-type="' + firstType + '"]')?.classList.add('selected');
   onJobTypeChange();
   openModal('modal-job');
 }
@@ -1818,7 +1861,8 @@ function resetJobModal() {
   if (typeof toggleJobExtra === 'function') toggleJobExtra(false);
   document.getElementById('modal-job-title').textContent = 'บันทึกงานซ่อม';
   document.getElementById('job-date').value = todayStr();
-  document.getElementById('job-type').value = 'ac';
+  var firstType = firstEnabledTypeId();
+  document.getElementById('job-type').value = firstType;
   document.getElementById('job-cost').value = '';
   document.getElementById('job-device').value = '';
   document.getElementById('job-desc').value = '';
@@ -1827,7 +1871,7 @@ function resetJobModal() {
   document.getElementById('job-next-date').value = '';
   document.getElementById('job-edit-id').value = '';
   document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
-  document.querySelector('.type-card[data-type="ac"]')?.classList.add('selected');
+  document.querySelector('.type-card[data-type="' + firstType + '"]')?.classList.add('selected');
   pendingPhotos = [];
   renderPhotoPreview();
   onJobTypeChange();
@@ -2125,17 +2169,17 @@ function renderReport() {
       '<div style="font-size:9px;color:var(--text3);">' + m.label + '</div></div>';
   }).join('');
 
-  var types = ['ac','washer','repair','other'];
+  var types = getJobTypes();
   var typeData = types.map(t => ({
-    t, emoji: t==='ac'?'🌬️':t==='washer'?'🫧':t==='repair'?'🔧':'📋',
-    cnt: pJobs.filter(j => j.serviceType===t).length,
-    rev: pJobs.filter(j => j.serviceType===t).reduce((s,j) => s+(parseFloat(j.cost)||0),0)
+    t: t.id, emoji: t.emoji, label: t.label,
+    cnt: pJobs.filter(j => j.serviceType===t.id).length,
+    rev: pJobs.filter(j => j.serviceType===t.id).reduce((s,j) => s+(parseFloat(j.cost)||0),0)
   })).filter(d => d.cnt>0).sort((a,b) => b.rev-a.rev);
   var maxCnt = Math.max(...typeData.map(d => d.cnt),1);
   var typEl = document.getElementById('report-type-breakdown');
   typEl.innerHTML = typeData.length ? typeData.map(d => '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">' +
     '<span style="font-size:16px;">' + d.emoji + '</span>' +
-    '<div style="flex:1;"><div style="font-size:12px;font-weight:600;">' + (SERVICE_LABELS[d.t]||d.t) + '</div>' +
+    '<div style="flex:1;"><div style="font-size:12px;font-weight:600;">' + esc(d.label || d.t) + '</div>' +
     '<div style="height:3px;background:var(--border);border-radius:2px;overflow:hidden;"><div style="height:100%;width:' + (d.cnt/maxCnt*100) + '%;background:var(--primary);border-radius:2px;"></div></div></div>' +
     '<div style="font-size:12px;font-weight:700;color:var(--success);">' + (d.rev>=10000?(d.rev/1000).toFixed(1)+'k':d.rev.toLocaleString()) + ' ฿</div></div>').join('') : '<div style="color:var(--text3);text-align:center;padding:8px;">ยังไม่มีข้อมูล</div>';
 
@@ -2329,8 +2373,7 @@ function loadSettingsPage() {
   document.getElementById('cfg-fb-appid').value = cfg.appId || '';
   document.getElementById('cfg-cld-name').value = cfg.cloudName || '';
   document.getElementById('cfg-cld-preset').value = cfg.uploadPreset || '';
-  document.getElementById('cfg-ai-provider').value = cfg.aiProvider || 'openai';
-  document.getElementById('cfg-ai-key').value = cfg.aiKey || '';
+  renderJobTypeSettings();
   updateConfigStatus();
 }
 function updateConfigStatus() {
@@ -2346,12 +2389,6 @@ function updateConfigStatus() {
     cldEl.className = 'config-status ok'; cldEl.innerHTML = '<i class="fas fa-circle-check"></i> ตั้งค่าแล้ว · ' + cfg.cloudName;
   } else {
     cldEl.className = 'config-status warn'; cldEl.innerHTML = '<i class="fas fa-circle-exclamation"></i> ยังไม่ได้ตั้งค่า (รูปเก็บชั่วคราว)';
-  }
-  var aiEl = document.getElementById('ai-status');
-  if (cfg.aiKey) {
-    aiEl.className = 'config-status ok'; aiEl.innerHTML = '<i class="fas fa-circle-check"></i> ตั้งค่าแล้ว · ' + (cfg.aiProvider==='anthropic'?'Claude':'OpenAI');
-  } else {
-    aiEl.className = 'config-status warn'; aiEl.innerHTML = '<i class="fas fa-circle-exclamation"></i> ยังไม่ได้ตั้งค่า';
   }
 }
 function saveShopConfig() {
@@ -2384,38 +2421,43 @@ async function testFirebase() {
     toast('เชื่อมต่อ Firebase สำเร็จ!', 'success');
   } catch(e) { toast('เชื่อมต่อ Firebase สำเร็จ (permission OK)', 'success'); }
 }
-function saveCloudinaryConfig() {
+function saveCloudinaryConfig(silent) {
   var cfg = loadConfig();
   cfg.cloudName = document.getElementById('cfg-cld-name').value.trim();
   cfg.uploadPreset = document.getElementById('cfg-cld-preset').value.trim();
   saveConfig(cfg);
   updateConfigStatus();
-  toast('บันทึก Cloudinary เรียบร้อย', 'success');
+  if (!silent) toast('บันทึก Cloudinary เรียบร้อย', 'success');
 }
-function saveAiConfig() {
-  var cfg = loadConfig();
-  cfg.aiProvider = document.getElementById('cfg-ai-provider').value;
-  cfg.aiKey = document.getElementById('cfg-ai-key').value.trim();
-  saveConfig(cfg);
-  updateConfigStatus();
-  toast('บันทึก AI Config เรียบร้อย', 'success');
-}
-function testAiConnection() {
-  var cfg = loadConfig();
-  if (!cfg.aiKey) { toast('กรุณาใส่ API Key ก่อน', 'error'); return; }
-  toast('ทดสอบ AI: เปิดคอนโซลเพื่อดูผล', 'info');
-  console.log('AI Test: Provider=' + cfg.aiProvider + ', Key=' + cfg.aiKey.slice(0,10)+'...');
-}
-function toggleAiKeyVisibility() {
-  var inp = document.getElementById('cfg-ai-key');
-  var eye = document.getElementById('ai-key-eye');
-  if (!inp) return;
-  if (inp.type === 'password') {
-    inp.type = 'text';
-    eye.className = 'fas fa-eye-slash';
-  } else {
-    inp.type = 'password';
-    eye.className = 'fas fa-eye';
+async function testCloudinary(btn) {
+  var name = document.getElementById('cfg-cld-name').value.trim();
+  var preset = document.getElementById('cfg-cld-preset').value.trim();
+  if (!name || !preset) { toast('กรอก Cloud Name และ Upload Preset ให้ครบก่อนทดสอบ', 'warning'); return; }
+  var oldHtml = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังทดสอบ...';
+  try {
+    // ทดสอบจริง: อัปโหลดรูป 1x1 px ขึ้น Cloudinary
+    var canvas = document.createElement('canvas');
+    canvas.width = 1; canvas.height = 1;
+    var blob = await new Promise(function(res){ canvas.toBlob(res, 'image/png'); });
+    var fd = new FormData();
+    fd.append('file', blob, 'fixpro-test.png');
+    fd.append('upload_preset', preset);
+    var res = await fetch('https://api.cloudinary.com/v1_1/' + encodeURIComponent(name) + '/image/upload', { method: 'POST', body: fd });
+    var data = await res.json().catch(function(){ return {}; });
+    if (res.ok && data.secure_url) {
+      saveCloudinaryConfig(true);
+      toast('✅ ทดสอบสำเร็จ — อัปโหลดรูปขึ้น "' + name + '" ได้', 'success');
+    } else {
+      var msg = (data.error && data.error.message) ? data.error.message : ('HTTP ' + res.status);
+      toast('❌ ทดสอบไม่ผ่าน: ' + msg, 'error');
+    }
+  } catch(e) {
+    toast('❌ เชื่อมต่อ Cloudinary ไม่ได้ — ตรวจอินเทอร์เน็ตหรือ Cloud Name', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = oldHtml;
   }
 }
 
@@ -2708,6 +2750,7 @@ document.addEventListener('DOMContentLoaded', function() {
   var now = new Date();
   document.getElementById('dash-date').textContent = now.toLocaleDateString('th-TH', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
   updateFabVisibility();
+  applyJobTypes();
   collapseAdvancedSettings();
 });
 
