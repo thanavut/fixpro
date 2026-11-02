@@ -165,7 +165,7 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 /* ===== MAIN CONTENT ===== */
 .app-body { display: flex; flex: 1; min-height: 0; overflow: hidden; }
 .main-content {
-  flex: 1; padding: 8px 12px calc(var(--nav-h) + 16px);
+  flex: 1; padding: 8px 12px calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px);
   overflow-y: auto; overflow-x: hidden;
   height: calc(100vh - var(--header-h)); box-sizing: border-box;
   -webkit-overflow-scrolling: touch;
@@ -564,7 +564,7 @@ select.form-select { padding: 8px 12px; border: 1.5px solid var(--border); borde
 @media (max-width: 768px) {
   .desktop-only { display: none !important; }
   .app-body { padding-bottom: 0; }
-  .main-content { padding: 8px 10px calc(var(--nav-h) + 16px); }
+  .main-content { padding: 8px 10px calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); }
   .card-header { padding: 8px 12px; }
   .card-body { padding: 8px 12px; }
   .modal { border-radius: 20px 20px 0 0; max-height: 94vh; }
@@ -957,6 +957,9 @@ select.form-select { padding: 8px 12px; border: 1.5px solid var(--border); borde
       <div class="mobile-nav-item" data-page="jobs" onclick="showPage('jobs')">
         <i class="fas fa-clipboard-list"></i><span>งาน</span>
       </div>
+      <div class="mobile-nav-item" data-page="reports" onclick="showPage('reports')">
+        <i class="fas fa-chart-column"></i><span>รายงาน</span>
+      </div>
       <div class="mobile-nav-item" data-page="settings" onclick="showPage('settings')">
         <i class="fas fa-cog"></i><span>ตั้งค่า</span>
       </div>
@@ -1010,6 +1013,7 @@ select.form-select { padding: 8px 12px; border: 1.5px solid var(--border); borde
       <div class="form-group">
         <label class="form-label"><i class="fas fa-map-location-dot" style="color:var(--primary);"></i> ลิงก์ Google Maps / พิกัดบ้าน</label>
         <input type="text" class="form-control" id="cust-mapurl" placeholder="วางลิงก์ที่แชร์จาก Google Maps เช่น https://maps.app.goo.gl/...">
+        <button type="button" class="btn btn-secondary btn-sm" style="width:100%;margin-top:6px;" onclick="useCurrentLocation(this)"><i class="fas fa-location-crosshairs"></i> ใช้พิกัดปัจจุบัน (GPS)</button>
       </div>
       <div class="form-group">
         <label class="form-label">Line ID</label>
@@ -1082,10 +1086,19 @@ select.form-select { padding: 8px 12px; border: 1.5px solid var(--border); borde
       </div>
       <div class="form-group">
         <label class="form-label"><i class="fas fa-camera" style="color:var(--primary);"></i> รูปภาพ</label>
-        <div class="photo-upload-area" onclick="document.getElementById('photo-gallery').click()">
-          <i class="fas fa-cloud-arrow-up"></i>
-          <div style="font-size:13px;">คลิกเลือกรูป</div>
+        <div style="display:flex;gap:8px;">
+          <div class="photo-upload-area" style="flex:1;min-height:88px;padding:14px 8px;" onclick="document.getElementById('photo-camera').click()">
+            <i class="fas fa-camera" style="font-size:24px;"></i>
+            <div style="font-size:13px;font-weight:600;">ถ่ายภาพ</div>
+            <div style="font-size:10.5px;color:var(--text3);">เปิดกล้อง</div>
+          </div>
+          <div class="photo-upload-area" style="flex:1;min-height:88px;padding:14px 8px;" onclick="document.getElementById('photo-gallery').click()">
+            <i class="fas fa-images" style="font-size:24px;"></i>
+            <div style="font-size:13px;font-weight:600;">เลือกจากคลัง</div>
+            <div style="font-size:10.5px;color:var(--text3);">เลือกได้หลายรูป</div>
+          </div>
         </div>
+        <input type="file" id="photo-camera" accept="image/*" capture="environment" style="display:none" onchange="handlePhotoSelect(event)">
         <input type="file" id="photo-gallery" accept="image/*" multiple style="display:none" onchange="handlePhotoSelect(event)">
         <div class="photo-grid" id="photo-preview"></div>
       </div>
@@ -1784,6 +1797,34 @@ function mapNavBtn(cust, coords, addr) {
   var dest = coords || addr;
   var url = dest ? 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(dest) : (custMapPin(cust) || 'https://maps.google.com/');
   return '<button class="map-btn map-btn-go" onclick="window.open(\'' + escAttr(url) + '\',\'_blank\')"><i class="fas fa-diamond-turn-right"></i> นำทาง</button>';
+}
+
+// ใช้พิกัด GPS ปัจจุบันในฟอร์มลูกค้า — ได้ทั้งพิกัดและลองค้นหาที่อยู่อัตโนมัติ
+function useCurrentLocation(btn) {
+  if (!navigator.geolocation) { toast('อุปกรณ์นี้ไม่รองรับ GPS', 'error'); return; }
+  var oldHtml = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังค้นหาตำแหน่ง...'; }
+  var done = function() { if (btn) { btn.disabled = false; btn.innerHTML = oldHtml; } };
+  navigator.geolocation.getCurrentPosition(async function(pos) {
+    var lat = pos.coords.latitude.toFixed(6), lng = pos.coords.longitude.toFixed(6);
+    var mu = document.getElementById('cust-mapurl');
+    if (mu) mu.value = lat + ',' + lng;
+    try {
+      var r = await fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng + '&accept-language=th&zoom=18&addressdetails=1', { headers: { 'Accept': 'application/json' } });
+      var j = await r.json();
+      if (j && j.display_name) {
+        var ad = document.getElementById('cust-address');
+        if (ad && !ad.value.trim()) ad.value = j.display_name;
+        toast('ได้พิกัดและที่อยู่จาก GPS แล้ว', 'success');
+      } else {
+        toast('ได้พิกัด: ' + lat + ', ' + lng, 'success');
+      }
+    } catch(e) { toast('ได้พิกัด: ' + lat + ', ' + lng + ' (ออฟไลน์)', 'success'); }
+    done();
+  }, function(err) {
+    done();
+    toast(err && err.code === 1 ? 'ไม่อนุญาตให้เข้าถึงตำแหน่ง — เปิดสิทธิ์ GPS ในเบราว์เซอร์' : 'หาตำแหน่งไม่สำเร็จ ลองอีกครั้ง', 'error');
+  }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 });
 }
 
 function renderCustomerDetail(phone) {
