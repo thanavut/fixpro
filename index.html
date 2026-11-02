@@ -1914,7 +1914,7 @@ function showPage(page, param) {
   } else {
     var el = document.getElementById('page-' + page);
     if (el) el.classList.add('active');
-    var navPage = (page === 'reminders') ? 'dashboard' : page;
+    var navPage = page; // แท็บแจ้งเตือนกลับมาแล้ว — ไฮไลต์แท็บตัวเอง
     document.querySelector('.mobile-nav-item[data-page="' + navPage + '"]')?.classList.add('active');
     if (page === 'customers') renderCustomers();
     if (page === 'jobs') renderJobs();
