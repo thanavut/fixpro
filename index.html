@@ -261,17 +261,46 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 .photo-thumb img { width: 100%; height: 100%; object-fit: cover; }
 .photo-thumb .del-photo { position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.6); color: #fff; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; cursor: pointer; }
 
-/* ===== TYPE SELECTOR ===== */
-.type-selector { display: grid; grid-template-columns: repeat(2,1fr); gap: 8px; }
+/* ===== TYPE SELECTOR (ชิปเล็ก) ===== */
+.type-selector { display: flex; flex-wrap: wrap; gap: 6px; }
 .type-card {
-  display: flex; flex-direction: column; align-items: center; padding: 14px 8px; border: 2px solid var(--border);
-  border-radius: var(--radius); cursor: pointer; transition: all var(--transition); background: var(--surface);
-  gap: 4px; text-align: center; min-height: 72px;
+  display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border: 2px solid var(--border);
+  border-radius: 20px; cursor: pointer; transition: all var(--transition); background: var(--surface);
 }
 .type-card:active { transform: scale(0.96); }
 .type-card.selected { border-color: var(--primary); background: var(--primary-bg); }
-.type-card .type-emoji { font-size: 24px; }
-.type-card .type-label { font-size: 12px; font-weight: 700; }
+.type-card .type-emoji { font-size: 15px; line-height: 1; }
+.type-card .type-label { font-size: 12px; font-weight: 600; line-height: 1; }
+
+/* ===== JOB TYPE EDITOR (หน้าตั้งค่า) ===== */
+.jt-row {
+  display: flex; align-items: center; gap: 8px; padding: 6px 8px 6px 6px; background: var(--bg);
+  border: 1px solid var(--border); border-radius: 12px; margin-bottom: 8px; transition: border-color var(--transition);
+}
+.jt-row:focus-within { border-color: var(--primary); }
+.jt-emoji {
+  width: 46px; height: 40px; text-align: center; font-size: 17px; padding: 4px 2px; flex-shrink: 0;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px; font-family: inherit;
+  box-sizing: border-box;
+}
+.jt-label {
+  flex: 1; min-width: 0; height: 40px; background: transparent; border: none; font-weight: 600;
+  font-size: 14px; padding: 6px 4px; color: var(--text); font-family: inherit; box-sizing: border-box;
+}
+.jt-label::placeholder { color: var(--text3); font-weight: 400; }
+.jt-label:focus, .jt-emoji:focus { outline: none; }
+.jt-del {
+  width: 36px; height: 36px; border-radius: 10px; border: none; background: #FEE2E2; color: var(--danger);
+  flex-shrink: 0; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center;
+  transition: var(--transition);
+}
+.jt-del:active { transform: scale(0.9); background: #FECACA; }
+.jt-add {
+  width: 100%; padding: 11px; border-radius: 12px; border: 1.5px dashed var(--primary-l); background: var(--primary-bg);
+  color: var(--primary); font-weight: 600; font-size: 13px; cursor: pointer; margin-top: 2px;
+  display: flex; align-items: center; justify-content: center; gap: 6px; transition: var(--transition); font-family: inherit;
+}
+.jt-add:active { transform: scale(0.98); }
 
 /* ===== PHOTO UPLOAD ===== */
 .photo-upload-area {
@@ -789,9 +818,8 @@ select.form-select { padding: 8px 12px; border: 1.5px solid var(--border); borde
         <div class="card">
           <div class="settings-section-header"><i class="fas fa-list-check" style="color:var(--primary);"></i> ประเภทงาน</div>
           <div class="card-body" style="padding-top:4px;">
-            <div style="font-size:11px;color:var(--text3);margin-bottom:8px;">แก้ชื่อ/อีโมจิ หรือใช้สวิตช์ซ่อนประเภทที่ไม่รับ — จะมีผลในฟอร์มบันทึกงาน หน้าแรก และรายงาน</div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:10px;">แก้ชื่อ/อีโมจิได้ทันที (บันทึกอัตโนมัติ) · ลบประเภทที่ไม่ใช้ด้วยปุ่ม 🗑️ · งานเก่าจะยังแสดงชื่อประเภทเดิม</div>
             <div id="jobtypes-rows"></div>
-            <button class="btn btn-primary btn-sm" onclick="saveJobTypes()"><i class="fas fa-save"></i> บันทึกประเภทงาน</button>
           </div>
         </div>
 
@@ -1251,27 +1279,51 @@ function refreshAll() {
 // ============================================================
 var SERVICE_LABELS = { ac: '🌬️ ล้างแอร์', washer: '🫧 ล้างเครื่องซักผ้า', repair: '🔧 ซ่อมไฟฟ้า', other: '📋 อื่นๆ' };
 var SERVICE_COLORS = { ac: 'badge-blue', washer: 'badge-cyan', repair: 'badge-amber', other: 'badge-gray' };
-// ===== ประเภทงาน (แก้ได้ในหน้าตั้งค่า) =====
+// ===== ประเภทงาน (เพิ่ม/แก้/ลบได้ในหน้าตั้งค่า — บันทึกอัตโนมัติ) =====
 var DEFAULT_JOB_TYPES = [
   { id: 'ac',     emoji: '🌬️', label: 'ล้างแอร์' },
   { id: 'washer', emoji: '🫧', label: 'ล้างเครื่องซักผ้า' },
   { id: 'repair', emoji: '🔧', label: 'ซ่อมไฟฟ้า' },
   { id: 'other',  emoji: '📋', label: 'อื่นๆ' }
 ];
-function getJobTypes() {
+function jobTypesFromConfig() {
   var cfg = loadConfig();
-  var saved = cfg.jobTypes || {};
-  return DEFAULT_JOB_TYPES.map(function(d) {
-    var s = saved[d.id] || {};
-    return { id: d.id, emoji: s.emoji || d.emoji, label: (s.label !== undefined && s.label !== '') ? s.label : d.label, disabled: !!s.disabled };
+  var saved = cfg.jobTypes;
+  if (Array.isArray(saved) && saved.length) {
+    return saved.map(function(s) {
+      return { id: s.id, emoji: s.emoji || '🛠️', label: (s.label || '').trim() || 'ประเภทงาน', deleted: !!s.deleted };
+    });
+  }
+  // รูปแบบเก่า (object {id: {emoji,label,disabled}}) → แปลงเป็นลิสต์ ตามลำดับค่าเริ่มต้น
+  var obj = (saved && typeof saved === 'object' && !Array.isArray(saved)) ? saved : {};
+  var list = DEFAULT_JOB_TYPES.map(function(d) {
+    var s = obj[d.id] || {};
+    return { id: d.id, emoji: s.emoji || d.emoji, label: (s.label !== undefined && s.label !== '') ? s.label : d.label, deleted: !!s.disabled };
   });
+  Object.keys(obj).forEach(function(k) {
+    if (!list.some(function(t) { return t.id === k; })) {
+      var s = obj[k] || {};
+      list.push({ id: k, emoji: s.emoji || '🛠️', label: s.label || k, deleted: !!s.disabled });
+    }
+  });
+  return list;
 }
-function typeLabel(id) { var t = getJobTypes().find(function(t){ return t.id === id; }); return t ? (t.emoji + ' ' + t.label) : id; }
-function typeName(id) { var t = getJobTypes().find(function(t){ return t.id === id; }); return t ? t.label : id; }
-function typeEmoji(id) { var t = getJobTypes().find(function(t){ return t.id === id; }); return t ? t.emoji : '🔧'; }
-function firstEnabledTypeId() { var t = getJobTypes().find(function(t){ return !t.disabled; }); return t ? t.id : 'ac'; }
+function saveJobTypesList(list) {
+  var cfg = loadConfig();
+  cfg.jobTypes = list;
+  saveConfig(cfg);
+  applyJobTypes();
+}
+function getJobTypes(includeDeleted) {
+  var list = jobTypesFromConfig();
+  return includeDeleted ? list : list.filter(function(t) { return !t.deleted; });
+}
+function typeLabel(id) { var t = getJobTypes(true).find(function(t){ return t.id === id; }); return t ? (t.emoji + ' ' + t.label) : id; }
+function typeName(id) { var t = getJobTypes(true).find(function(t){ return t.id === id; }); return t ? t.label : id; }
+function typeEmoji(id) { var t = getJobTypes(true).find(function(t){ return t.id === id; }); return t ? t.emoji : '🛠️'; }
+function firstEnabledTypeId() { var t = getJobTypes()[0]; return t ? t.id : 'ac'; }
 function applyJobTypes() {
-  var types = getJobTypes();
+  var types = getJobTypes(true);
   SERVICE_LABELS = {};
   types.forEach(function(t) { SERVICE_LABELS[t.id] = t.emoji + ' ' + t.label; });
   renderTypeSelector();
@@ -1279,11 +1331,11 @@ function applyJobTypes() {
 function renderTypeSelector() {
   var el = document.getElementById('type-selector');
   if (!el) return;
-  var types = getJobTypes().filter(function(t){ return !t.disabled; });
+  var types = getJobTypes();
   var selected = document.getElementById('job-type') ? document.getElementById('job-type').value : '';
   el.innerHTML = types.map(function(t) {
     return '<div class="type-card' + (t.id === selected ? ' selected' : '') + '" data-type="' + t.id + '" onclick="selectJobType(\'' + t.id + '\')">' +
-      '<div class="type-emoji">' + t.emoji + '</div><div class="type-label">' + esc(t.label) + '</div></div>';
+      '<span class="type-emoji">' + t.emoji + '</span><span class="type-label">' + esc(t.label) + '</span></div>';
   }).join('');
   if (types.length && !types.some(function(t){ return t.id === selected; })) {
     selectJobType(types[0].id);
@@ -1292,33 +1344,51 @@ function renderTypeSelector() {
 function renderJobTypeSettings() {
   var box = document.getElementById('jobtypes-rows');
   if (!box) return;
-  box.innerHTML = getJobTypes().map(function(t) {
-    return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">' +
-      '<input type="text" class="form-control jt-emoji" data-id="' + t.id + '" value="' + escAttr(t.emoji) + '" maxlength="4" style="width:54px;min-height:38px;text-align:center;font-size:18px;padding:4px;flex-shrink:0;">' +
-      '<input type="text" class="form-control jt-label" data-id="' + t.id + '" value="' + escAttr(t.label) + '" style="flex:1;min-height:38px;min-width:0;">' +
-      '<label class="toggle-switch" style="flex-shrink:0;" title="แสดง/ซ่อนในฟอร์มบันทึกงาน"><input type="checkbox" class="jt-show" data-id="' + t.id + '"' + (t.disabled ? '' : ' checked') + '><span class="toggle-slider"></span></label>' +
+  var types = getJobTypes();
+  box.innerHTML = types.map(function(t) {
+    return '<div class="jt-row">' +
+      '<input type="text" class="jt-emoji" data-id="' + t.id + '" value="' + escAttr(t.emoji) + '" maxlength="4" title="อีโมจิ" oninput="jtEdit(\'' + t.id + '\',\'emoji\',this.value)">' +
+      '<input type="text" class="jt-label" data-id="' + t.id + '" value="' + escAttr(t.label) + '" placeholder="ชื่อประเภทงาน" oninput="jtEdit(\'' + t.id + '\',\'label\',this.value)">' +
+      '<button type="button" class="jt-del" title="ลบประเภทนี้" onclick="deleteJobType(\'' + t.id + '\')"><i class="fas fa-trash-can"></i></button>' +
       '</div>';
-  }).join('');
+  }).join('') +
+  '<button type="button" class="jt-add" onclick="addJobType()"><i class="fas fa-plus"></i> เพิ่มประเภทงาน</button>';
 }
-function saveJobTypes() {
-  var cfg = loadConfig();
-  var saved = {};
-  var enabledCount = 0;
-  DEFAULT_JOB_TYPES.forEach(function(d) {
-    var emojiEl = document.querySelector('.jt-emoji[data-id="' + d.id + '"]');
-    var labelEl = document.querySelector('.jt-label[data-id="' + d.id + '"]');
-    var showEl = document.querySelector('.jt-show[data-id="' + d.id + '"]');
-    if (!emojiEl || !labelEl || !showEl) return;
-    var show = showEl.checked;
-    if (show) enabledCount++;
-    saved[d.id] = { emoji: emojiEl.value.trim() || d.emoji, label: labelEl.value.trim() || d.label, disabled: !show };
-  });
-  if (enabledCount === 0) { toast('ต้องเปิดแสดงอย่างน้อย 1 ประเภทงาน', 'warning'); return; }
-  cfg.jobTypes = saved;
-  saveConfig(cfg);
-  applyJobTypes();
-  refreshAll();
-  toast('บันทึกประเภทงานแล้ว', 'success');
+function jtEdit(id, field, value) {
+  var list = getJobTypes(true);
+  var t = list.find(function(x) { return x.id === id; });
+  if (!t) return;
+  var v = String(value).trim();
+  if (field === 'emoji') t.emoji = v || '🛠️';
+  else t.label = v || 'ประเภทงาน';
+  saveJobTypesList(list);
+}
+function addJobType() {
+  var list = getJobTypes(true);
+  var item = { id: 't_' + Date.now(), emoji: '🛠️', label: 'ประเภทใหม่' };
+  list.push(item);
+  saveJobTypesList(list);
+  renderJobTypeSettings();
+  var inp = document.querySelector('.jt-label[data-id="' + item.id + '"]');
+  if (inp) { inp.focus(); inp.select(); }
+  toast('เพิ่มประเภทงานแล้ว — ตั้งชื่อได้เลย', 'success');
+}
+function deleteJobType(id) {
+  var list = getJobTypes(true);
+  var active = list.filter(function(t) { return !t.deleted; });
+  if (active.length <= 1) { toast('ต้องมีประเภทงานเหลืออย่างน้อย 1 ประเภท', 'warning'); return; }
+  var t = list.find(function(x) { return x.id === id; });
+  if (!t || t.deleted) return;
+  document.getElementById('confirm-title').textContent = 'ลบประเภทงาน';
+  document.getElementById('confirm-msg').innerHTML = 'ลบ <strong>' + t.emoji + ' ' + esc(t.label) + '</strong> ?<br><span style="font-size:12px;color:var(--text3);">งานเก่าที่บันทึกไว้จะยังแสดงชื่อประเภทเดิม</span>';
+  document.getElementById('confirm-ok-btn').onclick = function() {
+    t.deleted = true;
+    saveJobTypesList(list);
+    closeModal('modal-confirm');
+    renderJobTypeSettings();
+    toast('ลบประเภทงาน "' + t.label + '" แล้ว', 'success');
+  };
+  openModal('modal-confirm');
 }
 var REMIND_TYPES = ['ac', 'washer'];
 var STATUS_LABELS = { done: '✅ เสร็จ', pending: '⏳ รอ', followup: '🔄 ติดตาม' };
@@ -2169,7 +2239,7 @@ function renderReport() {
       '<div style="font-size:9px;color:var(--text3);">' + m.label + '</div></div>';
   }).join('');
 
-  var types = getJobTypes();
+  var types = getJobTypes(true);
   var typeData = types.map(t => ({
     t: t.id, emoji: t.emoji, label: t.label,
     cnt: pJobs.filter(j => j.serviceType===t.id).length,
