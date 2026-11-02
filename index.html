@@ -439,6 +439,9 @@ select.form-select { padding: 8px 12px; border: 1.5px solid var(--border); borde
 
 /* ===== SETTINGS (EBED Style) ===== */
 .settings-section { margin-bottom: 16px; }
+.opt-toggle { display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--primary);cursor:pointer;padding:4px 0;user-select:none; }
+.opt-toggle i { font-size:11px; }
+
 .settings-section-header {
   font-size: 13px; font-weight: 700; color: var(--primary);
   padding: 10px 0 6px; border-bottom: 1px solid var(--border);
@@ -649,6 +652,7 @@ select.form-select { padding: 8px 12px; border: 1.5px solid var(--border); borde
           <div class="card-header">
             <span class="card-title"><i class="fas fa-triangle-exclamation" style="color:var(--danger);"></i> ต้องติดต่อ</span>
             <span class="badge badge-red" id="dash-reminder-count" style="display:none;"></span>
+            <span onclick="showPage('reminders')" style="font-size:12px;font-weight:600;color:var(--primary);cursor:pointer;">ดูทั้งหมด <i class="fas fa-chevron-right" style="font-size:9px;"></i></span>
           </div>
           <div id="dash-reminders-list"></div>
         </div>
@@ -876,10 +880,6 @@ select.form-select { padding: 8px 12px; border: 1.5px solid var(--border); borde
       <div class="mobile-nav-item" data-page="jobs" onclick="showPage('jobs')">
         <i class="fas fa-clipboard-list"></i><span>งาน</span>
       </div>
-      <div class="mobile-nav-item" data-page="reminders" onclick="showPage('reminders')">
-        <i class="fas fa-bell"></i><span>แจ้งเตือน</span>
-        <span class="nav-badge" id="reminder-nav-badge" style="display:none;">0</span>
-      </div>
       <div class="mobile-nav-item" data-page="settings" onclick="showPage('settings')">
         <i class="fas fa-cog"></i><span>ตั้งค่า</span>
       </div>
@@ -911,6 +911,8 @@ select.form-select { padding: 8px 12px; border: 1.5px solid var(--border); borde
         <label class="form-label">เบอร์โทร <span class="badge badge-red">*</span></label>
         <input type="tel" class="form-control" id="cust-phone" placeholder="08x-xxx-xxxx" maxlength="10">
       </div>
+      <div class="opt-toggle" onclick="toggleCustExtra()"><i class="fas fa-chevron-down" id="cust-extra-chev"></i> ที่อยู่ / LINE / หมายเหตุ (ไม่บังคับ)</div>
+      <div id="cust-extra" style="display:none;">
       <div class="form-group">
         <label class="form-label">ที่อยู่</label>
         <input type="text" class="form-control" id="cust-address" placeholder="บ้านเลขที่ ถนน ตำบล อำเภอ จังหวัด">
@@ -922,6 +924,7 @@ select.form-select { padding: 8px 12px; border: 1.5px solid var(--border); borde
       <div class="form-group">
         <label class="form-label">หมายเหตุ</label>
         <textarea class="form-control" id="cust-note" placeholder="ข้อมูลพิเศษ..."></textarea>
+      </div>
       </div>
       <input type="hidden" id="cust-edit-phone">
     </div>
@@ -972,6 +975,8 @@ select.form-select { padding: 8px 12px; border: 1.5px solid var(--border); borde
           <input type="number" class="form-control" id="job-cost" placeholder="0" min="0">
         </div>
       </div>
+      <div class="opt-toggle" onclick="toggleJobExtra()"><i class="fas fa-chevron-down" id="job-extra-chev"></i> รายละเอียดเพิ่มเติม (ไม่บังคับ)</div>
+      <div id="job-extra" style="display:none;">
       <div class="form-group" id="job-remind-row">
         <label class="form-label">🔔 นัดหมายถัดไป</label>
         <input type="date" class="form-control" id="job-next-date">
@@ -1002,6 +1007,7 @@ select.form-select { padding: 8px 12px; border: 1.5px solid var(--border); borde
         </div>
         <input type="file" id="photo-gallery" accept="image/*" multiple style="display:none" onchange="handlePhotoSelect(event)">
         <div class="photo-grid" id="photo-preview"></div>
+      </div>
       </div>
       <input type="hidden" id="job-edit-id">
       <input type="hidden" id="job-customer-phone">
@@ -1628,7 +1634,8 @@ function showPage(page, param) {
   } else {
     var el = document.getElementById('page-' + page);
     if (el) el.classList.add('active');
-    document.querySelector('.mobile-nav-item[data-page="' + page + '"]')?.classList.add('active');
+    var navPage = (page === 'reminders') ? 'dashboard' : page;
+    document.querySelector('.mobile-nav-item[data-page="' + navPage + '"]')?.classList.add('active');
     if (page === 'customers') renderCustomers();
     if (page === 'jobs') renderJobs();
     if (page === 'reminders') renderReminders();
@@ -1662,6 +1669,41 @@ function onFabClick() {
 // ============================================================
 // MODAL HELPERS
 // ============================================================
+// ยุบ/ขยายช่องไม่บังคับในฟอร์ม (มือถือเห็นแต่ช่องสำคัญ)
+function toggleJobExtra(force) {
+  var el = document.getElementById('job-extra'); if (!el) return;
+  var show = typeof force === 'boolean' ? force : el.style.display === 'none';
+  el.style.display = show ? '' : 'none';
+  var c = document.getElementById('job-extra-chev');
+  if (c) c.className = 'fas fa-chevron-' + (show ? 'up' : 'down');
+}
+function toggleCustExtra(force) {
+  var el = document.getElementById('cust-extra'); if (!el) return;
+  var show = typeof force === 'boolean' ? force : el.style.display === 'none';
+  el.style.display = show ? '' : 'none';
+  var c = document.getElementById('cust-extra-chev');
+  if (c) c.className = 'fas fa-chevron-' + (show ? 'up' : 'down');
+}
+// หน้าตั้งค่า: ยุบส่วนขั้นสูง (Firebase/Cloudinary/AI) ให้หน้าสั้นลง
+function collapseAdvancedSettings() {
+  var headers = document.querySelectorAll('#page-settings .settings-section-header');
+  [1, 2, 3].forEach(function(idx) {
+    var h = headers[idx]; if (!h) return;
+    var body = h.parentElement.querySelector('.card-body'); if (!body) return;
+    h.style.display = 'flex'; h.style.alignItems = 'center'; h.style.gap = '8px'; h.style.cursor = 'pointer';
+    var chev = document.createElement('i');
+    chev.className = 'fas fa-chevron-down';
+    chev.style.cssText = 'margin-left:auto;font-size:12px;';
+    h.appendChild(chev);
+    body.style.display = 'none';
+    h.onclick = function() {
+      var open = body.style.display !== 'none';
+      body.style.display = open ? 'none' : '';
+      chev.className = 'fas fa-chevron-' + (open ? 'down' : 'up');
+    };
+  });
+}
+
 function openModal(id) {
   var el = document.getElementById(id);
   if (!el) return;
@@ -1680,6 +1722,7 @@ function openAddCustomer() {
   document.getElementById('modal-customer-title').textContent = 'เพิ่มลูกค้าใหม่';
   ['cust-name','cust-phone','cust-address','cust-line','cust-note','cust-edit-phone'].forEach(id => { var el = document.getElementById(id); if(el) el.value = ''; });
   document.getElementById('cust-phone').removeAttribute('readonly');
+  toggleCustExtra(false);
   openModal('modal-customer');
 }
 function openEditCustomer(phone) {
@@ -1693,6 +1736,7 @@ function openEditCustomer(phone) {
   document.getElementById('cust-line').value = c.line || '';
   document.getElementById('cust-note').value = c.note || '';
   document.getElementById('cust-edit-phone').value = c.phone;
+  toggleCustExtra(true);
   openModal('modal-customer');
 }
 async function saveCustomer() {
@@ -1764,12 +1808,14 @@ function openEditJob(jobId) {
   document.querySelectorAll('input[name="job-status-r"]').forEach(r => { r.checked = r.value === (j.status||'done'); });
   document.getElementById('job-next-date').value = j.nextDate || '';
   document.getElementById('job-edit-id').value = jobId;
+  toggleJobExtra(true);
   pendingPhotos = (j.photos || []).map(url => ({ file: null, url: url, uploaded: true }));
   renderPhotoPreview();
   onJobTypeChange();
   openModal('modal-job');
 }
 function resetJobModal() {
+  if (typeof toggleJobExtra === 'function') toggleJobExtra(false);
   document.getElementById('modal-job-title').textContent = 'บันทึกงานซ่อม';
   document.getElementById('job-date').value = todayStr();
   document.getElementById('job-type').value = 'ac';
@@ -2662,6 +2708,7 @@ document.addEventListener('DOMContentLoaded', function() {
   var now = new Date();
   document.getElementById('dash-date').textContent = now.toLocaleDateString('th-TH', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
   updateFabVisibility();
+  collapseAdvancedSettings();
 });
 
 // ============================================================
