@@ -946,7 +946,7 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
 
         <!-- About -->
         <div style="text-align:center;font-size:10px;color:var(--text3);padding:8px 0;">
-          Developed by ธนาวุฒิ พรมรักษ์ &nbsp;·&nbsp; thanavutp&#64;gmail.com
+          <span id="app-version">FixPro</span> · Developed by ธนาวุฒิ พรมรักษ์ &nbsp;·&nbsp; thanavutp&#64;gmail.com
         </div>
       </div>
 
@@ -2244,6 +2244,7 @@ var _pageStack = ['dashboard'];
 var _backNav = false;
 var _selfBackAt = 0;   // เวลาที่เราเรียก history.back() เอง (กัน loop) — ใช้ timestamp ไม่ใช่ flag เพื่อไม่ให้ค้าง
 var _exitShownAt = 0;  // เวลาที่เปิดหน้าต่างยืนยันปิดแอป
+var APP_VERSION = 'v26';
 function _jtTopOpenModal() {
   var open = document.querySelectorAll('.modal-overlay.open');
   return open.length ? open[open.length - 1].id : null;
@@ -2263,6 +2264,7 @@ function exitAppNow() {
 }
 (function installBackHandler() {
   if (typeof history === 'undefined' || typeof history.pushState !== 'function') return;
+  var installedAt = Date.now();
   _armGuard();
   // ซ่อมรั้งอัตโนมัติ — ถ้า state หาย (อยู่รายการแรกโดยไม่มีรั้ง) ให้ติดตั้งใหม่ทันที
   // ครอบคลุมทุกจังหวะ: แตะจอ / กลับมาเปิดแอปใหม่จากพื้นหลัง / โหลดหน้าจากแคช
@@ -2272,11 +2274,12 @@ function exitAppNow() {
       if (!history.state || history.state.fixpro !== 1) _armGuard();
     }, true);
   });
-  // ตั้ง listener ช้างเล็กน้อย กันเบราว์เซอร์บางตัวยิง popstate ตอนโหลดหน้า
-  setTimeout(function() {
-    window.addEventListener('popstate', function() {
-      if (Date.now() - _selfBackAt < 1000) { _armGuard(); return; } // ป้อนกลับจาก history.back ที่เราเรียกเอง
-      var open = _jtTopOpenModal();
+  // ผูก popstate ทันที — เดิมรอ 800ms ทำให้ช่วงเปิดแอปแรกๆ กดย้อนกลับแล้วไม่ถูกดัก
+  window.addEventListener('popstate', function(ev) {
+    // กันเบราว์เซอร์บางตัว (Safari) ยิง popstate ตอนโหลดหน้า — state ว่างในช่วงแรก = ไม่ใช่การกดย้อนกลับจริง
+    if (!ev.state && Date.now() - installedAt < 1500) return;
+    if (Date.now() - _selfBackAt < 1000) { _armGuard(); return; } // ป้อนกลับจาก history.back ที่เราเรียกเอง
+    var open = _jtTopOpenModal();
       if (open) {
         if (open === 'modal-exit') {
           // กดย้อนกลับซ้ำขณะถาม = ยืนยันปิด — แต่ต้องเปิดคำถามไว้แล้ว 300ms
@@ -2302,7 +2305,6 @@ function exitAppNow() {
       openModal('modal-exit');
       _armGuard();
     });
-  }, 800);
 })();
 
 // ============================================================
@@ -3368,6 +3370,8 @@ document.addEventListener('DOMContentLoaded', function() {
   updateFabVisibility();
   applyJobTypes();
   collapseAdvancedSettings();
+  var av = document.getElementById('app-version');
+  if (av) av.textContent = 'FixPro ' + APP_VERSION;
 });
 
 // ============================================================
