@@ -325,50 +325,36 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 .type-card .type-label { font-size: 12px; font-weight: 600; line-height: 1; }
 
 /* ===== JOB TYPE EDITOR (หน้าตั้งค่า) ===== */
-/* แถวไม่มีสีพื้นหลัง (โปร่งบนการ์ดขาว) สูงตามมาตรฐานแอป: ปุ่ม/ช่อง 40px เหมือน .btn-icon */
+/* แถวกระชับ ไม่มีพื้นหลัง ปุ่มไอคอนเล็กโปร่งแบบเดียวกับหน้างาน (btn-ghost) */
 .jt-row {
-  display: flex; align-items: center; gap: 8px; padding: 6px 8px 6px 6px;
-  border: 1px solid var(--border); border-radius: 12px; margin-bottom: 8px; transition: border-color var(--transition);
+  display: flex; align-items: center; gap: 6px; padding: 4px;
+  border: 1px solid var(--border); border-radius: 10px; margin-bottom: 6px; transition: border-color var(--transition);
 }
 .jt-emoji-view {
-  width: 46px; height: 40px; text-align: center; font-size: 17px; flex-shrink: 0;
-  border: 1px solid var(--border); border-radius: 10px;
+  width: 38px; height: 32px; text-align: center; font-size: 14px; flex-shrink: 0;
+  border: 1px solid var(--border); border-radius: 8px;
   display: flex; align-items: center; justify-content: center;
 }
 .jt-name {
-  flex: 1; min-width: 0; font-weight: 600; font-size: 14px; color: var(--text);
-  padding: 6px 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  flex: 1; min-width: 0; font-weight: 600; font-size: 13.5px; color: var(--text);
+  padding: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.jt-edit {
-  width: 40px; height: 40px; border-radius: 10px; border: none; background: var(--primary-bg); color: var(--primary);
+.jt-iconbtn {
+  width: 32px; height: 32px; border-radius: 8px; border: none; background: transparent; color: var(--text2);
   flex-shrink: 0; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center;
   transition: var(--transition);
 }
-.jt-edit:active { transform: scale(0.9); background: var(--primary-l); }
-.jt-del {
-  width: 40px; height: 40px; border-radius: 10px; border: none; background: #FEE2E2; color: var(--danger);
-  flex-shrink: 0; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center;
-  transition: var(--transition);
+.jt-iconbtn:active { background: var(--bg); }
+.jt-iconbtn.danger { color: var(--danger); }
+.jt-iconbtn.danger:active { background: #FEE2E2; }
+/* ปุ่มเพิ่มประเภทงาน: กดแล้วเด้งหน้าต่างกรอกชื่อ + สวิตช์เตือนทุกปี */
+.jt-add {
+  width: 100%; padding: 10px; border-radius: 10px; border: 1.5px dashed var(--primary-l);
+  color: var(--primary); font-weight: 600; font-size: 13px; cursor: pointer; margin-top: 2px;
+  display: flex; align-items: center; justify-content: center; gap: 6px; transition: var(--transition); font-family: inherit;
+  background: transparent;
 }
-.jt-del:active { transform: scale(0.9); background: #FECACA; }
-/* แถบสร้างประเภทใหม่: พิมพ์ชื่อ → กด "สร้าง" → เด้งถามแจ้งเตือนทุกปี (รูปแบบเดิม) */
-.jt-create {
-  display: flex; align-items: center; gap: 8px; margin-top: 2px; padding: 6px;
-  border: 1.5px dashed var(--primary-l); border-radius: 12px;
-}
-.jt-create-input {
-  flex: 1; min-width: 0; height: 40px; border: 1px solid var(--border); border-radius: 10px;
-  background: var(--surface); padding: 4px 10px; font-size: 13px; font-family: inherit;
-  color: var(--text); box-sizing: border-box;
-}
-.jt-create-input:focus { outline: none; border-color: var(--primary); }
-.jt-create-input::placeholder { color: var(--text3); }
-.jt-create-btn {
-  height: 40px; padding: 0 18px; border-radius: 10px; border: none; background: var(--primary); color: #fff;
-  font-weight: 600; font-size: 13px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; gap: 6px;
-  font-family: inherit; transition: var(--transition);
-}
-.jt-create-btn:active { transform: scale(0.97); }
+.jt-add:active { transform: scale(0.98); background: var(--primary-bg); }
 
 /* ===== PHOTO UPLOAD ===== */
 .photo-upload-area {
@@ -1184,28 +1170,11 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
   </div>
 </div>
 
-<!-- ถามแจ้งเตือนทุกปี ตอนสร้างประเภทงานใหม่ -->
-<div class="modal-overlay" id="modal-yearly">
-  <div class="modal" style="max-width:380px;">
-    <div class="modal-header">
-      <span class="modal-title">🔔 แจ้งเตือนทุกปี</span>
-      <div class="modal-close" onclick="closeModal('modal-yearly')"><i class="fas fa-times"></i></div>
-    </div>
-    <div class="modal-body">
-      <div id="yearly-msg" style="font-size:14px;line-height:1.6;"></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="answerYearlyReminder(false)">ไม่ต้องเตือน</button>
-      <button class="btn btn-primary" onclick="answerYearlyReminder(true)"><i class="fas fa-bell"></i> เตือนทุกปี</button>
-    </div>
-  </div>
-</div>
-
-<!-- แก้ไขประเภทงาน (กดปุ่มดินสอจากหน้าตั้งค่า) -->
+<!-- เพิ่ม/แก้ไขประเภทงาน (กดปุ่มเพิ่ม หรือปุ่มดินสอจากหน้าตั้งค่า) -->
 <div class="modal-overlay" id="modal-jt">
   <div class="modal" style="max-width:380px;">
     <div class="modal-header">
-      <span class="modal-title">✏️ แก้ไขประเภทงาน</span>
+      <span class="modal-title" id="modal-jt-title">✏️ แก้ไขประเภทงาน</span>
       <div class="modal-close" onclick="closeModal('modal-jt')"><i class="fas fa-times"></i></div>
     </div>
     <div class="modal-body">
@@ -1217,14 +1186,14 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
         <label class="form-label">ชื่อประเภทงาน</label>
         <input type="text" id="jt-edit-label" class="form-control" maxlength="40" placeholder="ชื่อประเภทงาน">
       </div>
-      <div id="jt-edit-bellrow" style="display:none;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;background:#FFF8E1;border:1px solid #FFE082;border-radius:10px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;background:#FFF8E1;border:1px solid #FFE082;border-radius:10px;">
         <span style="font-size:13px;font-weight:600;color:#8a6d00;">🔔 แจ้งเตือนลูกค้าทุกปี<br><span style="font-weight:400;font-size:11px;color:#a58a1f;">งานจะมีช่อง "นัดหมายถัดไป" และเข้าหน้าแจ้งเตือนให้เอง</span></span>
         <label class="toggle-switch" style="flex-shrink:0;"><input type="checkbox" id="jt-edit-bell"><span class="toggle-slider"></span></label>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modal-jt')">ยกเลิก</button>
-      <button class="btn btn-primary" onclick="saveJobTypeEdit()"><i class="fas fa-save"></i> บันทึก</button>
+      <button class="btn btn-primary" onclick="saveJobTypeEditor()"><i class="fas fa-save"></i> บันทึก</button>
     </div>
   </div>
 </div>
@@ -1588,8 +1557,12 @@ function jobTypesFromConfig() {
   var cfg = loadConfig();
   var saved = cfg.jobTypes;
   if (Array.isArray(saved) && saved.length) {
+    // r2 = สคีมาสวิตช์เตือนทุกปี (v22) — รายการเก่าที่ยังไม่มี r2 คือเวอร์ชันที่ยังไม่มีสวิตช์
+    // ให้ประเภทมาตรฐาน ล้างแอร์/ซักผ้า ตั้งเตือนทุกปีเป็นค่าเริ่มต้น (ค่า false เดิมไม่ใช่ที่ผู้ใช้เลือก)
     return saved.map(function(s) {
-      return { id: safeTypeId(s.id), emoji: safeEmoji(s.emoji), label: (s.label || '').trim() || 'ประเภทงาน', deleted: !!s.deleted, remindYearly: !!s.remindYearly };
+      var t = { id: safeTypeId(s.id), emoji: safeEmoji(s.emoji), label: (s.label || '').trim() || 'ประเภทงาน', deleted: !!s.deleted, remindYearly: !!s.remindYearly, r2: 1 };
+      if (!s.r2 && (t.id === 'ac' || t.id === 'washer')) t.remindYearly = true;
+      return t;
     });
   }
   // รูปแบบเก่า (object {id: {emoji,label,disabled}}) → แปลงเป็นลิสต์ ตามลำดับค่าเริ่มต้น
@@ -1597,12 +1570,12 @@ function jobTypesFromConfig() {
   var list = DEFAULT_JOB_TYPES.map(function(d) {
     var s = obj[d.id] || {};
     var em = String(s.emoji || '').replace(/[<>"'`\\]/g, '').trim();
-    return { id: d.id, emoji: em || d.emoji, label: (s.label !== undefined && s.label !== '') ? s.label : d.label, deleted: !!s.disabled, remindYearly: !!s.remindYearly };
+    return { id: d.id, emoji: em || d.emoji, label: (s.label !== undefined && s.label !== '') ? s.label : d.label, deleted: !!s.disabled, remindYearly: (s.remindYearly !== undefined) ? !!s.remindYearly : (d.id === 'ac' || d.id === 'washer'), r2: 1 };
   });
   Object.keys(obj).forEach(function(k) {
     if (!list.some(function(t) { return t.id === k; })) {
       var s = obj[k] || {};
-      list.push({ id: safeTypeId(k), emoji: safeEmoji(s.emoji), label: s.label || k, deleted: !!s.disabled, remindYearly: !!s.remindYearly });
+      list.push({ id: safeTypeId(k), emoji: safeEmoji(s.emoji), label: s.label || k, deleted: !!s.disabled, remindYearly: !!s.remindYearly, r2: 1 });
     }
   });
   return list;
@@ -1654,94 +1627,62 @@ function renderJobTypeSettings() {
   var box = document.getElementById('jobtypes-rows');
   if (!box) return;
   var types = getJobTypes();
-  // แถวแสดงผลอย่างเดียว (ไม่มีช่องกรอก) — กดปุ่มดินสอ ✏️ เพื่อแก้ไขผ่านหน้าต่างเด้ง
+  // แถวกระชับ แสดงผลอย่างเดียว — ปุ่มไอคอนเล็กโปร่งเหมือนหน้างาน: ✏️ แก้ไข / 🗑️ ลบ
   box.innerHTML = types.map(function(t) {
     return '<div class="jt-row">' +
       '<span class="jt-emoji-view">' + esc(t.emoji) + '</span>' +
       '<span class="jt-name">' + esc(t.label) + '</span>' +
-      '<button type="button" class="jt-edit" title="แก้ไขประเภทงาน" onclick="openEditJobType(\'' + escAttr(t.id) + '\')"><i class="fas fa-pen"></i></button>' +
-      '<button type="button" class="jt-del" title="ลบประเภทนี้" onclick="deleteJobType(\'' + escAttr(t.id) + '\')"><i class="fas fa-trash-can"></i></button>' +
+      '<button type="button" class="jt-iconbtn" title="แก้ไขประเภทงาน" onclick="openEditJobType(\'' + escAttr(t.id) + '\')"><i class="fas fa-pen"></i></button>' +
+      '<button type="button" class="jt-iconbtn danger" title="ลบประเภทนี้" onclick="deleteJobType(\'' + escAttr(t.id) + '\')"><i class="fas fa-trash-can"></i></button>' +
       '</div>';
   }).join('') +
-  // แถบสร้างแบบเดิม: พิมพ์ชื่อ → กด "สร้าง" (หรือ Enter) → เด้งถามว่าเตือนทุกปีหรือไม่
-  '<div class="jt-create">' +
-    '<input type="text" id="jt-new-name" class="jt-create-input" placeholder="พิมพ์ชื่อประเภทงานใหม่" maxlength="40" onkeydown="if(event.key===&quot;Enter&quot;)createJobType()">' +
-    '<button type="button" class="jt-create-btn" onclick="createJobType()"><i class="fas fa-plus"></i> สร้าง</button>' +
-  '</div>';
+  // กด "เพิ่มประเภทงาน" แล้วเด้งหน้าต่างกรอกชื่อ + สวิตช์เตือนทุกปี
+  '<button type="button" class="jt-add" onclick="openAddJobType()"><i class="fas fa-plus"></i> เพิ่มประเภทงาน</button>';
+}
+var _jtEditingId = null; // null = โหมดเพิ่มใหม่, มีค่า = โหมดแก้ไข id นี้
+function openAddJobType() {
+  _jtEditingId = null;
+  document.getElementById('modal-jt-title').textContent = '➕ เพิ่มประเภทงาน';
+  document.getElementById('jt-edit-emoji').value = '🛠️';
+  document.getElementById('jt-edit-label').value = '';
+  document.getElementById('jt-edit-bell').checked = false;
+  openModal('modal-jt');
+  setTimeout(function() { document.getElementById('jt-edit-label').focus(); }, 150);
 }
 function openEditJobType(id) {
   var t = getJobTypes(true).find(function(x) { return x.id === id; });
   if (!t) return;
-  _editingTypeId = id;
+  _jtEditingId = id;
+  document.getElementById('modal-jt-title').textContent = '✏️ แก้ไขประเภทงาน';
   document.getElementById('jt-edit-emoji').value = t.emoji;
   document.getElementById('jt-edit-label').value = t.label;
-  var bellRow = document.getElementById('jt-edit-bellrow');
-  if (t.id.indexOf('t_') === 0) {
-    bellRow.style.display = 'flex';
-    document.getElementById('jt-edit-bell').checked = !!t.remindYearly;
-  } else {
-    bellRow.style.display = 'none';
-  }
+  document.getElementById('jt-edit-bell').checked = !!t.remindYearly;
   openModal('modal-jt');
 }
-function saveJobTypeEdit() {
-  if (!_editingTypeId) { closeModal('modal-jt'); return; }
-  var list = getJobTypes(true);
-  var t = list.find(function(x) { return x.id === _editingTypeId; });
-  if (!t) { closeModal('modal-jt'); return; }
+function saveJobTypeEditor() {
   var em = String(document.getElementById('jt-edit-emoji').value || '').trim();
   var lb = String(document.getElementById('jt-edit-label').value || '').trim();
   if (!lb) { toast('ใส่ชื่อประเภทงานด้วย', 'warning'); return; }
-  t.emoji = em || '🛠️';
-  t.label = lb;
-  if (t.id.indexOf('t_') === 0) t.remindYearly = document.getElementById('jt-edit-bell').checked;
-  saveJobTypesList(list);
-  renderJobTypeSettings();
-  closeModal('modal-jt');
-  toast('บันทึกประเภทงาน "' + t.label + '" แล้ว', 'success');
-}
-var _editingTypeId = null;
-function createJobType() {
-  var inp = document.getElementById('jt-new-name');
-  if (!inp) return;
-  var name = inp.value.trim();
-  if (!name) { toast('พิมพ์ชื่อประเภทงานก่อนกดสร้าง', 'warning'); inp.focus(); return; }
+  var bell = document.getElementById('jt-edit-bell').checked;
   var list = getJobTypes(true);
-  var item = { id: 't_' + Date.now(), emoji: '🛠️', label: name, remindYearly: false };
-  list.push(item);
-  saveJobTypesList(list);
-  renderJobTypeSettings();
-  // ตามของเดิม: กดสร้างแล้วเด้งถามว่า "ประเภทงานนี้ให้เตือนทุกปีหรือไม่"
-  askYearlyReminder(item.id);
-}
-var _yearlyPendingId = null;
-function askYearlyReminder(id) {
-  var t = getJobTypes(true).find(function(x){ return x.id === id; });
-  if (!t) return;
-  _yearlyPendingId = id;
-  document.getElementById('yearly-msg').innerHTML = 'ประเภทงาน <strong>' + esc(t.emoji) + ' ' + esc(t.label) + '</strong><br>ต้องการให้แอปแจ้งเตือนลูกค้าเมื่อครบกำหนดบริการทุกปีหรือไม่?<br><span style="font-size:12px;color:var(--text3);">เลือก "เตือนทุกปี" → ตอนบันทึกงานจะมีช่อง "🔔 นัดหมายถัดไป" และงานจะเข้าหน้าแจ้งเตือนให้เอง</span>';
-  openModal('modal-yearly');
-}
-function answerYearlyReminder(on) {
-  var id = _yearlyPendingId;
-  _yearlyPendingId = null;
-  closeModal('modal-yearly');
-  if (!id) return;
-  if (on) {
-    setYearlyReminder(id, true);
+  if (_jtEditingId) {
+    var t = list.find(function(x) { return x.id === _jtEditingId; });
+    if (!t) { closeModal('modal-jt'); return; }
+    t.emoji = em || '🛠️';
+    t.label = lb;
+    t.remindYearly = bell;
+    saveJobTypesList(list);
+    renderJobTypeSettings();
+    closeModal('modal-jt');
+    toast('บันทึกประเภทงาน "' + t.label + '" แล้ว', 'success');
   } else {
-    var t = getJobTypes(true).find(function(x) { return x.id === id; });
-    if (t) toast('เพิ่มประเภทงาน "' + t.label + '" แล้ว', 'success');
+    var item = { id: 't_' + Date.now(), emoji: em || '🛠️', label: lb, remindYearly: bell };
+    list.push(item);
+    saveJobTypesList(list);
+    renderJobTypeSettings();
+    closeModal('modal-jt');
+    toast('เพิ่มประเภทงาน "' + item.label + '" แล้ว' + (bell ? ' 🔔' : ''), 'success');
   }
-}
-function setYearlyReminder(id, on) {
-  var list = getJobTypes(true);
-  var t = list.find(function(x){ return x.id === id; });
-  if (!t) return;
-  t.remindYearly = !!on;
-  saveJobTypesList(list);
-  renderJobTypeSettings();
-  toast(on ? 'เปิดแจ้งเตือนทุกปีสำหรับ "' + t.label + '" แล้ว 🔔' : 'ปิดแจ้งเตือนทุกปีสำหรับ "' + t.label + '" แล้ว', 'success');
 }
 function deleteJobType(id) {
   var list = getJobTypes(true);
@@ -1761,10 +1702,8 @@ function deleteJobType(id) {
   };
   openModal('modal-confirm');
 }
-var REMIND_TYPES = ['ac', 'washer'];
-// ประเภทที่ต้องแจ้งเตือน = ประเภทมาตรฐานเดิม + ประเภทที่เพิ่มเองและตอบ "เตือนทุกปี" ตอนสร้าง (หรือกดกระดิ่ง 🔔 ทีหลังได้)
+// ประเภทที่แจ้งเตือน = สวิตช์ 🔔 ในหน้าตั้งค่า (เปิด/ปิดได้ทุกประเภท — ประเภทมาตรฐาน ล้างแอร์/ซักผ้า ตั้งเปิดให้ตั้งแต่ต้น)
 function isRemindType(id) {
-  if (REMIND_TYPES.indexOf(id) !== -1) return true;
   var t = getJobTypes(true).find(function(x){ return x.id === id; });
   return !!(t && t.remindYearly && !t.deleted);
 }
