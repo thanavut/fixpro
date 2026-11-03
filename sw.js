@@ -37,6 +37,16 @@ self.addEventListener('activate', function (e) {
     caches.keys()
       .then(function (keys) { return Promise.all(keys.filter(function (k) { return k !== CACHE; }).map(function (k) { return caches.delete(k); })); })
       .then(function () { return self.clients.claim(); })
+      .then(function () {
+        // หลังอัปเดต SW ให้แท็บที่เปิดค้างไว้รีโหลดตัวเองหนึ่งครั้ง เพื่อรับ HTML เวอร์ชันใหม่ทันที (ไม่ต้องปิด-เปิดแอปเอง)
+        return self.clients.matchAll({ type: 'window' }).then(function (clients) {
+          clients.forEach(function (c) {
+            if (c.url && c.url.indexOf(self.location.origin) === 0 && typeof c.navigate === 'function') {
+              c.navigate(c.url).catch(function () {});
+            }
+          });
+        });
+      })
   );
 });
 
@@ -45,9 +55,10 @@ self.addEventListener('fetch', function (e) {
   var url = new URL(e.request.url);
 
   // หน้าเว็บหลัก: network-first (ได้เวอร์ชันใหม่เสมอเมื่อออนไลน์) fallback เป็นแคช
+  // cache:'no-cache' = บังคับ revalidate กับเซิร์ฟเวอร์ทุกครั้ง ไม่ติดแคช HTTP ที่ยังไม่หมดอายุ
   if (e.request.mode === 'navigate') {
     e.respondWith(
-      fetch(e.request)
+      fetch(e.request, { cache: 'no-cache' })
         .then(function (r) {
           var copy = r.clone();
           caches.open(CACHE).then(function (c) { c.put('./index.html', copy); });
