@@ -1164,6 +1164,23 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
   </div>
 </div>
 
+<!-- ยืนยันก่อนปิดแอป (กดปุ่มย้อนกลับของเครื่องขณะอยู่หน้าแรก) -->
+<div class="modal-overlay" id="modal-exit">
+  <div class="modal" style="max-width:360px;">
+    <div class="modal-header">
+      <span class="modal-title">ปิดแอป FixPro</span>
+      <div class="modal-close" onclick="closeModal('modal-exit')"><i class="fas fa-times"></i></div>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:14px;line-height:1.6;">ต้องการปิดแอปใช่หรือไม่?<br><span style="font-size:12px;color:var(--text3);">ข้อมูลทั้งหมดถูกบันทึกไว้แล้ว ปิดแอปได้ปลอดภัย</span></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-exit')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="exitAppNow()"><i class="fas fa-power-off"></i> ปิดแอป</button>
+    </div>
+  </div>
+</div>
+
 <!-- เพิ่ม/แก้ไขประเภทงาน (กดปุ่มเพิ่ม หรือปุ่มดินสอจากหน้าตั้งค่า) -->
 <div class="modal-overlay" id="modal-jt">
   <div class="modal" style="max-width:380px;">
@@ -2123,6 +2140,11 @@ function showPage(page, param) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.mobile-nav-item').forEach(n => n.classList.remove('active'));
   currentPage = page;
+  // บันทึกลำดับหน้าสำหรับปุ่มย้อนกลับของเครื่อง (Android back)
+  if (!_backNav && _pageStack && _pageStack[_pageStack.length - 1] !== page) {
+    _pageStack.push(page);
+    if (_pageStack.length > 30) _pageStack = _pageStack.slice(-30);
+  }
   if (page === 'customer-detail') {
     document.getElementById('page-customer-detail').classList.add('active');
     document.querySelector('.mobile-nav-item[data-page="customers"]')?.classList.add('active');
@@ -2210,6 +2232,53 @@ function closeModal(id) {
   if (el) el.classList.remove('open');
   if (id === 'modal-job') resetJobModal();
 }
+
+// ============================================================
+// ปุ่มย้อนกลับบนมือถือ (Android back) — v24
+// กดย้อนกลับ: มีหน้าต่างเปิด → ปิดหน้าต่าง · อยู่หน้าอื่น → กลับหน้าก่อนหน้า
+// อยู่หน้าแรก → ถามยืนยันก่อนปิดแอป (กดย้อนกลับซ้ำขณะถาม = ปิดเลย)
+// ============================================================
+var _pageStack = ['dashboard'];
+var _backNav = false;
+var _selfBack = false;
+function _jtTopOpenModal() {
+  var open = document.querySelectorAll('.modal-overlay.open');
+  return open.length ? open[open.length - 1].id : null;
+}
+function exitAppNow() {
+  _selfBack = true;
+  closeModal('modal-exit');
+  try { window.close(); } catch (e) {}
+  setTimeout(function() { history.back(); }, 80);
+}
+(function installBackHandler() {
+  if (typeof history === 'undefined' || typeof history.pushState !== 'function') return;
+  try { history.pushState({ fixpro: 1 }, '', location.href); } catch (e) { return; }
+  // ตั้ง listener ช้างเล็กน้อย กันเบราว์เซอร์บางตัวยิง popstate ตอนโหลดหน้า
+  setTimeout(function() {
+    window.addEventListener('popstate', function() {
+      if (_selfBack) { _selfBack = false; return; }
+      var open = _jtTopOpenModal();
+      if (open) {
+        if (open === 'modal-exit') { exitAppNow(); return; } // กดกลับซ้ำขณะถาม = ยืนยันปิดแอป
+        closeModal(open);
+        history.pushState({ fixpro: 1 }, '', location.href);
+        return;
+      }
+      if (currentPage !== 'dashboard') {
+        _pageStack.pop();
+        var prev = _pageStack[_pageStack.length - 1] || 'dashboard';
+        _backNav = true;
+        showPage(prev);
+        _backNav = false;
+        history.pushState({ fixpro: 1 }, '', location.href);
+        return;
+      }
+      openModal('modal-exit');
+      history.pushState({ fixpro: 1 }, '', location.href);
+    });
+  }, 800);
+})();
 
 // ============================================================
 // CUSTOMER MODAL
