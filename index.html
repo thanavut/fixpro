@@ -347,6 +347,13 @@ textarea.form-control { resize: vertical; min-height: 80px; }
   transition: var(--transition);
 }
 .jt-del:active { transform: scale(0.9); background: #FECACA; }
+.jt-bell {
+  width: 36px; height: 36px; border-radius: 10px; background: var(--surface); color: var(--text3);
+  flex-shrink: 0; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center;
+  transition: var(--transition); border: 1px solid var(--border);
+}
+.jt-bell.on { background: #FFF8E1; color: #FFA000; border-color: #FFE082; }
+.jt-bell:active { transform: scale(0.9); }
 .jt-add {
   width: 100%; padding: 11px; border-radius: 12px; border: 1.5px dashed var(--primary-l); background: var(--primary-bg);
   color: var(--primary); font-weight: 600; font-size: 13px; cursor: pointer; margin-top: 2px;
@@ -893,7 +900,7 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
         <div class="card">
           <div class="settings-section-header"><i class="fas fa-list-check" style="color:var(--primary);"></i> ประเภทงาน</div>
           <div class="card-body" style="padding-top:4px;">
-            <div style="font-size:11px;color:var(--text3);margin-bottom:10px;">แก้ชื่อ/อีโมจิได้ทันที (บันทึกอัตโนมัติ) · ลบประเภทที่ไม่ใช้ด้วยปุ่ม 🗑️ · งานเก่าจะยังแสดงชื่อประเภทเดิม</div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:10px;">แก้ชื่อ/อีโมจิได้ทันที (บันทึกอัตโนมัติ) · 🔔 = แจ้งเตือนทุกปี ถามตอนสร้างใหม่ กดเปิด/ปิดทีหลังได้ · ลบด้วยปุ่ม 🗑️ · งานเก่าจะยังแสดงชื่อประเภทเดิม</div>
             <div id="jobtypes-rows"></div>
           </div>
         </div>
@@ -1164,6 +1171,23 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modal-confirm')">ยกเลิก</button>
       <button class="btn btn-danger" id="confirm-ok-btn"><i class="fas fa-trash"></i> ลบ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ถามแจ้งเตือนทุกปี ตอนสร้างประเภทงานใหม่ -->
+<div class="modal-overlay" id="modal-yearly">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-header">
+      <span class="modal-title">🔔 แจ้งเตือนทุกปี</span>
+      <div class="modal-close" onclick="closeModal('modal-yearly')"><i class="fas fa-times"></i></div>
+    </div>
+    <div class="modal-body">
+      <div id="yearly-msg" style="font-size:14px;line-height:1.6;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="answerYearlyReminder(false)">ไม่ต้องเตือน</button>
+      <button class="btn btn-primary" onclick="answerYearlyReminder(true)"><i class="fas fa-bell"></i> เตือนทุกปี</button>
     </div>
   </div>
 </div>
@@ -1528,7 +1552,7 @@ function jobTypesFromConfig() {
   var saved = cfg.jobTypes;
   if (Array.isArray(saved) && saved.length) {
     return saved.map(function(s) {
-      return { id: safeTypeId(s.id), emoji: safeEmoji(s.emoji), label: (s.label || '').trim() || 'ประเภทงาน', deleted: !!s.deleted };
+      return { id: safeTypeId(s.id), emoji: safeEmoji(s.emoji), label: (s.label || '').trim() || 'ประเภทงาน', deleted: !!s.deleted, remindYearly: !!s.remindYearly };
     });
   }
   // รูปแบบเก่า (object {id: {emoji,label,disabled}}) → แปลงเป็นลิสต์ ตามลำดับค่าเริ่มต้น
@@ -1536,12 +1560,12 @@ function jobTypesFromConfig() {
   var list = DEFAULT_JOB_TYPES.map(function(d) {
     var s = obj[d.id] || {};
     var em = String(s.emoji || '').replace(/[<>"'`\\]/g, '').trim();
-    return { id: d.id, emoji: em || d.emoji, label: (s.label !== undefined && s.label !== '') ? s.label : d.label, deleted: !!s.disabled };
+    return { id: d.id, emoji: em || d.emoji, label: (s.label !== undefined && s.label !== '') ? s.label : d.label, deleted: !!s.disabled, remindYearly: !!s.remindYearly };
   });
   Object.keys(obj).forEach(function(k) {
     if (!list.some(function(t) { return t.id === k; })) {
       var s = obj[k] || {};
-      list.push({ id: safeTypeId(k), emoji: safeEmoji(s.emoji), label: s.label || k, deleted: !!s.disabled });
+      list.push({ id: safeTypeId(k), emoji: safeEmoji(s.emoji), label: s.label || k, deleted: !!s.disabled, remindYearly: !!s.remindYearly });
     }
   });
   return list;
@@ -1597,6 +1621,7 @@ function renderJobTypeSettings() {
     return '<div class="jt-row">' +
       '<input type="text" class="jt-emoji" data-id="' + esc(t.id) + '" value="' + escAttr(t.emoji) + '" maxlength="4" title="อีโมจิ" oninput="jtEdit(\'' + escAttr(t.id) + '\',\'emoji\',this.value)">' +
       '<input type="text" class="jt-label" data-id="' + esc(t.id) + '" value="' + escAttr(t.label) + '" placeholder="ชื่อประเภทงาน" oninput="jtEdit(\'' + escAttr(t.id) + '\',\'label\',this.value)">' +
+      (t.id.indexOf('t_') === 0 ? '<button type="button" class="jt-bell' + (t.remindYearly ? ' on' : '') + '" title="แจ้งเตือนทุกปี" onclick="toggleYearlyReminder(\'' + escAttr(t.id) + '\')"><i class="fas fa-bell"></i></button>' : '') +
       '<button type="button" class="jt-del" title="ลบประเภทนี้" onclick="deleteJobType(\'' + escAttr(t.id) + '\')"><i class="fas fa-trash-can"></i></button>' +
       '</div>';
   }).join('') +
@@ -1613,13 +1638,43 @@ function jtEdit(id, field, value) {
 }
 function addJobType() {
   var list = getJobTypes(true);
-  var item = { id: 't_' + Date.now(), emoji: '🛠️', label: 'ประเภทใหม่' };
+  var item = { id: 't_' + Date.now(), emoji: '🛠️', label: 'ประเภทใหม่', remindYearly: false };
   list.push(item);
   saveJobTypesList(list);
   renderJobTypeSettings();
-  var inp = document.querySelector('.jt-label[data-id="' + item.id + '"]');
+  // ทำตามของเดิม: กดสร้างแล้วเด้งถามว่า "ประเภทงานนี้ให้เตือนทุกปีหรือไม่"
+  askYearlyReminder(item.id);
+}
+var _yearlyPendingId = null;
+function askYearlyReminder(id) {
+  var t = getJobTypes(true).find(function(x){ return x.id === id; });
+  if (!t) return;
+  _yearlyPendingId = id;
+  document.getElementById('yearly-msg').innerHTML = 'ประเภทงาน <strong>' + esc(t.emoji) + ' ' + esc(t.label) + '</strong><br>ต้องการให้แอปแจ้งเตือนลูกค้าเมื่อครบกำหนดบริการทุกปีหรือไม่?<br><span style="font-size:12px;color:var(--text3);">เลือก "เตือนทุกปี" → ตอนบันทึกงานจะมีช่อง "🔔 นัดหมายถัดไป" และงานจะเข้าหน้าแจ้งเตือนให้เอง</span>';
+  openModal('modal-yearly');
+}
+function answerYearlyReminder(on) {
+  var id = _yearlyPendingId;
+  _yearlyPendingId = null;
+  closeModal('modal-yearly');
+  if (!id) return;
+  setYearlyReminder(id, on);
+  var inp = document.querySelector('.jt-label[data-id="' + id + '"]');
   if (inp) { inp.focus(); inp.select(); }
-  toast('เพิ่มประเภทงานแล้ว — ตั้งชื่อได้เลย', 'success');
+}
+function setYearlyReminder(id, on) {
+  var list = getJobTypes(true);
+  var t = list.find(function(x){ return x.id === id; });
+  if (!t) return;
+  t.remindYearly = !!on;
+  saveJobTypesList(list);
+  renderJobTypeSettings();
+  toast(on ? 'เปิดแจ้งเตือนทุกปีสำหรับ "' + t.label + '" แล้ว 🔔' : 'ปิดแจ้งเตือนทุกปีสำหรับ "' + t.label + '" แล้ว', 'success');
+}
+function toggleYearlyReminder(id) {
+  var t = getJobTypes(true).find(function(x){ return x.id === id; });
+  if (!t) return;
+  setYearlyReminder(id, !t.remindYearly);
 }
 function deleteJobType(id) {
   var list = getJobTypes(true);
@@ -1640,6 +1695,12 @@ function deleteJobType(id) {
   openModal('modal-confirm');
 }
 var REMIND_TYPES = ['ac', 'washer'];
+// ประเภทที่ต้องแจ้งเตือน = ประเภทมาตรฐานเดิม + ประเภทที่เพิ่มเองและตอบ "เตือนทุกปี" ตอนสร้าง (หรือกดกระดิ่ง 🔔 ทีหลังได้)
+function isRemindType(id) {
+  if (REMIND_TYPES.indexOf(id) !== -1) return true;
+  var t = getJobTypes(true).find(function(x){ return x.id === id; });
+  return !!(t && t.remindYearly && !t.deleted);
+}
 var STATUS_LABELS = { done: '✅ เสร็จ', pending: '⏳ รอ', followup: '🔄 ติดตาม', unpaid: '💵 รอเก็บเงิน' };
 var STATUS_COLORS = { done: 'badge-green', pending: 'badge-amber', followup: 'badge-purple', unpaid: 'badge-red' };
 
@@ -1706,7 +1767,7 @@ function getUpcomingReminders(filter) {
   if (!_remCache) {
     var map = {};
     for (var job of DB.jobs) {
-      if (!REMIND_TYPES.includes(job.serviceType)) continue;
+      if (!isRemindType(job.serviceType)) continue;
       if (!job.nextDate) continue;
       var key = job.customerPhone + '_' + job.serviceType;
       if (!map[key] || job.serviceDate > map[key].serviceDate) map[key] = job;
@@ -2065,7 +2126,7 @@ function renderJobCard(j) {
     '<div style="display:flex;align-items:center;gap:8px;margin-top:6px;">' +
     (j.cost ? '<span class="timeline-cost">' + Number(j.cost).toLocaleString() + ' ฿</span>' : '') +
     '<span class="badge ' + (STATUS_COLORS[j.status] || (j.status ? 'badge-gray' : 'badge-green')) + '">' + esc(STATUS_LABELS[j.status] || (j.status ? j.status : '✅ เสร็จ')) + '</span>' +
-    (REMIND_TYPES.includes(j.serviceType) && j.nextDate ? '<span class="badge badge-amber"><i class="fas fa-bell"></i> ' + formatDate(j.nextDate) + '</span>' : '') +
+    (isRemindType(j.serviceType) && j.nextDate ? '<span class="badge badge-amber"><i class="fas fa-bell"></i> ' + formatDate(j.nextDate) + '</span>' : '') +
     '</div>' +
     (photos.length ? '<div class="photo-grid">' + photos.map(url => '<div class="photo-thumb"><img src="' + esc(url) + '" alt="" onclick="event.stopPropagation();openPhotoViewer(\'' + escAttr(url) + '\')" loading="lazy"></div>').join('') + '</div>' : '') +
     '</div></div>';
@@ -2305,7 +2366,7 @@ function selectJobType(type) {
 function onJobTypeChange() {
   var type = document.getElementById('job-type').value;
   var remRow = document.getElementById('job-remind-row');
-  if (REMIND_TYPES.includes(type)) {
+  if (isRemindType(type)) {
     remRow.style.display = '';
     var d = document.getElementById('job-date').value || todayStr();
     document.getElementById('job-next-date').value = addYear(d);
@@ -2339,7 +2400,7 @@ async function saveJob() {
     deviceInfo: document.getElementById('job-device').value.trim(),
     description: document.getElementById('job-desc').value.trim(),
     status: document.getElementById('job-status').value,
-    nextDate: REMIND_TYPES.includes(type) ? document.getElementById('job-next-date').value : null,
+    nextDate: isRemindType(type) ? document.getElementById('job-next-date').value : null,
     photos: uploadedPhotos.filter(Boolean),
     updatedAt: new Date().toISOString()
   };
