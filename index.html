@@ -325,13 +325,14 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 .type-card .type-label { font-size: 12px; font-weight: 600; line-height: 1; }
 
 /* ===== JOB TYPE EDITOR (หน้าตั้งค่า) ===== */
+/* แถวไม่มีสีพื้นหลัง (โปร่งบนการ์ดขาว) สูงตามมาตรฐานแอป: ปุ่ม/ช่อง 40px เหมือน .btn-icon */
 .jt-row {
-  display: flex; align-items: center; gap: 8px; padding: 6px 8px 6px 6px; background: var(--bg);
+  display: flex; align-items: center; gap: 8px; padding: 6px 8px 6px 6px;
   border: 1px solid var(--border); border-radius: 12px; margin-bottom: 8px; transition: border-color var(--transition);
 }
 .jt-emoji-view {
-  width: 46px; height: 38px; text-align: center; font-size: 17px; flex-shrink: 0;
-  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  width: 46px; height: 40px; text-align: center; font-size: 17px; flex-shrink: 0;
+  border: 1px solid var(--border); border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
 }
 .jt-name {
@@ -339,13 +340,13 @@ textarea.form-control { resize: vertical; min-height: 80px; }
   padding: 6px 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .jt-edit {
-  width: 36px; height: 36px; border-radius: 10px; border: none; background: var(--primary-bg); color: var(--primary);
+  width: 40px; height: 40px; border-radius: 10px; border: none; background: var(--primary-bg); color: var(--primary);
   flex-shrink: 0; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center;
   transition: var(--transition);
 }
 .jt-edit:active { transform: scale(0.9); background: var(--primary-l); }
 .jt-del {
-  width: 36px; height: 36px; border-radius: 10px; border: none; background: #FEE2E2; color: var(--danger);
+  width: 40px; height: 40px; border-radius: 10px; border: none; background: #FEE2E2; color: var(--danger);
   flex-shrink: 0; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center;
   transition: var(--transition);
 }
@@ -353,17 +354,17 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 /* แถบสร้างประเภทใหม่: พิมพ์ชื่อ → กด "สร้าง" → เด้งถามแจ้งเตือนทุกปี (รูปแบบเดิม) */
 .jt-create {
   display: flex; align-items: center; gap: 8px; margin-top: 2px; padding: 6px;
-  border: 1.5px dashed var(--primary-l); border-radius: 12px; background: var(--primary-bg);
+  border: 1.5px dashed var(--primary-l); border-radius: 12px;
 }
 .jt-create-input {
-  flex: 1; min-width: 0; height: 38px; border: 1px solid var(--border); border-radius: 10px;
+  flex: 1; min-width: 0; height: 40px; border: 1px solid var(--border); border-radius: 10px;
   background: var(--surface); padding: 4px 10px; font-size: 13px; font-family: inherit;
   color: var(--text); box-sizing: border-box;
 }
 .jt-create-input:focus { outline: none; border-color: var(--primary); }
 .jt-create-input::placeholder { color: var(--text3); }
 .jt-create-btn {
-  height: 38px; padding: 0 16px; border-radius: 10px; border: none; background: var(--primary); color: #fff;
+  height: 40px; padding: 0 18px; border-radius: 10px; border: none; background: var(--primary); color: #fff;
   font-weight: 600; font-size: 13px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; gap: 6px;
   font-family: inherit; transition: var(--transition);
 }
