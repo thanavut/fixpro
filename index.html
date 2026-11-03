@@ -2234,77 +2234,112 @@ function closeModal(id) {
 }
 
 // ============================================================
-// ปุ่มย้อนกลับบนมือถือ (Android back) — v25
-// กดย้อนกลับ: มีหน้าต่างเปิด → ปิดหน้าต่าง · อยู่หน้าอื่น → กลับหน้าก่อนหน้า
-// อยู่หน้าแรก → ถามยืนยันก่อนปิดแอปเสมอ (กดซ้ำขณะถาม = ปิดจริง)
-// v25 แก้บั๊ก: กดย้อนกลับแล้วแอปปิดเองโดยไม่ถาม — เกิดจากรั้งหาย
-// (push ไม่สำเร็จ/ถูกกลืน) จึงเช็คและติดตั้งรั้งใหม่ทุกครั้งที่แตะจอ/กลับมาใช้แอป
+// ปุ่มย้อนกลับบนมือถือ (Android back) — v27 เขียนใหม่ใช้ hash-guard
+// สาเหตุที่เขียนใหม่: วิธีเดิม (pushState+popstate) เบราว์เซอร์บางตัวบนมือถือ
+// (เช่น Edge) ไม่ยอมยิง event ให้ ทำให้กดย้อนกลับแล้วแอปปิดเลยโดยไม่ถาม
+// วิธีใหม่: ใช้ #g ท้าย URL เป็นรั้ง + นาฬิกาเฝ้ายามตรวจทุก 250ms
+// ถ้า #g หายไป = โดนกดย้อนกลับ แม้ event จะหลุดก็จับได้ จะได้เด้งถามเสมอ
 // ============================================================
 var _pageStack = ['dashboard'];
 var _backNav = false;
-var _selfBackAt = 0;   // เวลาที่เราเรียก history.back() เอง (กัน loop) — ใช้ timestamp ไม่ใช่ flag เพื่อไม่ให้ค้าง
-var _exitShownAt = 0;  // เวลาที่เปิดหน้าต่างยืนยันปิดแอป
-var APP_VERSION = 'v26';
+var _selfBackAt = 0;        // เวลาที่เราเรียก history.back() เองตอนปิดแอป — งดเฝ้ายามช่วงนี้
+var _exitShownAt = 0;       // เวลาที่เปิดหน้าต่างยืนยันปิดแอป
+var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
+var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
+var APP_VERSION = 'v27';
+var _GUARD = '#g';
+var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
+var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
 function _jtTopOpenModal() {
   var open = document.querySelectorAll('.modal-overlay.open');
   return open.length ? open[open.length - 1].id : null;
 }
-// ติดตั้งรั้งประวัติ — เช็คผลจริงเสมอ ถ้า push เงียบๆไม่สำเร็จให้ลองใหม่
+function _basePath() { return location.pathname + location.search; }
+// ติดตั้งรั้ง: ให้ URL ท้ายด้วย #g เสมอ — การเพิ่ม #g จะสร้าง "ชั้น" ในประวัติ
+// ทำให้กดย้อนกลับแล้วยังอยู่ในแอป (แค่ hash หาย) ไม่ออกนอกแอปทันที
+// สำคัญ: บางเบราว์เซอร์ ถ้าตั้ง hash ตอนหน้ากำลังโหลด จะ "แทนที่" รายการเดิมแทนที่จะ push ชั้นใหม่
+// (ทดสอบพบจริง: history.length ไม่เพิ่ม) ทำให้กดย้อนกลับแล้วออกนอกแอปเลย
+// จึงต้องเช็ค history.length ทุกครั้ง ถ้าไม่เพิ่ม = ถูกกลืน ให้จัดโครงสร้างใหม่ด้วย pushState
+function _rebuildGuard() {
+  try {
+    // ลบ hash ออกจากรายการปัจจุบันก่อน (กลายเป็นชั้นฐาน) แล้ว push ชั้นรั้ง #g จริง
+    history.replaceState(null, '', _basePath());
+    history.pushState(null, '', _basePath() + _GUARD);
+    _guardOk = true;
+  } catch (e) {}
+}
 function _armGuard() {
-  try { history.pushState({ fixpro: 1 }, '', location.href); } catch (e) { return; }
-  if (!history.state || history.state.fixpro !== 1) {
-    setTimeout(function() { try { history.pushState({ fixpro: 1 }, '', location.href); } catch (e) {} }, 0);
-  }
+  try {
+    if (location.hash === _GUARD) {
+      // hash มีอยู่แล้ว — ถ้ายังไม่เคยสร้างชั้นสำเร็จ (โหลดซ้ำ/โหลดจากแคช) ให้เช็คโครงสร้าง
+      if (_guardOk) return;
+      if (_hashAtBoot === _GUARD) { _guardOk = true; return; } // โหลดซ้ำที่มีรั้งอยู่แล้ว โครงสร้างเดิมใช้ได้
+      var b0 = history.length;
+      history.replaceState(null, '', _basePath());
+      location.hash = _GUARD;
+      if (history.length > b0) { _guardOk = true; } else { _rebuildGuard(); }
+      return;
+    }
+    var before = history.length;
+    location.hash = _GUARD;
+    if (history.length > before) { _guardOk = true; } else { _rebuildGuard(); }
+  } catch (e) {}
 }
 function exitAppNow() {
   _selfBackAt = Date.now();
+  _expectNoHash = true; // กดปุ่มปิดแอปแล้ว — ถ้าแท็บยังอยู่ ให้คืนรั้งเงียบๆ ไม่ต้องถามซ้ำ
   closeModal('modal-exit');
   try { window.close(); } catch (e) {}
-  setTimeout(function() { history.back(); }, 80);
+  setTimeout(function() { try { history.back(); } catch (e) {} }, 80);
+}
+function _handleBack() {
+  var open = _jtTopOpenModal();
+  if (open) {
+    if (open === 'modal-exit') {
+      // กดย้อนกลับซ้ำขณะถาม = ยืนยันปิด — ต้องเปิดคำถามไว้แล้ว 300ms
+      // กัน event ยิงซ้ำ 2 ครั้งจนแอปปิดเองก่อนทันเห็นคำถาม
+      if (Date.now() - _exitShownAt >= 300) { exitAppNow(); return; } // กำลังออก ไม่ต้องคืนรั้ง
+      // ยังไม่ครบ 300ms = กลืน event ซ้ำ แล้วคืนรั้งด้านล่าง
+    } else {
+      closeModal(open); // มีหน้าต่างอื่นเปิด → ปิดหน้าต่างนั้น
+    }
+  } else if (currentPage !== 'dashboard') {
+    _pageStack.pop(); // อยู่หน้าอื่น → กลับหน้าก่อนหน้า (จำลำดับหน้าไว้)
+    var prev = _pageStack[_pageStack.length - 1] || 'dashboard';
+    _backNav = true;
+    try { showPage(prev); } catch (e) {}
+    _backNav = false;
+  } else {
+    _exitShownAt = Date.now(); // อยู่หน้าแรก → เด้งถามยืนยันก่อนปิดแอปเสมอ
+    openModal('modal-exit');
+  }
+  _armGuard();
+}
+function _onBackSignal() {
+  if (location.hash === _GUARD) return;              // รั้งถูกคืนเอง = ไม่ใช่การกดย้อนกลับ
+  if (Date.now() - _selfBackAt < 1200) return;       // เราเรียก history.back() เองตอนปิดแอป
+  if (Date.now() - _lastBackHandledAt < 300) return; // popstate+hashchange ยิงคู่กัน จัดการรอบเดียวพอ
+  _lastBackHandledAt = Date.now();
+  _handleBack();
 }
 (function installBackHandler() {
-  if (typeof history === 'undefined' || typeof history.pushState !== 'function') return;
-  var installedAt = Date.now();
-  _armGuard();
-  // ซ่อมรั้งอัตโนมัติ — ถ้า state หาย (อยู่รายการแรกโดยไม่มีรั้ง) ให้ติดตั้งใหม่ทันที
-  // ครอบคลุมทุกจังหวะ: แตะจอ / กลับมาเปิดแอปใหม่จากพื้นหลัง / โหลดหน้าจากแคช
-  ['touchstart', 'click', 'pageshow', 'visibilitychange'].forEach(function(ev) {
-    window.addEventListener(ev, function() {
-      if (document.hidden) return;
-      if (!history.state || history.state.fixpro !== 1) _armGuard();
-    }, true);
-  });
-  // ผูก popstate ทันที — เดิมรอ 800ms ทำให้ช่วงเปิดแอปแรกๆ กดย้อนกลับแล้วไม่ถูกดัก
-  window.addEventListener('popstate', function(ev) {
-    // กันเบราว์เซอร์บางตัว (Safari) ยิง popstate ตอนโหลดหน้า — state ว่างในช่วงแรก = ไม่ใช่การกดย้อนกลับจริง
-    if (!ev.state && Date.now() - installedAt < 1500) return;
-    if (Date.now() - _selfBackAt < 1000) { _armGuard(); return; } // ป้อนกลับจาก history.back ที่เราเรียกเอง
-    var open = _jtTopOpenModal();
-      if (open) {
-        if (open === 'modal-exit') {
-          // กดย้อนกลับซ้ำขณะถาม = ยืนยันปิด — แต่ต้องเปิดคำถามไว้แล้ว 300ms
-          // กันเบราว์เซอร์ยิง popstate ซ้ำ 2 ครั้งจนแอปปิดเองก่อนทันเห็นคำถาม
-          if (Date.now() - _exitShownAt >= 300) { exitAppNow(); }
-          else { _armGuard(); }
-          return;
-        }
-        closeModal(open);
-        _armGuard();
-        return;
-      }
-      if (currentPage !== 'dashboard') {
-        _pageStack.pop();
-        var prev = _pageStack[_pageStack.length - 1] || 'dashboard';
-        _backNav = true;
-        try { showPage(prev); } catch (e) {}
-        _backNav = false;
-        _armGuard();
-        return;
-      }
-      _exitShownAt = Date.now();
-      openModal('modal-exit');
-      _armGuard();
-    });
+  _armGuard(); // ติดตั้งรั้งทันทีที่โหลด (ถ้าโหลดซ้ำแล้วมี #g อยู่จะไม่เพิ่มซ้ำ)
+  // ทางหลัก: hash หายจาก URL = ผู้ใช้กดย้อนกลับ
+  window.addEventListener('hashchange', _onBackSignal);
+  window.addEventListener('popstate', _onBackSignal);
+  // ทางสำรอง: นาฬิกาเฝ้ายาม — ถ้าเบราว์เซอร์ไม่ยิง event เลย (Edge บางเวอร์ชัน)
+  // ตรวจเองทุก 250ms ว่า #g ยังอยู่ไหม ถ้าหาย = โดนกดย้อนกลับ จัดการแทนทันที
+  setInterval(function() {
+    if (document.hidden) return;
+    if (location.hash === _GUARD) return;
+    if (Date.now() - _selfBackAt < 1500) return; // ช่วงกำลังปิดแอป ไม่ต้องคืนรั้ง
+    if (_expectNoHash) { _armGuard(); _expectNoHash = false; return; } // เพิ่งยืนยันปิด — คืนรั้งเงียบๆ ไม่ถามซ้ำ
+    _lastBackHandledAt = Date.now();
+    _handleBack();
+  }, 250);
+  // กลับมาเปิดแอปจากพื้นหลัง/โหลดจากแคช ตรวจรั้งทันที
+  window.addEventListener('pageshow', function() { setTimeout(_armGuard, 0); });
+  window.addEventListener('visibilitychange', function() { if (!document.hidden) setTimeout(_armGuard, 0); });
 })();
 
 // ============================================================
@@ -3364,6 +3399,14 @@ document.addEventListener('DOMContentLoaded', function() {
   // PWA service worker — แคชไฟล์แอปไว้ใช้ตอนออฟไลน์
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
     navigator.serviceWorker.register('sw.js').catch(function() {});
+    // SW ใหม่เปิดใช้งาน → รีโหลดตัวเองหนึ่งครั้งเพื่อรับ HTML เวอร์ชันใหม่
+    // ใช้ location.reload() (โหลดรายการประวัติเดิม ไม่สร้างรายการซ้ำ) แทนการ navigate
+    // กันประวัติมีหน้าแอปเวอร์ชันเก่าค้างไว้ข้างล่าง ทำให้กดย้อนกลับแล้วเจอแอปหน้าเก่า
+    navigator.serviceWorker.addEventListener('message', function(ev) {
+      if (ev.data && ev.data.type === 'FIXPRO_SW_UPDATED' && !document.querySelector('.modal-overlay.open')) {
+        location.reload();
+      }
+    });
   }
   var now = new Date();
   document.getElementById('dash-date').textContent = now.toLocaleDateString('th-TH', { weekday:'long', year:'numeric', month:'long', day:'numeric' });

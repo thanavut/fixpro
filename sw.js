@@ -1,5 +1,5 @@
 /* FixPro Service Worker — แคชไฟล์แอปไว้ใช้งานตอนออฟไลน์ */
-var CACHE = 'fixpro-v26';
+var CACHE = 'fixpro-v27';
 var CORE = [
   './',
   './index.html',
@@ -41,9 +41,9 @@ self.addEventListener('activate', function (e) {
         // หลังอัปเดต SW ให้แท็บที่เปิดค้างไว้รีโหลดตัวเองหนึ่งครั้ง เพื่อรับ HTML เวอร์ชันใหม่ทันที (ไม่ต้องปิด-เปิดแอปเอง)
         return self.clients.matchAll({ type: 'window' }).then(function (clients) {
           clients.forEach(function (c) {
-            if (c.url && c.url.indexOf(self.location.origin) === 0 && typeof c.navigate === 'function') {
-              c.navigate(c.url).catch(function () {});
-            }
+            // ส่งข้อความให้หน้าเว็บรีโหลดตัวเองด้วย location.reload() (โหลดรายการประวัติเดิม ไม่เพิ่มรายการใหม่)
+            // เดิมใช้ c.navigate() ทำให้ประวัติมีหน้าแอปเวอร์ชันเก่าค้างอยู่ข้างล่าง
+            if (typeof c.postMessage === 'function') { c.postMessage({ type: 'FIXPRO_SW_UPDATED' }); }
           });
         });
       })
