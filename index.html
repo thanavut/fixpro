@@ -2234,48 +2234,73 @@ function closeModal(id) {
 }
 
 // ============================================================
-// ปุ่มย้อนกลับบนมือถือ (Android back) — v24
+// ปุ่มย้อนกลับบนมือถือ (Android back) — v25
 // กดย้อนกลับ: มีหน้าต่างเปิด → ปิดหน้าต่าง · อยู่หน้าอื่น → กลับหน้าก่อนหน้า
-// อยู่หน้าแรก → ถามยืนยันก่อนปิดแอป (กดย้อนกลับซ้ำขณะถาม = ปิดเลย)
+// อยู่หน้าแรก → ถามยืนยันก่อนปิดแอปเสมอ (กดซ้ำขณะถาม = ปิดจริง)
+// v25 แก้บั๊ก: กดย้อนกลับแล้วแอปปิดเองโดยไม่ถาม — เกิดจากรั้งหาย
+// (push ไม่สำเร็จ/ถูกกลืน) จึงเช็คและติดตั้งรั้งใหม่ทุกครั้งที่แตะจอ/กลับมาใช้แอป
 // ============================================================
 var _pageStack = ['dashboard'];
 var _backNav = false;
-var _selfBack = false;
+var _selfBackAt = 0;   // เวลาที่เราเรียก history.back() เอง (กัน loop) — ใช้ timestamp ไม่ใช่ flag เพื่อไม่ให้ค้าง
+var _exitShownAt = 0;  // เวลาที่เปิดหน้าต่างยืนยันปิดแอป
 function _jtTopOpenModal() {
   var open = document.querySelectorAll('.modal-overlay.open');
   return open.length ? open[open.length - 1].id : null;
 }
+// ติดตั้งรั้งประวัติ — เช็คผลจริงเสมอ ถ้า push เงียบๆไม่สำเร็จให้ลองใหม่
+function _armGuard() {
+  try { history.pushState({ fixpro: 1 }, '', location.href); } catch (e) { return; }
+  if (!history.state || history.state.fixpro !== 1) {
+    setTimeout(function() { try { history.pushState({ fixpro: 1 }, '', location.href); } catch (e) {} }, 0);
+  }
+}
 function exitAppNow() {
-  _selfBack = true;
+  _selfBackAt = Date.now();
   closeModal('modal-exit');
   try { window.close(); } catch (e) {}
   setTimeout(function() { history.back(); }, 80);
 }
 (function installBackHandler() {
   if (typeof history === 'undefined' || typeof history.pushState !== 'function') return;
-  try { history.pushState({ fixpro: 1 }, '', location.href); } catch (e) { return; }
+  _armGuard();
+  // ซ่อมรั้งอัตโนมัติ — ถ้า state หาย (อยู่รายการแรกโดยไม่มีรั้ง) ให้ติดตั้งใหม่ทันที
+  // ครอบคลุมทุกจังหวะ: แตะจอ / กลับมาเปิดแอปใหม่จากพื้นหลัง / โหลดหน้าจากแคช
+  ['touchstart', 'click', 'pageshow', 'visibilitychange'].forEach(function(ev) {
+    window.addEventListener(ev, function() {
+      if (document.hidden) return;
+      if (!history.state || history.state.fixpro !== 1) _armGuard();
+    }, true);
+  });
   // ตั้ง listener ช้างเล็กน้อย กันเบราว์เซอร์บางตัวยิง popstate ตอนโหลดหน้า
   setTimeout(function() {
     window.addEventListener('popstate', function() {
-      if (_selfBack) { _selfBack = false; return; }
+      if (Date.now() - _selfBackAt < 1000) { _armGuard(); return; } // ป้อนกลับจาก history.back ที่เราเรียกเอง
       var open = _jtTopOpenModal();
       if (open) {
-        if (open === 'modal-exit') { exitAppNow(); return; } // กดกลับซ้ำขณะถาม = ยืนยันปิดแอป
+        if (open === 'modal-exit') {
+          // กดย้อนกลับซ้ำขณะถาม = ยืนยันปิด — แต่ต้องเปิดคำถามไว้แล้ว 300ms
+          // กันเบราว์เซอร์ยิง popstate ซ้ำ 2 ครั้งจนแอปปิดเองก่อนทันเห็นคำถาม
+          if (Date.now() - _exitShownAt >= 300) { exitAppNow(); }
+          else { _armGuard(); }
+          return;
+        }
         closeModal(open);
-        history.pushState({ fixpro: 1 }, '', location.href);
+        _armGuard();
         return;
       }
       if (currentPage !== 'dashboard') {
         _pageStack.pop();
         var prev = _pageStack[_pageStack.length - 1] || 'dashboard';
         _backNav = true;
-        showPage(prev);
+        try { showPage(prev); } catch (e) {}
         _backNav = false;
-        history.pushState({ fixpro: 1 }, '', location.href);
+        _armGuard();
         return;
       }
+      _exitShownAt = Date.now();
       openModal('modal-exit');
-      history.pushState({ fixpro: 1 }, '', location.href);
+      _armGuard();
     });
   }, 800);
 })();
