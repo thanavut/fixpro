@@ -249,7 +249,7 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 .timeline-dot { position: absolute; left: -18px; top: 12px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--surface); }
 .timeline-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; box-shadow: var(--shadow-sm); }
 .timeline-card-header { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.timeline-card-title { font-size: 13px; font-weight: 700; flex: 1; }
+.timeline-device { font-size: 14px; font-weight: 700; margin-top: 6px; line-height: 1.45; word-break: break-word; }
 .timeline-card-date { font-size: 11px; color: var(--text3); }
 .timeline-cost { font-size: 14px; font-weight: 700; color: var(--success); }
 
@@ -885,6 +885,20 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
           </div>
         </div>
 
+        <!-- QR รับเงิน -->
+        <div class="card">
+          <div class="settings-section-header"><i class="fas fa-qrcode" style="color:var(--primary);"></i> QR รับเงิน</div>
+          <div class="card-body" style="padding-top:4px;">
+            <div style="font-size:11px;color:var(--text3);margin-bottom:10px;">อัปโหลดภาพ QR Code รับเงินของร้าน (พร้อมเพย์/ธนาคาร) — เวลากดส่งสรุปงานทาง LINE จะแนบ QR ไปด้วย ลูกค้ากดบันทึกภาพแล้วโอนเงินได้ทันที</div>
+            <div id="qr-preview-wrap"></div>
+            <input type="file" id="cfg-qr-file" accept="image/*" style="display:none" onchange="handleQrSelect(this)">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-secondary btn-sm" onclick="document.getElementById('cfg-qr-file').click()"><i class="fas fa-upload"></i> อัปโหลด QR</button>
+              <button class="btn btn-ghost btn-sm" id="qr-remove-btn" onclick="removePaymentQr()" style="display:none;color:var(--danger);"><i class="fas fa-trash"></i> ลบ QR</button>
+            </div>
+          </div>
+        </div>
+
         <!-- ประเภทงาน -->
         <div class="card">
           <div class="settings-section-header"><i class="fas fa-list-check" style="color:var(--primary);"></i> ประเภทงาน</div>
@@ -1121,7 +1135,7 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modal-job')">ยกเลิก</button>
-      <button class="btn btn-primary" onclick="saveJob()"><i class="fas fa-save"></i> บันทึก</button>
+      <button class="btn btn-primary" id="job-save-btn" onclick="saveJob()"><i class="fas fa-save"></i> บันทึก</button>
     </div>
   </div>
 </div>
@@ -1310,7 +1324,7 @@ function saveConfig(cfg) { localStorage.setItem(CFG_KEY, JSON.stringify(cfg)); q
 // หลักการ: เครื่องที่มีข้อมูลจริงเครื่องแรกจะอัปโหลดอัตโนมัติ / เครื่องอื่นดึงลงตอนเปิดแอป / แก้ไขเมื่อไร push ทันที (timestamp ใหม่ชนะ)
 var CFG_SYNC_COL = 'shop';
 var CFG_SYNC_DOC = 'settings';
-var CFG_SYNC_KEYS = ['shopName','techPhone','receiptFooter','autoLinePopup','cloudName','uploadPreset','jobTypes'];
+var CFG_SYNC_KEYS = ['shopName','techPhone','receiptFooter','autoLinePopup','cloudName','uploadPreset','jobTypes','paymentQr'];
 var _cfgPushTimer = null;
 function queueConfigPush() {
   clearTimeout(_cfgPushTimer);
@@ -1324,7 +1338,7 @@ function cfgSyncPayload() {
 function cfgHasMeaningfulData() {
   var cfg = loadConfig();
   if (!cfg) return false;
-  if (cfg.shopName || cfg.techPhone || cfg.receiptFooter || cfg.cloudName || cfg.uploadPreset) return true;
+  if (cfg.shopName || cfg.techPhone || cfg.receiptFooter || cfg.cloudName || cfg.uploadPreset || cfg.paymentQr) return true;
   if (cfg.autoLinePopup === false) return true;
   var jt = cfg.jobTypes;
   if (Array.isArray(jt)) {
@@ -1449,23 +1463,43 @@ async function initFirebase(cfg) {
 // ============================================================
 // DATA LOADING
 // ============================================================
+// จัดการงานซ้ำที่ติดมากับข้อมูลเดิม (กดบันทึกซ้ำในเวอร์ชันก่อน): เนื้อหา+รูปเหมือนกันทุกอย่าง = ของซ้ำแน่นอน
+// เก็บไว้รายการเดียว (อัปเดตใหม่กว่า/รูปเยอะกว่า) และลบตัวซ้ำออกจากคลาวด์ด้วย
+function dedupeJobs(list) {
+  var out = [];
+  var keyOf = function(j) { return [j.customerPhone, j.serviceDate, j.serviceType, (j.deviceInfo||''), (j.description||''), String(j.cost||'0'), (j.status||''), (j.nextDate||''), JSON.stringify(j.photos||[])].join('||'); };
+  var seen = {};
+  for (var i = 0; i < list.length; i++) {
+    var j = list[i];
+    var key = keyOf(j);
+    if (seen[key] === undefined) { seen[key] = out.length; out.push(j); continue; }
+    var keep = out[seen[key]];
+    var keepBetter = ((keep.photos||[]).length > (j.photos||[]).length) || (((keep.photos||[]).length === (j.photos||[]).length) && ((keep.updatedAt||'') >= (j.updatedAt||'')));
+    var loser = keepBetter ? j : keep;
+    if (!keepBetter) out[seen[key]] = j;
+    if (db && loser && loser.id && loser.id !== out[seen[key]].id) {
+      db.collection('jobs').doc(loser.id).delete().catch(function(){});
+    }
+  }
+  return out;
+}
 async function loadAllData() {
   if (db) {
     try {
       var cSnap = await db.collection('customers').get();
       DB.customers = cSnap.docs.map(function(d){ return Object.assign({}, d.data(), {phone: d.id}); });
       var jSnap = await db.collection('jobs').orderBy('serviceDate', 'desc').get();
-      DB.jobs = jSnap.docs.map(function(d){ return Object.assign({}, d.data(), {id: d.id}); });
+      DB.jobs = dedupeJobs(jSnap.docs.map(function(d){ return Object.assign({}, d.data(), {id: d.id}); }));
       lsSaveCustomers(DB.customers);
       lsSaveJobs(DB.jobs);
     } catch(e) {
       console.warn('Firestore error, using local cache:', e);
       DB.customers = lsGetCustomers();
-      DB.jobs = lsGetJobs();
+      DB.jobs = dedupeJobs(lsGetJobs());
     }
   } else {
     DB.customers = lsGetCustomers();
-    DB.jobs = lsGetJobs();
+    DB.jobs = dedupeJobs(lsGetJobs());
   }
   if (db) await syncConfigFromCloud();
   refreshAll();
@@ -2118,11 +2152,12 @@ function renderJobCard(j) {
   return '<div class="timeline-item"><div class="timeline-dot" style="background:' + dotColor + '"></div>' +
     '<div class="timeline-card"><div class="timeline-card-header">' +
     '<span class="badge ' + (SERVICE_COLORS[j.serviceType]||'badge-gray') + '">' + esc(typeLabel(j.serviceType)) + '</span>' +
-    '<span class="timeline-card-title">' + esc(j.deviceInfo||'') + '</span>' +
+    '<span style="flex:1"></span>' +
     '<span class="timeline-card-date">' + formatDate(j.serviceDate) + '</span>' +
     '<button class="btn btn-ghost btn-icon-sm" onclick="event.stopPropagation();openReceipt(\'' + escAttr(j.id) + '\')"><i class="fas fa-receipt"></i></button>' +
     '<button class="btn btn-ghost btn-icon-sm" onclick="event.stopPropagation();openEditJob(\'' + escAttr(j.id) + '\')"><i class="fas fa-edit"></i></button>' +
     '<button class="btn btn-ghost btn-icon-sm" style="color:var(--danger)" onclick="event.stopPropagation();confirmDeleteJob(\'' + escAttr(j.id) + '\')"><i class="fas fa-trash"></i></button></div>' +
+    (j.deviceInfo ? '<div class="timeline-device">' + esc(j.deviceInfo) + '</div>' : '') +
     (j.description ? '<div style="font-size:13px;color:var(--text);margin-top:4px;">' + esc(j.description) + '</div>' : '') +
     '<div style="display:flex;align-items:center;gap:8px;margin-top:6px;">' +
     (j.cost ? '<span class="timeline-cost">' + Number(j.cost).toLocaleString() + ' ฿</span>' : '') +
@@ -2246,7 +2281,7 @@ var _selfBackAt = 0;        // เวลาที่เราเรียก his
 var _exitShownAt = 0;       // เวลาที่เปิดหน้าต่างยืนยันปิดแอป
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
-var APP_VERSION = 'v27';
+var APP_VERSION = 'v28';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -2489,7 +2524,20 @@ function onJobTypeChange() {
     remRow.style.display = 'none';
   }
 }
+var _savingJob = false; // กันกดบันทึกซ้ำ — รูปอัปโหลดนาน ผู้ใช้มักกดปุ่มซ้ำจนได้งานซ้ำ 2 งาน
 async function saveJob() {
+  if (_savingJob) return;
+  _savingJob = true;
+  var saveBtn = document.getElementById('job-save-btn');
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังบันทึก...'; }
+  try {
+    await _doSaveJob();
+  } finally {
+    _savingJob = false;
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = '<i class="fas fa-save"></i> บันทึก'; }
+  }
+}
+async function _doSaveJob() {
   var phone = document.getElementById('job-customer-phone').value;
   var date = document.getElementById('job-date').value;
   var type = document.getElementById('job-type').value;
@@ -2519,6 +2567,22 @@ async function saveJob() {
     photos: uploadedPhotos.filter(Boolean),
     updatedAt: new Date().toISOString()
   };
+  // กันงานซ้ำ: เพิ่งบันทึกงานเนื้อหาเดียวกันนี้ไปไม่นาน = กดบันทึกซ้ำ ไม่ต้องสร้างอีก
+  if (!editId) {
+    var dup = DB.jobs.find(function(x) {
+      return x.customerPhone === phone && x.serviceDate === date && x.serviceType === type &&
+        (x.deviceInfo||'') === job.deviceInfo && (x.description||'') === job.description &&
+        String(x.cost||'0') === String(job.cost) && x.updatedAt &&
+        (Date.now() - new Date(x.updatedAt).getTime()) < 30000;
+    });
+    if (dup) {
+      closeModal('modal-job');
+      if (currentPage === 'customer-detail' && currentCustomerPhone) renderCustomerDetail(currentCustomerPhone);
+      refreshAll();
+      toast('บันทึกงานนี้ไปแล้วเมื่อครู่ — ไม่ได้สร้างงานซ้ำ', 'info');
+      return;
+    }
+  }
   await saveJobData(job);
   closeModal('modal-job');
   if (currentPage === 'customer-detail' && currentCustomerPhone) renderCustomerDetail(currentCustomerPhone);
@@ -2657,6 +2721,7 @@ function buildLineReceiptText(job) {
   if (job.description) lines.push('📝 รายละเอียด: ' + job.description);
   lines.push(sep);
   lines.push('💵 ค่าบริการ: ' + Number(job.cost||0).toLocaleString() + ' บาท');
+  if (cfg.paymentQr) lines.push('💳 ชำระเงินได้ทาง QR ที่แนบมาด้วย (บันทึกภาพแล้วสแกนโอนได้เลย)');
   if (job.nextDate) lines.push('🔔 นัดหมายถัดไป: ' + formatDate(job.nextDate));
   lines.push(sep);
   lines.push(footer);
@@ -2686,10 +2751,55 @@ function openReceipt(jobId) {
   openModal('modal-receipt');
 }
 
+// ===== ส่งสรุปงานทาง LINE พร้อมแนบภาพ + QR รับเงิน (Web Share API) =====
+function dataUrlToFile(dataUrl, name) {
+  try {
+    var arr = dataUrl.split(','), mime = (arr[0].match(/:(.*?);/) || [])[1] || 'image/jpeg', bstr = atob(arr[1]);
+    var u8 = new Uint8Array(bstr.length);
+    for (var i = 0; i < bstr.length; i++) u8[i] = bstr.charCodeAt(i);
+    return new File([u8], name, { type: mime });
+  } catch(e) { return null; }
+}
+async function urlToFile(url, name) {
+  try {
+    var res = await fetch(url, { mode: 'cors' });
+    var blob = await res.blob();
+    return new File([blob], name, { type: blob.type || 'image/jpeg' });
+  } catch(e) { return null; }
+}
+async function shareJobToLine(job) {
+  var cfg = loadConfig();
+  var text = buildLineReceiptText(job);
+  var files = [];
+  // QR รับเงินมาก่อน — ให้ลูกค้าบันทึกไว้โอนเงินได้ทันที
+  if (cfg.paymentQr) {
+    var qr = dataUrlToFile(cfg.paymentQr, 'payment-qr.png');
+    if (qr) files.push(qr);
+  }
+  var photos = job.photos || [];
+  for (var i = 0; i < photos.length && files.length < 10; i++) {
+    var f = null;
+    if (/^https?:\/\//i.test(photos[i])) f = await urlToFile(photos[i], 'job-photo-' + (i+1) + '.jpg');
+    else if (/^data:image\//i.test(photos[i])) f = dataUrlToFile(photos[i], 'job-photo-' + (i+1) + '.jpg');
+    if (f) files.push(f);
+  }
+  // เด้งหน้าแชร์ของเครื่อง (เลือก LINE ได้) พร้อมภาพทุกรูป + QR
+  if (files.length && navigator.canShare) {
+    try {
+      var payload = { files: files, text: text };
+      if (navigator.canShare(payload)) { await navigator.share(payload); return; }
+      if (navigator.canShare({ files: files })) { await navigator.share({ files: files }); window.open('https://line.me/R/msg/text/?' + encodeURIComponent(text), '_blank'); return; }
+    } catch(e) { if (e && e.name === 'AbortError') return; }
+  }
+  // เครื่องที่แชร์ไฟล์ไม่ได้ → เปิด LINE แบบข้อความเหมือนเดิม
+  window.open('https://line.me/R/msg/text/?' + encodeURIComponent(text), '_blank');
+  if (files.length) toast('เบราว์เซอร์นี้แนบภาพไม่ได้ — ส่งเป็นข้อความอย่างเดียว', 'info');
+}
+
 function shareReceiptLine() {
   var j = DB.jobs.find(j => j.id === currentReceiptJobId);
   if (!j) return;
-  window.open('https://line.me/R/msg/text/?' + encodeURIComponent(buildLineReceiptText(j)), '_blank');
+  shareJobToLine(j);
 }
 function copyReceipt() {
   var j = DB.jobs.find(j => j.id === currentReceiptJobId);
@@ -2715,8 +2825,7 @@ function sendReceiptLineNow() {
   dismissJobComplete();
   var j = DB.jobs.find(j => j.id === currentReceiptJobId);
   if (!j) return;
-  window.open('https://line.me/R/msg/text/?' + encodeURIComponent(buildLineReceiptText(j)), '_blank');
-  toast('เปิด LINE แล้ว', 'success');
+  shareJobToLine(j);
 }
 function openReceiptFromPopup() {
   dismissJobComplete();
@@ -3004,6 +3113,63 @@ function restoreData(e) {
 // ============================================================
 // SETTINGS (EBED Style)
 // ============================================================
+// ===== QR รับเงิน (หน้าตั้งค่า) — เก็บเป็น dataURL ใน config ซิงค์ขึ้นคลาวด์อัตโนมัติ =====
+function compressImageFile(file, maxDim, quality) {
+  return new Promise(function(resolve, reject) {
+    var img = new Image();
+    var url = URL.createObjectURL(file);
+    img.onload = function() {
+      try {
+        var w = img.width, h = img.height;
+        var scale = Math.min(1, (maxDim||900) / Math.max(w, h));
+        var c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(w * scale));
+        c.height = Math.max(1, Math.round(h * scale));
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        resolve(c.toDataURL('image/jpeg', quality || 0.9));
+      } catch(e) { URL.revokeObjectURL(url); reject(e); }
+    };
+    img.onerror = function() { URL.revokeObjectURL(url); reject(new Error('โหลดภาพไม่สำเร็จ')); };
+    img.src = url;
+  });
+}
+function renderQrPreview() {
+  var wrap = document.getElementById('qr-preview-wrap');
+  if (!wrap) return;
+  var cfg = loadConfig();
+  var rm = document.getElementById('qr-remove-btn');
+  if (cfg.paymentQr) {
+    wrap.innerHTML = '<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">' +
+      '<img src="' + escAttr(cfg.paymentQr) + '" alt="QR รับเงิน" style="width:110px;height:110px;object-fit:contain;border:1px solid var(--border);border-radius:10px;background:#fff;cursor:pointer;" onclick="openPhotoViewer(\'' + escAttr(cfg.paymentQr) + '\')">' +
+      '<div style="font-size:12px;"><span style="color:var(--success);"><i class="fas fa-circle-check"></i> พร้อมใช้งาน</span><br><span style="color:var(--text3);">ส่งสรุปทาง LINE จะแนบ QR นี้ให้ลูกค้าอัตโนมัติ</span></div></div>';
+    if (rm) rm.style.display = '';
+  } else {
+    wrap.innerHTML = '<div style="font-size:12px;color:var(--text3);margin-bottom:10px;"><i class="fas fa-image"></i> ยังไม่มีภาพ QR</div>';
+    if (rm) rm.style.display = 'none';
+  }
+}
+async function handleQrSelect(input) {
+  var f = input.files && input.files[0];
+  input.value = '';
+  if (!f) return;
+  if (!/^image\//.test(f.type)) { toast('เลือกไฟล์ภาพเท่านั้น', 'error'); return; }
+  try {
+    var dataUrl = await compressImageFile(f, 900, 0.9);
+    var cfg = loadConfig();
+    cfg.paymentQr = dataUrl;
+    saveConfig(cfg);
+    renderQrPreview();
+    toast('✅ บันทึก QR รับเงินแล้ว — จะแนบไปกับสรุป LINE', 'success');
+  } catch(e) { toast('อ่านไฟล์ภาพไม่สำเร็จ', 'error'); }
+}
+function removePaymentQr() {
+  var cfg = loadConfig();
+  delete cfg.paymentQr;
+  saveConfig(cfg);
+  renderQrPreview();
+  toast('ลบ QR รับเงินแล้ว');
+}
 function loadSettingsPage() {
   var cfg = loadConfig();
   document.getElementById('cfg-shop-name').value = cfg.shopName || '';
@@ -3019,6 +3185,7 @@ function loadSettingsPage() {
   document.getElementById('cfg-fb-appid').value = cfg.appId || '';
   document.getElementById('cfg-cld-name').value = cfg.cloudName || '';
   document.getElementById('cfg-cld-preset').value = cfg.uploadPreset || '';
+  renderQrPreview();
   renderJobTypeSettings();
   updateConfigStatus();
 }
