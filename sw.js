@@ -1,10 +1,11 @@
 /* FixPro Service Worker — แคชไฟล์แอปไว้ใช้งานตอนออฟไลน์ */
-var CACHE = 'fixpro-v30';
+var CACHE = 'fixpro-v31';
 var CORE = [
   './',
   './index.html',
   './manifest.webmanifest',
   './icons/icon-192.png',
+  './icons/icon-180.png',
   './icons/icon-512.png',
   './assets/fontawesome/css/all.min.css',
   './assets/fontawesome/webfonts/fa-solid-900.woff2',

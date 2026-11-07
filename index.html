@@ -10,6 +10,8 @@
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro — ระบบจัดการงานช่าง</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400&display=swap" rel="stylesheet">
@@ -128,15 +130,29 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 .btn:active { transform: scale(0.96); }
 .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-l)); color: white; }
 .btn-primary:active { box-shadow: 0 4px 12px rgba(46,125,50,0.4); }
-.btn-secondary { background: var(--bg); color: var(--text); border: 1.5px solid var(--border); }
+.btn-secondary { background: var(--surface2); color: var(--text); border: 1.5px solid var(--border); }
 .btn-secondary:active { background: var(--border); }
 .btn-danger { background: var(--danger); color: white; }
+.btn-danger:active { box-shadow: 0 4px 12px rgba(220,38,38,0.4); }
+.btn-line { background: linear-gradient(135deg, #06C755, #04AC4A); color: white; }
+.btn-line:active { box-shadow: 0 4px 12px rgba(6,199,85,0.4); }
 .btn-sm { padding: 5px 12px; font-size: 12.5px; min-height: 34px; }
 .btn-full { width: 100%; }
 .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
 .btn-icon { width: 40px; height: 40px; padding: 0; border-radius: 10px; }
 .btn-ghost { background: transparent; color: var(--text2); }
 .btn-ghost:active { background: var(--bg); color: var(--text); }
+
+/* ===== มาตรฐานปุ่ม v31: card action row / แถว backup / แบนเนอร์ติดตั้ง ===== */
+.card-actions { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.backup-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.backup-row .btn-sm { padding: 5px 4px; font-size: 11px; gap: 5px; }
+.install-banner { display: flex; align-items: center; gap: 10px; background: linear-gradient(135deg, var(--primary), var(--primary-l)); color: #fff; border-radius: var(--radius); padding: 12px 14px; margin-bottom: 10px; box-shadow: var(--shadow-sm); }
+.install-banner .ib-icon { width: 40px; height: 40px; border-radius: 10px; background: rgba(255,255,255,0.18); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.install-banner .ib-text { flex: 1; min-width: 0; }
+.install-banner .ib-title { font-size: 13.5px; font-weight: 700; line-height: 1.3; }
+.install-banner .ib-sub { font-size: 11px; opacity: 0.85; line-height: 1.4; }
+.install-banner .ib-close { background: none; border: none; color: rgba(255,255,255,0.8); font-size: 14px; cursor: pointer; padding: 6px; flex-shrink: 0; }
 
 /* ===== HEADER ===== */
 #app-screen { flex-direction: column; }
@@ -732,6 +748,15 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
             <div style="font-size:11px;color:var(--text3);" id="dash-date"></div>
           </div>
         </div>
+        <div id="install-banner" class="install-banner" style="display:none;">
+          <div class="ib-icon"><i class="fas fa-mobile-screen-button"></i></div>
+          <div class="ib-text">
+            <div class="ib-title">ติดตั้งแอป FixPro บนมือถือ</div>
+            <div class="ib-sub" id="install-banner-sub">เปิดจากไอคอนหน้าจอหลักได้เลย เหมือนแอปทั่วไป</div>
+          </div>
+          <button class="btn" style="background:#fff;color:var(--primary);min-height:36px;padding:7px 16px;font-size:13px;flex-shrink:0;" onclick="doInstallApp()">ติดตั้ง</button>
+          <button class="ib-close" onclick="dismissInstallBanner()" aria-label="ปิด"><i class="fas fa-xmark"></i></button>
+        </div>
         <div id="dash-unpaid" style="display:none;"></div>
       <div class="stats-grid" id="dash-stats"></div>
         <div class="card">
@@ -928,7 +953,7 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
               <div class="form-group"><label class="form-label" style="font-size:11px;">Sender ID</label><input type="text" class="form-control" id="cfg-fb-senderid" placeholder="123456789" style="font-size:12px;"></div>
               <div class="form-group"><label class="form-label" style="font-size:11px;">App ID</label><input type="text" class="form-control" id="cfg-fb-appid" placeholder="1:xxx:web:yyy" style="font-size:12px;"></div>
             </div>
-            <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">
+            <div class="card-actions">
               <button class="btn btn-primary btn-sm" onclick="saveFirebaseConfig()"><i class="fas fa-save"></i> บันทึก</button>
               <button class="btn btn-secondary btn-sm" onclick="testFirebase()"><i class="fas fa-plug"></i> ทดสอบ</button>
             </div>
@@ -944,7 +969,7 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
               <div class="form-group"><label class="form-label" style="font-size:11px;">Cloud Name</label><input type="text" class="form-control" id="cfg-cld-name" placeholder="my-cloud-name" style="font-size:12px;"></div>
               <div class="form-group"><label class="form-label" style="font-size:11px;">Upload Preset</label><input type="text" class="form-control" id="cfg-cld-preset" placeholder="ml_default" style="font-size:12px;"></div>
             </div>
-            <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">
+            <div class="card-actions">
               <button class="btn btn-primary btn-sm" onclick="saveCloudinaryConfig()"><i class="fas fa-save"></i> บันทึก</button>
               <button class="btn btn-secondary btn-sm" onclick="testCloudinary(this)"><i class="fas fa-plug"></i> ทดสอบ</button>
             </div>
@@ -955,13 +980,31 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
         <div class="card">
           <div class="settings-section-header"><i class="fas fa-database" style="color:var(--success);"></i> Backup / Export</div>
           <div class="card-body" style="padding-top:4px;">
-            <div style="display:flex;gap:6px;flex-wrap:wrap;">
-              <button class="btn btn-secondary btn-sm" onclick="backupData()"><i class="fas fa-download"></i> Backup JSON</button>
-              <button class="btn btn-secondary btn-sm" onclick="document.getElementById('restore-input').click()"><i class="fas fa-upload"></i> Restore</button>
+            <div class="backup-row">
+              <button class="btn btn-secondary btn-sm" title="สำรองข้อมูลทั้งหมดเป็นไฟล์ JSON" onclick="backupData()"><i class="fas fa-download"></i> Backup</button>
+              <button class="btn btn-secondary btn-sm" title="กู้คืนข้อมูลจากไฟล์ JSON" onclick="document.getElementById('restore-input').click()"><i class="fas fa-upload"></i> Restore</button>
               <input type="file" id="restore-input" accept=".json" style="display:none" onchange="restoreData(event)">
-              <button class="btn btn-secondary btn-sm" onclick="exportExcel()"><i class="fas fa-file-excel"></i> Excel</button>
-              <button class="btn btn-secondary btn-sm" onclick="exportPDFReport()"><i class="fas fa-file-pdf"></i> PDF</button>
+              <button class="btn btn-secondary btn-sm" title="ส่งออกไฟล์ Excel" onclick="exportExcel()"><i class="fas fa-file-excel"></i> Excel</button>
+              <button class="btn btn-secondary btn-sm" title="ส่งออกไฟล์ PDF" onclick="exportPDFReport()"><i class="fas fa-file-pdf"></i> PDF</button>
             </div>
+          </div>
+        </div>
+
+        <!-- Install App -->
+        <div class="card" id="card-install">
+          <div class="settings-section-header"><i class="fas fa-mobile-screen-button" style="color:var(--info);"></i> ติดตั้งแอปบนมือถือ</div>
+          <div class="card-body" style="padding-top:4px;">
+            <div id="install-android-row">
+              <div style="font-size:12px;color:var(--text2);margin-bottom:8px;">ติดตั้ง FixPro เป็นแอปบนหน้าจอหลัก — ไอคอนคมชัดสีเขียว เปิดเต็มจอเหมือนแอปทั่วไป กดไอคอนเดิมที่เป็นสีเทาออกได้เลย</div>
+              <button class="btn btn-primary btn-full" id="btn-install-go" onclick="doInstallApp()"><i class="fas fa-download"></i> ติดตั้งแอปเลย</button>
+            </div>
+            <div id="install-ios-note" style="display:none;font-size:12.5px;color:var(--text2);line-height:1.8;">
+              บน iPhone/iPad ติดตั้งผ่าน Safari:<br>
+              1. กดปุ่มแชร์ <i class="fas fa-arrow-up-from-bracket"></i> ที่แถบล่าง<br>
+              2. เลือก <b>“เพิ่มลงหน้าจอหลัก”</b><br>
+              3. กด <b>เพิ่ม</b> — จะได้ไอคอน FixPro บนหน้าจอหลัก
+            </div>
+            <div id="install-done-note" style="display:none;font-size:12.5px;color:var(--success);font-weight:600;"><i class="fas fa-circle-check"></i> ติดตั้งเป็นแอปแล้ว — ตอนนี้คุณกำลังใช้งานผ่านแอปอยู่</div>
           </div>
         </div>
 
@@ -1161,7 +1204,7 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
       </div>
     </div>
     <div style="max-height:300px;overflow-y:auto;" id="picker-list"></div>
-    <div class="modal-footer" style="justify-content:space-between;">
+    <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modal-pick-customer')">ยกเลิก</button>
       <button class="btn btn-primary" onclick="closeModal('modal-pick-customer');openAddCustomer()"><i class="fas fa-user-plus"></i> เพิ่มลูกค้า</button>
     </div>
@@ -1197,7 +1240,7 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modal-exit')">ยกเลิก</button>
-      <button class="btn btn-primary" onclick="exitAppNow()"><i class="fas fa-power-off"></i> ปิดแอป</button>
+      <button class="btn btn-danger" onclick="exitAppNow()"><i class="fas fa-power-off"></i> ปิดแอป</button>
     </div>
   </div>
 </div>
@@ -1236,8 +1279,8 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
     <div class="modal-body" id="receipt-content"></div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modal-receipt')">ปิด</button>
-      <button class="btn btn-primary" onclick="shareReceiptLine()"><i class="fab fa-line"></i> ส่ง LINE</button>
       <button class="btn btn-secondary" onclick="copyReceipt()"><i class="fas fa-copy"></i> คัดลอก</button>
+      <button class="btn btn-line" onclick="shareReceiptLine()"><i class="fab fa-line"></i> ส่ง LINE</button>
     </div>
   </div>
 </div>
@@ -2288,7 +2331,7 @@ var _selfBackAt = 0;        // เวลาที่เราเรียก his
 var _exitShownAt = 0;       // เวลาที่เปิดหน้าต่างยืนยันปิดแอป
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
-var APP_VERSION = 'v30';
+var APP_VERSION = 'v31';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -3664,7 +3707,83 @@ document.addEventListener('DOMContentLoaded', function() {
   collapseAdvancedSettings();
   var av = document.getElementById('app-version');
   if (av) av.textContent = 'FixPro ' + APP_VERSION;
+  renderInstallUI();
 });
+
+// ============================================================
+// PWA INSTALL (ปุ่มติดตั้งแอปบนมือถือ) — v31
+// ============================================================
+var _installEvt = null;
+var _installDismissed = false;
+try { _installDismissed = sessionStorage.getItem('fixpro_install_dismissed') === '1'; } catch (e) {}
+function isStandaloneMode() {
+  return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+}
+function isIOSDevice() { return /iphone|ipad|ipod/i.test(navigator.userAgent) && !/crios|fxios/i.test(navigator.userAgent); }
+function renderInstallUI() {
+  var banner = document.getElementById('install-banner');
+  var card = document.getElementById('card-install');
+  if (!banner && !card) return;
+  if (isStandaloneMode()) {
+    if (banner) banner.style.display = 'none';
+    if (card) {
+      card.style.display = 'block';
+      var a = document.getElementById('install-android-row'), n = document.getElementById('install-ios-note'), dn = document.getElementById('install-done-note');
+      if (a) a.style.display = 'none';
+      if (n) n.style.display = 'none';
+      if (dn) dn.style.display = 'block';
+    }
+    return;
+  }
+  var ios = isIOSDevice();
+  if (banner) {
+    var sub = document.getElementById('install-banner-sub');
+    var bBtn = banner.querySelector('button.btn');
+    var show = !_installDismissed;
+    if (ios) {
+      if (sub) sub.textContent = 'iPhone: กดปุ่มแชร์แล้วเลือก “เพิ่มลงหน้าจอหลัก”';
+      if (bBtn) bBtn.style.display = 'none';
+    } else if (_installEvt) {
+      if (sub) sub.textContent = 'เปิดจากไอคอนหน้าจอหลักได้เลย เหมือนแอปทั่วไป';
+      if (bBtn) bBtn.style.display = '';
+    } else show = false; // Android ยังไม่พร้อมติดตั้ง — ซ่อนไปก่อน
+    banner.style.display = show ? 'flex' : 'none';
+  }
+  if (card) {
+    card.style.display = 'block';
+    var ar = document.getElementById('install-android-row'), iosn = document.getElementById('install-ios-note'), dnn = document.getElementById('install-done-note');
+    if (ar) ar.style.display = ios ? 'none' : 'block';
+    if (iosn) iosn.style.display = ios ? 'block' : 'none';
+    if (dnn) dnn.style.display = 'none';
+  }
+}
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  _installEvt = e;
+  renderInstallUI();
+});
+window.addEventListener('appinstalled', function() {
+  _installEvt = null;
+  renderInstallUI();
+  toast('ติดตั้งแอปเรียบร้อยแล้ว', 'success');
+});
+function doInstallApp() {
+  if (isStandaloneMode()) { toast('คุณกำลังใช้งานผ่านแอปที่ติดตั้งแล้ว', 'info'); return; }
+  if (isIOSDevice()) { showPage('settings'); toast('iPhone ติดตั้งผ่านปุ่มแชร์ของ Safari — ดูขั้นตอนในหน้าตั้งค่า', 'info'); return; }
+  if (!_installEvt) { toast('เบราว์เซอร์ยังไม่พร้อมให้ติดตั้ง — ลองเมนู ⋮ แล้วเลือก “ติดตั้งแอป”', 'info'); return; }
+  _installEvt.prompt();
+  _installEvt.userChoice.then(function(ch) {
+    if (ch && ch.outcome === 'accepted') toast('ติดตั้งแอปเรียบร้อยแล้ว', 'success');
+    _installEvt = null;
+    renderInstallUI();
+  });
+}
+function dismissInstallBanner() {
+  _installDismissed = true;
+  try { sessionStorage.setItem('fixpro_install_dismissed', '1'); } catch (e) {}
+  var b = document.getElementById('install-banner');
+  if (b) b.style.display = 'none';
+}
 
 // ============================================================
 // SYNC OFFLINE QUEUE (stub)
