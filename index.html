@@ -45,6 +45,7 @@
   --info: #1976D2;
   --purple: #7C3AED;
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --btn2-bg: #E2E8F0; --btn2-border: #CBD5E1; --btn2-text: #33415C;
   --shadow: 0 4px 16px rgba(0,0,0,0.10);
   --shadow-lg: 0 8px 32px rgba(0,0,0,0.14);
   --radius: 12px;
@@ -63,6 +64,7 @@
   --text2: #9CA3B8;
   --text3: #6B7280;
   --primary-bg: #1B2E1C;
+  --btn2-bg: #2B3143; --btn2-border: #414A63; --btn2-text: #C6CDDD;
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
   --shadow: 0 4px 16px rgba(0,0,0,0.4);
   --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
@@ -130,18 +132,21 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 .btn:active { transform: scale(0.96); }
 .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-l)); color: white; }
 .btn-primary:active { box-shadow: 0 4px 12px rgba(46,125,50,0.4); }
-.btn-secondary { background: var(--surface2); color: var(--text); border: 1.5px solid var(--border); }
-.btn-secondary:active { background: var(--border); }
+.btn-secondary { background: var(--btn2-bg); color: var(--btn2-text); border: 1.5px solid var(--btn2-border); }
+.btn-secondary:active { background: var(--btn2-border); }
+.btn-secondary.active-filter { background: var(--primary); border-color: var(--primary); color: #fff; }
 .btn-danger { background: var(--danger); color: white; }
 .btn-danger:active { box-shadow: 0 4px 12px rgba(220,38,38,0.4); }
 .btn-line { background: linear-gradient(135deg, #06C755, #04AC4A); color: white; }
 .btn-line:active { box-shadow: 0 4px 12px rgba(6,199,85,0.4); }
+.btn-info { background: linear-gradient(135deg, var(--info), #1259A6); color: white; }
+.btn-info:active { box-shadow: 0 4px 12px rgba(25,118,210,0.4); }
 .btn-sm { padding: 5px 12px; font-size: 12.5px; min-height: 34px; }
 .btn-full { width: 100%; }
 .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
 .btn-icon { width: 40px; height: 40px; padding: 0; border-radius: 10px; }
-.btn-ghost { background: transparent; color: var(--text2); }
-.btn-ghost:active { background: var(--bg); color: var(--text); }
+.btn-ghost { background: var(--btn2-bg); color: var(--text2); }
+.btn-ghost:active { background: var(--btn2-border); color: var(--text); }
 
 /* ===== มาตรฐานปุ่ม v31: card action row / แถว backup / แบนเนอร์ติดตั้ง ===== */
 .card-actions { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
@@ -306,7 +311,7 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 .rpt-pane.active { display: block; animation: fadeSlide 0.2s ease; }
 .rpt-periods { display:flex; gap:6px; overflow-x:auto; padding-bottom:2px; margin-bottom:10px; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
 .rpt-periods::-webkit-scrollbar { display:none; }
-.rpt-chip { flex-shrink:0; border:1px solid var(--border); background:var(--surface); color:var(--text2); border-radius:18px; padding:5px 13px; font-size:12px; font-family:inherit; cursor:pointer; }
+.rpt-chip { flex-shrink:0; border:1px solid var(--btn2-border); background:var(--btn2-bg); color:var(--btn2-text); border-radius:18px; padding:5px 13px; font-size:12px; font-family:inherit; cursor:pointer; }
 .rpt-chip.active { background:var(--primary); border-color:var(--primary); color:#fff; font-weight:600; }
 .rpt-row { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--border); }
 .rpt-row:last-child { border-bottom:none; }
@@ -357,21 +362,21 @@ textarea.form-control { resize: vertical; min-height: 80px; }
   padding: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .jt-iconbtn {
-  width: 32px; height: 32px; border-radius: 8px; border: none; background: transparent; color: var(--text2);
+  width: 32px; height: 32px; border-radius: 8px; border: none; background: rgba(25,118,210,0.12); color: var(--info);
   flex-shrink: 0; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center;
   transition: var(--transition);
 }
-.jt-iconbtn:active { background: var(--bg); }
-.jt-iconbtn.danger { color: var(--danger); }
-.jt-iconbtn.danger:active { background: #FEE2E2; }
+.jt-iconbtn:active { background: rgba(25,118,210,0.28); }
+.jt-iconbtn.danger { color: var(--danger); background: rgba(220,38,38,0.12); }
+.jt-iconbtn.danger:active { background: rgba(220,38,38,0.28); }
 /* ปุ่มเพิ่มประเภทงาน: กดแล้วเด้งหน้าต่างกรอกชื่อ + สวิตช์เตือนทุกปี */
 .jt-add {
-  width: 100%; padding: 10px; border-radius: 10px; border: 1.5px dashed var(--primary-l);
-  color: var(--primary); font-weight: 600; font-size: 13px; cursor: pointer; margin-top: 2px;
+  width: 100%; padding: 10px; border-radius: 10px; border: 1.5px dashed var(--primary);
+  color: var(--primary-d); font-weight: 700; font-size: 13px; cursor: pointer; margin-top: 2px;
   display: flex; align-items: center; justify-content: center; gap: 6px; transition: var(--transition); font-family: inherit;
-  background: transparent;
+  background: var(--primary-bg);
 }
-.jt-add:active { transform: scale(0.98); background: var(--primary-bg); }
+.jt-add:active { transform: scale(0.98); filter: brightness(0.95); }
 
 /* ===== PHOTO UPLOAD ===== */
 .photo-upload-area {
@@ -609,7 +614,7 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
 <div id="offline-bar">
   <i class="fas fa-wifi-slash"></i>
   <span>โหมด Offline — ข้อมูลถูกบันทึกในเครื่อง ซิงค์เมื่อกลับมาออนไลน์</span>
-  <button style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.5);color:white;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:12px;" onclick="syncOfflineQueue()">ซิงค์</button>
+  <button style="background:#fff;border:none;color:#1F2937;padding:5px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;" onclick="syncOfflineQueue()">ซิงค์</button>
 </div>
 
 <!-- TOAST -->
@@ -955,7 +960,7 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
             </div>
             <div class="card-actions">
               <button class="btn btn-primary btn-sm" onclick="saveFirebaseConfig()"><i class="fas fa-save"></i> บันทึก</button>
-              <button class="btn btn-secondary btn-sm" onclick="testFirebase()"><i class="fas fa-plug"></i> ทดสอบ</button>
+              <button class="btn btn-info btn-sm" onclick="testFirebase()"><i class="fas fa-plug"></i> ทดสอบ</button>
             </div>
           </div>
         </div>
@@ -971,7 +976,7 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
             </div>
             <div class="card-actions">
               <button class="btn btn-primary btn-sm" onclick="saveCloudinaryConfig()"><i class="fas fa-save"></i> บันทึก</button>
-              <button class="btn btn-secondary btn-sm" onclick="testCloudinary(this)"><i class="fas fa-plug"></i> ทดสอบ</button>
+              <button class="btn btn-info btn-sm" onclick="testCloudinary(this)"><i class="fas fa-plug"></i> ทดสอบ</button>
             </div>
           </div>
         </div>
@@ -1089,7 +1094,7 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
       <div class="form-group">
         <label class="form-label"><i class="fas fa-map-location-dot" style="color:var(--primary);"></i> ลิงก์ Google Maps / พิกัดบ้าน</label>
         <input type="text" class="form-control" id="cust-mapurl" placeholder="วางลิงก์ที่แชร์จาก Google Maps เช่น https://maps.app.goo.gl/...">
-        <button type="button" class="btn btn-secondary btn-sm" style="width:100%;margin-top:6px;" onclick="useCurrentLocation(this)"><i class="fas fa-location-crosshairs"></i> ใช้พิกัดปัจจุบัน (GPS)</button>
+        <button type="button" class="btn btn-info btn-sm" style="width:100%;margin-top:6px;" onclick="useCurrentLocation(this)"><i class="fas fa-location-crosshairs"></i> ใช้พิกัดปัจจุบัน (GPS)</button>
       </div>
       <div class="form-group">
         <label class="form-label">Line ID</label>
@@ -2331,7 +2336,7 @@ var _selfBackAt = 0;        // เวลาที่เราเรียก his
 var _exitShownAt = 0;       // เวลาที่เปิดหน้าต่างยืนยันปิดแอป
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
-var APP_VERSION = 'v31';
+var APP_VERSION = 'v32';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
