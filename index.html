@@ -950,6 +950,9 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
           <div class="settings-section-header"><i class="fas fa-fire" style="color:#f97316;"></i> Firebase Configuration</div>
           <div class="card-body" style="padding-top:4px;">
             <div id="firebase-status" class="config-status warn"><i class="fas fa-circle-exclamation"></i> ยังไม่ได้ตั้งค่า</div>
+            <div id="fb-login-row" style="display:none;align-items:center;gap:8px;margin-bottom:8px;">
+              <button class="btn btn-primary btn-sm" onclick="goLoginFromSettings()"><i class="fas fa-right-to-bracket"></i> ล็อกอินเพื่อเชื่อมต่อคลาวด์</button>
+            </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
               <div class="form-group"><label class="form-label" style="font-size:11px;">API Key</label><input type="text" class="form-control" id="cfg-fb-apikey" placeholder="AIza..." style="font-size:12px;"></div>
               <div class="form-group"><label class="form-label" style="font-size:11px;">Auth Domain</label><input type="text" class="form-control" id="cfg-fb-authdomain" placeholder="app.firebaseapp.com" style="font-size:12px;"></div>
@@ -1556,6 +1559,7 @@ async function loadAllData() {
     DB.customers = lsGetCustomers();
     DB.jobs = dedupeJobs(lsGetJobs());
   }
+  await purgeDemoData();
   if (db) await syncConfigFromCloud();
   refreshAll();
   checkAndNotify();
@@ -2336,7 +2340,7 @@ var _selfBackAt = 0;        // เวลาที่เราเรียก his
 var _exitShownAt = 0;       // เวลาที่เปิดหน้าต่างยืนยันปิดแอป
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
-var APP_VERSION = 'v32';
+var APP_VERSION = 'v33';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -3319,20 +3323,36 @@ function loadSettingsPage() {
   renderJobTypeSettings();
   updateConfigStatus();
 }
+function isFbLoggedIn() {
+  try { return !!(window.firebase && firebase.auth && firebase.auth().currentUser); } catch(e) { return false; }
+}
 function updateConfigStatus() {
   var cfg = loadConfig();
   var fbEl = document.getElementById('firebase-status');
+  var loggedIn = isFbLoggedIn();
   if (cfg.apiKey && cfg.projectId) {
-    fbEl.className = 'config-status ok'; fbEl.innerHTML = '<i class="fas fa-circle-check"></i> ตั้งค่าแล้ว · ' + esc(cfg.projectId);
+    if (loggedIn) {
+      fbEl.className = 'config-status ok'; fbEl.innerHTML = '<i class="fas fa-circle-check"></i> เชื่อมต่อคลาวด์สำเร็จ · ' + esc(cfg.projectId);
+    } else {
+      fbEl.className = 'config-status warn'; fbEl.innerHTML = '<i class="fas fa-circle-info"></i> ค่า config ถูกฝังในแอปเรียบร้อยแล้ว — แต่ยังไม่ได้ล็อกอิน ข้อมูลจึงยังเชื่อมคลาวด์ไม่ได้';
+    }
   } else {
     fbEl.className = 'config-status warn'; fbEl.innerHTML = '<i class="fas fa-circle-exclamation"></i> ยังไม่ได้ตั้งค่า (ใช้ LocalStorage)';
   }
+  var loginRow = document.getElementById('fb-login-row');
+  if (loginRow) loginRow.style.display = (cfg.apiKey && cfg.projectId && !loggedIn) ? 'flex' : 'none';
   var cldEl = document.getElementById('cloudinary-status');
   if (cfg.cloudName && cfg.uploadPreset) {
     cldEl.className = 'config-status ok'; cldEl.innerHTML = '<i class="fas fa-circle-check"></i> ตั้งค่าแล้ว · ' + esc(cfg.cloudName);
-  } else {
+  } else if (loggedIn) {
     cldEl.className = 'config-status warn'; cldEl.innerHTML = '<i class="fas fa-circle-exclamation"></i> ยังไม่ได้ตั้งค่า (รูปเก็บชั่วคราว)';
+  } else {
+    cldEl.className = 'config-status warn'; cldEl.innerHTML = '<i class="fas fa-circle-info"></i> ยังไม่แสดงค่า — ถ้าเคยกรอกไว้ ค่าจะกลับมาเองเมื่อล็อกอิน (แอปดึงจากคลาวด์ให้)';
   }
+}
+function goLoginFromSettings() {
+  try { if (window.firebase && firebase.apps && firebase.apps.length && firebase.auth().currentUser) firebase.auth().signOut(); } catch(e) {}
+  showAuthScreen('ล็อกอินจากหน้าตั้งค่า');
 }
 function saveShopConfig() {
   var cfg = loadConfig();
@@ -3362,7 +3382,10 @@ async function testFirebase() {
   try {
     await db.collection('_test_').limit(1).get();
     toast('เชื่อมต่อ Firebase สำเร็จ!', 'success');
-  } catch(e) { toast('ถึงโปรเจกต์ได้แต่อ่านข้อมูลไม่ได้ (' + (e.code || 'permission-denied') + ') — ล็อกอินด้วยอีเมลเจ้าของร้านก่อน', 'warning'); }
+  } catch(e) {
+    if (!isFbLoggedIn()) toast('ค่า config พร้อมแล้ว แต่ยังไม่ได้ล็อกอิน — กดปุ่ม "ล็อกอินเพื่อเชื่อมต่อคลาวด์" ด้านบน', 'warning');
+    else toast('ถึงโปรเจกต์ได้แต่อ่านข้อมูลไม่ได้ (' + (e.code || 'permission-denied') + ')', 'warning');
+  }
 }
 function saveCloudinaryConfig(silent) {
   var cfg = loadConfig();
@@ -3554,7 +3577,7 @@ function enterLocalMode(silent) {
   document.getElementById('header-avatar').textContent = 'L';
   loadAllData();
   showPage('dashboard');
-  if (!silent) toast('⚡ เริ่มใช้งานแล้ว — ข้อมูลถูกเก็บในเครื่องนี้', 'success');
+  if (!silent) toast('⚡ เริ่มใช้งานแล้ว — ข้อมูลเก็บในเครื่องนี้ (จะซิงค์คลาวด์เมื่อล็อกอิน)', 'success');
 }
 function enterOfflineMode(reason) {
   console.warn('⚠️ เข้าโหมด Offline:', reason);
@@ -3642,26 +3665,66 @@ function initFirebaseAuth() {
 }
 
 // ============================================================
-// LOAD DEMO DATA
+// PURGE DEMO DATA (v33) — ตัดการใส่ข้อมูลทดสอบอัตโนมัติ + ไล่ลบชุดเดิมทิ้ง
+// เดิมแอปเคย seed ลูกค้าตัวอย่าง 3 ราย + งาน 4 รายการทุกครั้งที่ข้อมูลในเครื่องว่าง
+// ทำให้เครื่องที่เพิ่งติดตั้ง/ลงใหม่เห็น "ข้อมูลทดสอบ" ปนอยู่เสมอ — ตอนนี้ตัดออกแล้ว
+// และเพิ่ม purge ที่ลบชุดเดิมด้วยเงื่อนไข "ชื่อ+เบอร์ (และงาน: อุปกรณ์+รายละเอียด) ตรงกันเป๊ะ" เท่านั้น
+// เพื่อการันตีว่าไม่แตะข้อมูลจริงของร้านเด็ดขาด
 // ============================================================
-function loadDemoData() {
-  if (lsGetCustomers().length > 0) return;
-  var now = new Date();
-  var prevYear = new Date(now); prevYear.setFullYear(prevYear.getFullYear() - 1);
-  var twoMonths = new Date(now); twoMonths.setMonth(twoMonths.getMonth() - 2);
-  var demos = [
-    { name: 'สมชาย ใจดี', phone: '0812345678', address: '123 ถ.เพชรบุรี กรุงเทพฯ', note: 'แอร์ 2 เครื่อง ชั้น 2' },
-    { name: 'นางสาว วิภา รักงาน', phone: '0898765432', address: '45/2 ม.3 ต.ลำลูกกา ปทุมธานี', line: '@wipha99' },
-    { name: 'ร้านกาแฟ สายลม', phone: '0845678901', address: '789 ถ.สีลม บางรัก กรุงเทพฯ', note: 'เครื่องซักผ้า 3 เครื่อง' },
-  ];
-  for (var d of demos) lsSaveCustomers([...lsGetCustomers(), { ...d, updatedAt: new Date().toISOString() }]);
-  var jobs = [
-    { id: 'j1', customerPhone: '0812345678', serviceDate: dateStr(prevYear), serviceType: 'ac', cost: '800', deviceInfo: 'Mitsubishi 12000 BTU', description: 'ล้างแอร์ทั่วไป', status: 'done', nextDate: addYear(dateStr(prevYear)), photos: [], updatedAt: new Date().toISOString() },
-    { id: 'j2', customerPhone: '0812345678', serviceDate: dateStr(twoMonths), serviceType: 'washer', cost: '600', deviceInfo: 'Samsung 8 กก.', description: 'ล้างถังชั้นในลึก', status: 'done', nextDate: addYear(dateStr(twoMonths)), photos: [], updatedAt: new Date().toISOString() },
-    { id: 'j3', customerPhone: '0898765432', serviceDate: dateStr(prevYear), serviceType: 'ac', cost: '900', deviceInfo: 'Daikin 18000 BTU', description: 'ล้างแอร์ + เติมน้ำยา', status: 'done', nextDate: addYear(dateStr(prevYear)), photos: [], updatedAt: new Date().toISOString() },
-    { id: 'j4', customerPhone: '0845678901', serviceDate: new Date(Date.now()-86400000*15).toISOString().split('T')[0], serviceType: 'repair', cost: '1200', deviceInfo: 'ตู้เย็น Hitachi', description: 'ซ่อมมอเตอร์พัดลม', status: 'done', nextDate: null, photos: [], updatedAt: new Date().toISOString() },
-  ];
-  lsSaveJobs(jobs);
+var DEMO_CUSTOMERS = [
+  { phone: '0812345678', name: 'สมชาย ใจดี' },
+  { phone: '0898765432', name: 'นางสาว วิภา รักงาน' },
+  { phone: '0845678901', name: 'ร้านกาแฟ สายลม' }
+];
+var DEMO_JOB_IDS = ['j1', 'j2', 'j3', 'j4'];
+var DEMO_JOB_SIGS = [
+  { phone: '0812345678', description: 'ล้างแอร์ทั่วไป', deviceInfo: 'Mitsubishi 12000 BTU' },
+  { phone: '0812345678', description: 'ล้างถังชั้นในลึก', deviceInfo: 'Samsung 8 กก.' },
+  { phone: '0898765432', description: 'ล้างแอร์ + เติมน้ำยา', deviceInfo: 'Daikin 18000 BTU' },
+  { phone: '0845678901', description: 'ซ่อมมอเตอร์พัดลม', deviceInfo: 'ตู้เย็น Hitachi' }
+];
+function isDemoCustomer(c) {
+  return !!DEMO_CUSTOMERS.find(function(d){ return String(c.phone) === d.phone && String(c.name||'') === d.name; });
+}
+function isDemoJob(j) {
+  if (DEMO_JOB_IDS.indexOf(String(j.id)) >= 0) return true;
+  return !!DEMO_JOB_SIGS.find(function(s){
+    return String(j.customerPhone||'') === s.phone && String(j.description||'') === s.description && String(j.deviceInfo||'') === s.deviceInfo;
+  });
+}
+async function purgeDemoData() {
+  var changed = false;
+  // เครื่องนี้ (localStorage + หน่วยความจำ)
+  var demoC = DB.customers.filter(isDemoCustomer);
+  if (demoC.length) {
+    DB.customers = DB.customers.filter(function(c){ return !isDemoCustomer(c); });
+    DB.jobs = DB.jobs.filter(function(j){ return !isDemoJob(j); });
+    lsSaveCustomers(DB.customers); lsSaveJobs(DB.jobs);
+    changed = true;
+    console.info('ลบข้อมูลทดสอบ (ชุดตัวอย่างเดิม) ออกจากเครื่องแล้ว: ' + demoC.length + ' ลูกค้า');
+  }
+  // คลาวด์ (เมื่อล็อกอิน) — ตรวจชื่อในเอกสารจริงก่อนลบทุกฉบับ ไม่ตรง = ไม่แตะ
+  if (db) {
+    for (var d of DEMO_CUSTOMERS) {
+      try {
+        var ref = db.collection('customers').doc(d.phone);
+        var snap = await ref.get();
+        if (snap.exists && String((snap.data()||{}).name||'') === d.name) {
+          await ref.delete();
+          changed = true;
+        }
+        var jSnap = await db.collection('jobs').where('customerPhone','==',d.phone).get();
+        for (var jd of jSnap.docs) {
+          var v = jd.data() || {};
+          var hit = DEMO_JOB_IDS.indexOf(jd.id) >= 0 || !!DEMO_JOB_SIGS.find(function(s){
+            return String(v.description||'') === s.description && String(v.deviceInfo||'') === s.deviceInfo;
+          });
+          if (hit) { await jd.ref.delete(); changed = true; }
+        }
+      } catch(e) { /* ยังไม่ล็อกอิน/ออฟไลน์ → ข้าม ไม่กระทบอะไร */ }
+    }
+  }
+  if (changed) refreshAll();
 }
 
 // ============================================================
@@ -3681,7 +3744,6 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('theme-icon').className = 'fas fa-sun';
     document.getElementById('auth-theme-icon').className = 'fas fa-sun';
   }
-  loadDemoData();
   var cfg = loadConfig();
   if (!cfg.apiKey || !cfg.projectId) { cfg = DEFAULT_FIREBASE_CONFIG; saveConfig(cfg); } // ยังไม่เคยตั้งค่า → ใช้ config ร้านที่ฝังไว้
   if (cfg.apiKey && cfg.projectId && typeof firebase !== 'undefined' && typeof firebase.initializeApp === 'function') {
