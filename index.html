@@ -288,6 +288,13 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 .rpt-tab.active { background: var(--surface); color: var(--primary); box-shadow: var(--shadow-sm); }
 .rpt-pane { display: none; }
 .rpt-pane.active { display: block; animation: fadeSlide 0.2s ease; }
+.rpt-periods { display:flex; gap:6px; overflow-x:auto; padding-bottom:2px; margin-bottom:10px; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+.rpt-periods::-webkit-scrollbar { display:none; }
+.rpt-chip { flex-shrink:0; border:1px solid var(--border); background:var(--surface); color:var(--text2); border-radius:18px; padding:5px 13px; font-size:12px; font-family:inherit; cursor:pointer; }
+.rpt-chip.active { background:var(--primary); border-color:var(--primary); color:#fff; font-weight:600; }
+.rpt-row { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--border); }
+.rpt-row:last-child { border-bottom:none; }
+.rpt-statusbox { border:1px solid var(--border); border-radius:10px; padding:8px 10px; background:var(--surface2); }
 @keyframes fadeSlide { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 
 /* ===== MAP (แผนที่บ้านลูกค้า) ===== */
@@ -817,10 +824,12 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
           <div><div style="font-size:18px;font-weight:700;">📊 รายงาน</div></div>
           <div style="display:flex;gap:6px;">
-            <button class="btn btn-secondary btn-sm" onclick="exportExcel()"><i class="fas fa-file-excel" style="color:#217346;"></i></button>
-            <button class="btn btn-secondary btn-sm" onclick="exportPDFReport()"><i class="fas fa-file-pdf" style="color:#DC2626;"></i></button>
+            <button class="btn btn-secondary btn-sm" onclick="exportExcel()" title="Export Excel"><i class="fas fa-file-excel" style="color:#217346;"></i></button>
+            <button class="btn btn-secondary btn-sm" onclick="exportPDFReport()" title="Export PDF"><i class="fas fa-file-pdf" style="color:#DC2626;"></i></button>
+            <button class="btn btn-secondary btn-sm" onclick="shareReportLine()" title="ส่งสรุปทาง LINE"><i class="fab fa-line" style="color:#06C755;"></i></button>
           </div>
         </div>
+        <div class="rpt-periods" id="rpt-periods"></div>
         <div class="report-tabs">
           <button class="rpt-tab active" id="rtab-overview" onclick="switchReportTab('overview')"><i class="fas fa-chart-line"></i> ภาพรวม</button>
           <button class="rpt-tab" id="rtab-types" onclick="switchReportTab('types')"><i class="fas fa-list-check"></i> ประเภทงาน</button>
@@ -829,20 +838,32 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
         <div class="rpt-pane active" id="rpane-overview">
           <div class="stats-grid" id="report-stats"></div>
           <div class="card">
-            <div class="card-header"><span class="card-title">รายได้รายเดือน</span></div>
-            <div class="card-body" id="report-bar-chart" style="height:100px;display:flex;align-items:flex-end;gap:3px;padding:4px 0;"></div>
+            <div class="card-header"><span class="card-title">รายได้แยกตามเดือน (12 เดือนล่าสุด)</span></div>
+            <div class="card-body" id="report-bar-chart" style="height:120px;display:flex;align-items:flex-end;gap:3px;padding:4px 0;"></div>
+          </div>
+          <div class="card" id="rpt-status-card">
+            <div class="card-header"><span class="card-title" id="rpt-status-title">สถานะงานในช่วงนี้</span></div>
+            <div class="card-body" id="report-status-breakdown" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;"></div>
+          </div>
+          <div class="card" id="rpt-unpaid-card">
+            <div class="card-header"><span class="card-title">รอเก็บเงิน <span class="badge badge-red" id="rpt-unpaid-cnt" style="font-size:10px;display:none;"></span></span></div>
+            <div class="card-body" id="report-unpaid-list" style="padding-top:0;"></div>
           </div>
         </div>
         <div class="rpt-pane" id="rpane-types">
           <div class="card">
-            <div class="card-header"><span class="card-title">รายได้ตามประเภทงาน</span></div>
+            <div class="card-header"><span class="card-title" id="rpt-types-title">รายได้ตามประเภทงาน</span></div>
             <div class="card-body" id="report-type-breakdown"></div>
           </div>
         </div>
         <div class="rpt-pane" id="rpane-customers">
           <div class="card">
-            <div class="card-header"><span class="card-title">Top 5 ลูกค้า</span></div>
+            <div class="card-header"><span class="card-title" id="rpt-top-title">ลูกค้ายอดสูงสุด</span></div>
             <div class="card-body" id="report-top-list"></div>
+          </div>
+          <div class="card" id="rpt-newcust-card">
+            <div class="card-header"><span class="card-title" id="rpt-newcust-title">ลูกค้าใหม่ในช่วงนี้</span></div>
+            <div class="card-body" id="report-newcust-list"></div>
           </div>
         </div>
       </div>
@@ -2267,7 +2288,7 @@ var _selfBackAt = 0;        // เวลาที่เราเรียก his
 var _exitShownAt = 0;       // เวลาที่เปิดหน้าต่างยืนยันปิดแอป
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
-var APP_VERSION = 'v29';
+var APP_VERSION = 'v30';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -2807,75 +2828,252 @@ function openSendReminder(phone, type, nextDate) {
 }
 
 // ============================================================
-// REPORTS
+// REPORTS — ออกแบบใหม่: เลือกช่วงเวลาได้ (วันนี้/7วัน/เดือน/ปี/ทั้งหมด)
+// ดูรายได้ที่เก็บแล้ว, ยอดรอเก็บเงิน, สถานะงาน, ประเภทงาน, ลูกค้ายอดสูงสุด, ลูกค้าใหม่
 // ============================================================
+var RPT_PERIOD = 'month';
+var RPT_PERIODS = [
+  { id: 'today', label: 'วันนี้' },
+  { id: 'week',  label: '7 วัน' },
+  { id: 'month', label: 'เดือนนี้' },
+  { id: 'year',  label: 'ปีนี้' },
+  { id: 'all',   label: 'ทั้งหมด' }
+];
+var RPT_PERIOD_WORD = { today: 'วันนี้', week: '7 วันที่ผ่านมา', month: 'เดือนนี้', year: 'ปีนี้', all: 'ทั้งหมด' };
+var RPT_STATUS_TEXT = { done: 'เสร็จแล้ว', pending: 'รอทำ', followup: 'ติดตาม', unpaid: 'รอเก็บเงิน' };
+
+function _rptYMD(d) { return d.getFullYear() + '-' + _pad2(d.getMonth() + 1) + '-' + _pad2(d.getDate()); }
+function rptRange(period) {
+  // คืนช่วง {start, end} เป็นสตริง YYYY-MM-DD — เทียบแบบสตริง ไม่มีปัญหา timezone
+  var n = new Date(), y = n.getFullYear(), m = n.getMonth();
+  if (period === 'today') { var t = _rptYMD(n); return { start: t, end: t }; }
+  if (period === 'week') return { start: _rptYMD(new Date(y, m, n.getDate() - 6)), end: _rptYMD(n) };
+  if (period === 'month') return { start: y + '-' + _pad2(m + 1) + '-01', end: _rptYMD(new Date(y, m + 1, 0)) };
+  if (period === 'year') return { start: y + '-01-01', end: y + '-12-31' };
+  return { start: '0000-01-01', end: '9999-12-31' };
+}
+function rptPrevRange(range) {
+  // ช่วงก่อนหน้าที่ยาวเท่ากัน เอาไว้เทียบเปอร์เซ็นต์การเติบโต
+  var s = _parseYMD(range.start), e = _parseYMD(range.end);
+  if (!s || !e) return null;
+  var len = Math.round((Date.UTC(e.y, e.m - 1, e.d) - Date.UTC(s.y, s.m - 1, s.d)) / 86400000) + 1;
+  var prevEnd = new Date(Date.UTC(s.y, s.m - 1, s.d) - 86400000);
+  var prevStart = new Date(Date.UTC(prevEnd.getUTCFullYear(), prevEnd.getUTCMonth(), prevEnd.getUTCDate()) - (len - 1) * 86400000);
+  return { start: prevStart.getUTCFullYear() + '-' + _pad2(prevStart.getUTCMonth() + 1) + '-' + _pad2(prevStart.getUTCDate()), end: prevEnd.getUTCFullYear() + '-' + _pad2(prevEnd.getUTCMonth() + 1) + '-' + _pad2(prevEnd.getUTCDate()) };
+}
+function rptJobsIn(range) { return DB.jobs.filter(j => j.serviceDate && j.serviceDate >= range.start && j.serviceDate <= range.end); }
+function rptMoney(n) {
+  n = Math.round(n);
+  if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + ' ล้าน';
+  if (n >= 10000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+  return n.toLocaleString();
+}
+function setRptPeriod(p) { RPT_PERIOD = p; renderReport(); }
+
 function renderReport() {
-  var now = new Date();
-  var period = 6;
-  var cutoff = new Date(now.getFullYear(), now.getMonth() - period + 1, 1);
-  var pJobs = DB.jobs.filter(j => j.serviceDate && new Date(j.serviceDate) >= cutoff);
-  var totRev = pJobs.reduce((s,j) => s+(parseFloat(j.cost)||0), 0);
-  var avgRev = pJobs.length ? Math.round(totRev/pJobs.length) : 0;
-  var custSet = new Set(pJobs.map(j => j.customerPhone));
-  var repeat = [...custSet].filter(p => pJobs.filter(j => j.customerPhone === p).length > 1).length;
+  var chipsEl = document.getElementById('rpt-periods');
+  if (chipsEl) chipsEl.innerHTML = RPT_PERIODS.map(p =>
+    '<button class="rpt-chip' + (p.id === RPT_PERIOD ? ' active' : '') + '" onclick="setRptPeriod(\'' + p.id + '\')">' + p.label + '</button>').join('');
 
-  var statsEl = document.getElementById('report-stats');
-  statsEl.innerHTML = `
-    <div class="stat-card green"><div class="stat-icon"><i class="fas fa-money-bill"></i></div><div class="stat-value">${totRev>=10000?(totRev/1000).toFixed(1)+'k':totRev.toLocaleString()}</div><div class="stat-label">รายได้</div></div>
-    <div class="stat-card blue"><div class="stat-icon"><i class="fas fa-clipboard-list"></i></div><div class="stat-value">${pJobs.length}</div><div class="stat-label">งาน</div></div>
-    <div class="stat-card orange"><div class="stat-icon"><i class="fas fa-calculator"></i></div><div class="stat-value">${avgRev>=1000?(avgRev/1000).toFixed(1)+'k':avgRev}</div><div class="stat-label">เฉลี่ย/งาน</div></div>
-    <div class="stat-card amber"><div class="stat-icon"><i class="fas fa-users"></i></div><div class="stat-value">${repeat}</div><div class="stat-label">ลูกค้ากลับมา</div></div>
-  `;
+  var range = rptRange(RPT_PERIOD);
+  var word = RPT_PERIOD_WORD[RPT_PERIOD] || '';
+  var pJobs = rptJobsIn(range).slice().sort((a, b) => (b.serviceDate || '').localeCompare(a.serviceDate || ''));
+  var isDone = j => (j.status || 'done') === 'done';
 
-  var mnNames = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  // ---- การ์ดสรุป 4 ใบ ----
+  var revDone = pJobs.filter(isDone).reduce((s, j) => s + (parseFloat(j.cost) || 0), 0);
+  var doneCnt = pJobs.filter(isDone).length;
+  var avg = doneCnt ? Math.round(revDone / doneCnt) : 0;
+  var unpaidAll = DB.jobs.filter(j => (j.status || '') === 'unpaid');
+  var unpaidSum = unpaidAll.reduce((s, j) => s + (parseFloat(j.cost) || 0), 0);
+  var stuck = pJobs.filter(j => j.status === 'pending' || j.status === 'followup').length;
+
+  var revLabel = RPT_PERIOD === 'all' ? 'รายได้รวม' : 'รายได้' + word;
+  var revSub = '';
+  if (RPT_PERIOD !== 'all') {
+    var pr = rptPrevRange(range);
+    if (pr) {
+      var prevRev = rptJobsIn(pr).filter(isDone).reduce((s, j) => s + (parseFloat(j.cost) || 0), 0);
+      if (prevRev > 0) {
+        if (revDone === 0) { revSub = 'ยังไม่มีรายได้ในช่วงนี้'; }
+        else {
+          var pct = Math.round((revDone - prevRev) / prevRev * 100);
+          revSub = (pct >= 0 ? '▲ +' : '▼ -') + Math.abs(pct) + '% จากช่วงก่อน';
+        }
+      } else if (revDone > 0) revSub = 'เริ่มมีรายได้ในช่วงนี้';
+    }
+  }
+  document.getElementById('report-stats').innerHTML =
+    '<div class="stat-card green"><div class="stat-icon"><i class="fas fa-money-bill"></i></div><div class="stat-value">' + rptMoney(revDone) + '</div><div class="stat-label">' + esc(revLabel) + '</div>' + (revSub ? '<div class="stat-label" style="color:var(--success);font-weight:600;">' + esc(revSub) + '</div>' : '') + '</div>' +
+    '<div class="stat-card blue"><div class="stat-icon"><i class="fas fa-clipboard-list"></i></div><div class="stat-value">' + pJobs.length + '</div><div class="stat-label">' + (RPT_PERIOD === 'all' ? 'งานทั้งหมด' : 'งานในช่วง') + '</div>' + (avg ? '<div class="stat-label">เฉลี่ย ' + rptMoney(avg) + ' ฿/งาน</div>' : '') + '</div>' +
+    '<div class="stat-card red" onclick="document.getElementById(\'rpt-unpaid-card\').scrollIntoView({behavior:\'smooth\'})" style="cursor:pointer;"><div class="stat-icon"><i class="fas fa-hand-holding-dollar"></i></div><div class="stat-value">' + rptMoney(unpaidSum) + '</div><div class="stat-label">รอเก็บเงิน</div><div class="stat-label">' + unpaidAll.length + ' รายการ</div></div>' +
+    '<div class="stat-card amber"><div class="stat-icon"><i class="fas fa-hourglass-half"></i></div><div class="stat-value">' + stuck + '</div><div class="stat-label">งานค้าง</div><div class="stat-label">รอทำ/ติดตาม</div></div>';
+
+  // ---- กราฟรายได้ 12 เดือน (นับเฉพาะงานสถานะเสร็จ = เงินที่เก็บได้จริง) ----
+  var mnNames = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+  var nowD = new Date();
   var months = [];
-  for (var i = period-1; i >= 0; i--) {
-    var d = new Date(now.getFullYear(), now.getMonth()-i, 1);
-    var key = d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0');
-    var rev = pJobs.filter(j => j.serviceDate?.startsWith(key)).reduce((s,j) => s+(parseFloat(j.cost)||0), 0);
-    months.push({ label: mnNames[d.getMonth()], rev, isCur: i===0 });
+  for (var i = 11; i >= 0; i--) {
+    var d = new Date(nowD.getFullYear(), nowD.getMonth() - i, 1);
+    var key = d.getFullYear() + '-' + _pad2(d.getMonth() + 1);
+    var rev = DB.jobs.filter(j => isDone(j) && j.serviceDate && j.serviceDate.indexOf(key) === 0).reduce((s, j) => s + (parseFloat(j.cost) || 0), 0);
+    months.push({ label: mnNames[d.getMonth()], rev: rev, isCur: i === 0 });
   }
   var maxRev = Math.max(...months.map(m => m.rev), 1);
-  var barEl = document.getElementById('report-bar-chart');
-  barEl.innerHTML = months.map(m => {
-    var pct = Math.round(m.rev/maxRev*100);
-    var col = m.isCur ? 'var(--success)' : m.rev===maxRev ? 'var(--primary)' : 'rgba(46,125,50,0.4)';
-    return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">' +
-      '<div style="font-size:9px;color:var(--text3);">' + (m.rev>0?(m.rev>=10000?(m.rev/1000).toFixed(1)+'k':m.rev.toLocaleString()):'') + '</div>' +
+  document.getElementById('report-bar-chart').innerHTML = months.map(m => {
+    var pct = Math.round(m.rev / maxRev * 100);
+    var col = m.isCur ? 'var(--primary)' : (m.rev === maxRev && m.rev > 0 ? 'var(--primary-l)' : 'rgba(46,125,50,0.35)');
+    return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0;">' +
+      '<div style="font-size:8.5px;color:var(--text2);font-weight:600;white-space:nowrap;">' + (m.rev > 0 ? rptMoney(m.rev) : '') + '</div>' +
       '<div style="width:100%;border-radius:3px 3px 0 0;height:' + pct + '%;background:' + col + ';min-height:2px;"></div>' +
-      '<div style="font-size:9px;color:var(--text3);">' + m.label + '</div></div>';
+      '<div style="font-size:8.5px;color:var(--text3);">' + m.label + '</div></div>';
   }).join('');
 
-  var types = getJobTypes(true);
-  var typeData = types.map(t => ({
-    t: t.id, label: t.label,
-    cnt: pJobs.filter(j => j.serviceType===t.id).length,
-    rev: pJobs.filter(j => j.serviceType===t.id).reduce((s,j) => s+(parseFloat(j.cost)||0),0)
-  })).filter(d => d.cnt>0).sort((a,b) => b.rev-a.rev);
-  var maxCnt = Math.max(...typeData.map(d => d.cnt),1);
-  var typEl = document.getElementById('report-type-breakdown');
-  typEl.innerHTML = typeData.length ? typeData.map(d => '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">' +
-    '<div style="flex:1;"><div style="font-size:12px;font-weight:600;">' + esc(d.label || d.t) + '</div>' +
-    '<div style="height:3px;background:var(--border);border-radius:2px;overflow:hidden;"><div style="height:100%;width:' + (d.cnt/maxCnt*100) + '%;background:var(--primary);border-radius:2px;"></div></div></div>' +
-    '<div style="font-size:12px;font-weight:700;color:var(--success);">' + (d.rev>=10000?(d.rev/1000).toFixed(1)+'k':d.rev.toLocaleString()) + ' ฿</div></div>').join('') : '<div style="color:var(--text3);text-align:center;padding:8px;">ยังไม่มีข้อมูล</div>';
-
-  var custMap = {};
-  for (var j of pJobs) {
-    if (!custMap[j.customerPhone]) custMap[j.customerPhone] = {cnt:0,rev:0};
-    custMap[j.customerPhone].cnt++;
-    custMap[j.customerPhone].rev += parseFloat(j.cost)||0;
+  // ---- สถานะงานในช่วง ----
+  document.getElementById('rpt-status-title').textContent = 'สถานะงาน · ' + word;
+  var stOrder = ['done', 'pending', 'followup', 'unpaid'];
+  var stCols = { done: 'var(--success)', pending: '#FFA000', followup: '#7C3AED', unpaid: 'var(--danger)' };
+  var stEl = document.getElementById('report-status-breakdown');
+  if (pJobs.length === 0) {
+    stEl.innerHTML = '<div style="grid-column:1/-1;color:var(--text3);text-align:center;padding:8px;font-size:12px;">ยังไม่มีงานในช่วงนี้</div>';
+  } else {
+    stEl.innerHTML = stOrder.map(s => {
+      var list = pJobs.filter(j => (j.status || 'done') === s);
+      var sum = list.reduce((a, j) => a + (parseFloat(j.cost) || 0), 0);
+      return '<div class="rpt-statusbox" style="border-left:3px solid ' + stCols[s] + ';">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:11.5px;color:var(--text2);">' + RPT_STATUS_TEXT[s] + '</span><span style="font-size:14px;font-weight:800;color:' + stCols[s] + ';">' + list.length + '</span></div>' +
+        (sum > 0 ? '<div style="font-size:11px;color:var(--text2);margin-top:1px;">' + rptMoney(sum) + ' ฿</div>' : '') + '</div>';
+    }).join('');
   }
-  var top5 = Object.entries(custMap).sort((a,b) => b[1].rev-a[1].rev).slice(0,5);
+
+  // ---- รอเก็บเงิน (ทุกช่วง — ยอดค้างจริงที่ยังต้องไปเก็บ) ----
+  var cntBadge = document.getElementById('rpt-unpaid-cnt');
+  var upEl = document.getElementById('report-unpaid-list');
+  if (unpaidAll.length === 0) {
+    cntBadge.style.display = 'none';
+    upEl.innerHTML = '<div style="color:var(--text3);text-align:center;padding:10px 0;font-size:12px;"><i class="fas fa-circle-check" style="color:var(--success);"></i> ไม่มียอดค้างชำระ เก็บเงินครบทุกงาน</div>';
+  } else {
+    cntBadge.style.display = '';
+    cntBadge.textContent = unpaidAll.length + ' รายการ';
+    var upSorted = unpaidAll.slice().sort((a, b) => (b.serviceDate || '').localeCompare(a.serviceDate || ''));
+    upEl.innerHTML = upSorted.map(j => {
+      var c = DB.customers.find(c => c.phone === j.customerPhone);
+      return '<div class="rpt-row" style="cursor:pointer;" onclick="showCustomerDetail(\'' + escAttr(j.customerPhone) + '\')">' +
+        '<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;">' + esc(c ? (c.name || j.customerPhone) : j.customerPhone) + '</div>' +
+        '<div style="font-size:11px;color:var(--text3);">' + esc(typeLabel(j.serviceType)) + ' · ' + formatDate(j.serviceDate) + '</div></div>' +
+        '<div style="text-align:right;flex-shrink:0;"><div style="font-weight:700;color:var(--danger);font-size:13.5px;">' + (parseFloat(j.cost) || 0).toLocaleString() + ' ฿</div>' +
+        (j.deviceInfo ? '<div style="font-size:10px;color:var(--text3);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(j.deviceInfo) + '</div>' : '') + '</div></div>';
+    }).join('') +
+      '<div class="rpt-row" style="border-top:1.5px solid var(--border);padding-top:8px;"><span style="flex:1;font-size:12.5px;font-weight:600;">รวมทั้งหมด</span><span style="font-weight:800;color:var(--danger);font-size:14px;">' + Math.round(unpaidSum).toLocaleString() + ' ฿</span></div>';
+  }
+
+  // ---- แท็บประเภทงาน ----
+  document.getElementById('rpt-types-title').textContent = 'รายได้ตามประเภทงาน · ' + word;
+  var _knownTypes = getJobTypes(true);
+  var typeData = _knownTypes.map(t => {
+    var list = pJobs.filter(j => j.serviceType === t.id);
+    return {
+      label: t.label, id: t.id,
+      cnt: list.length,
+      rev: list.filter(isDone).reduce((s, j) => s + (parseFloat(j.cost) || 0), 0),
+      owe: list.filter(j => (j.status || '') === 'unpaid').reduce((s, j) => s + (parseFloat(j.cost) || 0), 0)
+    };
+  }).filter(d => d.cnt > 0);
+  // งานที่ประเภทถูกลบ/ไม่มีในระบบแล้ว รวมเป็นหมวด "ไม่ระบุประเภท" ไม่ให้หายจากรายงาน
+  var _unknownJobs = pJobs.filter(j => !_knownTypes.some(t => t.id === j.serviceType));
+  if (_unknownJobs.length) typeData.push({
+    label: 'ไม่ระบุประเภท', id: '_none',
+    cnt: _unknownJobs.length,
+    rev: _unknownJobs.filter(isDone).reduce((s, j) => s + (parseFloat(j.cost) || 0), 0),
+    owe: _unknownJobs.filter(j => (j.status || '') === 'unpaid').reduce((s, j) => s + (parseFloat(j.cost) || 0), 0)
+  });
+  typeData.sort((a, b) => b.rev - a.rev);
+  var typEl = document.getElementById('report-type-breakdown');
+  if (typeData.length === 0) {
+    typEl.innerHTML = '<div style="color:var(--text3);text-align:center;padding:10px 0;font-size:12px;">ยังไม่มีข้อมูลงานในช่วงนี้</div>';
+  } else {
+    var maxTypeRev = Math.max(...typeData.map(d => d.rev), 1);
+    typEl.innerHTML = typeData.map(d =>
+      '<div style="padding:8px 0;border-bottom:1px solid var(--border);">' +
+      '<div style="display:flex;align-items:baseline;gap:8px;"><span style="flex:1;font-size:13px;font-weight:600;">' + esc(d.label) + '</span>' +
+      '<span style="font-size:11px;color:var(--text3);flex-shrink:0;">' + d.cnt + ' งาน</span>' +
+      '<span style="font-size:13px;font-weight:700;color:var(--success);min-width:64px;text-align:right;">' + rptMoney(d.rev) + ' ฿</span></div>' +
+      '<div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:5px;"><div style="height:100%;width:' + Math.round(d.rev / maxTypeRev * 100) + '%;background:var(--primary);border-radius:2px;"></div></div>' +
+      (d.owe > 0 ? '<div style="font-size:10.5px;color:var(--danger);margin-top:3px;">รอเก็บ ' + rptMoney(d.owe) + ' ฿</div>' : '') +
+      '</div>').join('');
+  }
+
+  // ---- แท็บลูกค้า: ยอดสูงสุด ----
+  document.getElementById('rpt-top-title').textContent = 'ลูกค้ายอดสูงสุด · ' + word;
+  var custMap = {};
+  for (var j2 of pJobs) {
+    if (!custMap[j2.customerPhone]) custMap[j2.customerPhone] = { cnt: 0, rev: 0, last: '' };
+    custMap[j2.customerPhone].cnt++;
+    custMap[j2.customerPhone].rev += parseFloat(j2.cost) || 0;
+    if (j2.serviceDate > custMap[j2.customerPhone].last) custMap[j2.customerPhone].last = j2.serviceDate;
+  }
+  var topList = Object.entries(custMap).sort((a, b) => b[1].rev - a[1].rev).slice(0, 10);
   var topEl = document.getElementById('report-top-list');
-  topEl.innerHTML = top5.length ? top5.map(([phone,d],i) => {
+  topEl.innerHTML = topList.length ? topList.map(([phone, d], i) => {
     var c = DB.customers.find(c => c.phone === phone);
-    var medal = ['🥇','🥈','🥉'][i] || (i+1);
-    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="showCustomerDetail(\'' + escAttr(phone) + '\')">' +
-      '<span style="font-size:14px;">' + medal + '</span>' +
-      '<span style="flex:1;font-weight:600;font-size:13px;">' + esc(c?.name||phone) + '</span>' +
-      '<span style="font-size:12px;color:var(--text3);">' + d.cnt + ' งาน</span>' +
-      '<span style="font-size:13px;font-weight:700;color:var(--success);">' + (d.rev>=10000?(d.rev/1000).toFixed(1)+'k':d.rev.toLocaleString()) + ' ฿</span></div>';
-  }).join('') : '<div style="color:var(--text3);text-align:center;padding:8px;">ยังไม่มีข้อมูล</div>';
+    var medal = ['🥇', '🥈', '🥉'][i] || (i + 1);
+    return '<div class="rpt-row" style="cursor:pointer;" onclick="showCustomerDetail(\'' + escAttr(phone) + '\')">' +
+      '<span style="font-size:14px;width:22px;text-align:center;flex-shrink:0;">' + medal + '</span>' +
+      '<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:13px;">' + esc(c ? (c.name || phone) : phone) + '</div>' +
+      '<div style="font-size:11px;color:var(--text3);">' + d.cnt + ' งาน · ล่าสุด ' + formatDate(d.last) + '</div></div>' +
+      '<span style="font-size:13px;font-weight:700;color:var(--success);flex-shrink:0;">' + rptMoney(d.rev) + ' ฿</span></div>';
+  }).join('') : '<div style="color:var(--text3);text-align:center;padding:10px 0;font-size:12px;">ยังไม่มีข้อมูลลูกค้าในช่วงนี้</div>';
+
+  // ---- แท็บลูกค้า: ลูกค้าใหม่ (งานแรกสุดของลูกค้าอยู่ในช่วงที่เลือก) ----
+  document.getElementById('rpt-newcust-title').textContent = 'ลูกค้าใหม่ · ' + word;
+  var firstJob = {};
+  for (var j3 of DB.jobs) {
+    if (!j3.serviceDate) continue;
+    if (!firstJob[j3.customerPhone] || j3.serviceDate < firstJob[j3.customerPhone]) firstJob[j3.customerPhone] = j3.serviceDate;
+  }
+  var newCusts = Object.entries(firstJob).filter(([ph, d]) => d >= range.start && d <= range.end).sort((a, b) => b[1].localeCompare(a[1]));
+  var ncEl = document.getElementById('report-newcust-list');
+  var ncCard = document.getElementById('rpt-newcust-card');
+  if (newCusts.length === 0) {
+    ncCard.style.display = 'none';
+    ncEl.innerHTML = '';
+  } else {
+    ncCard.style.display = '';
+    ncEl.innerHTML = newCusts.map(([ph, d]) => {
+      var c = DB.customers.find(c => c.phone === ph);
+      return '<div class="rpt-row" style="cursor:pointer;" onclick="showCustomerDetail(\'' + escAttr(ph) + '\')">' +
+        '<div class="stat-icon" style="background:var(--primary-bg);color:var(--primary);flex-shrink:0;"><i class="fas fa-user-plus"></i></div>' +
+        '<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:13px;">' + esc(c ? (c.name || ph) : ph) + '</div></div>' +
+        '<span style="font-size:11.5px;color:var(--text3);flex-shrink:0;">' + formatDate(d) + '</span></div>';
+    }).join('');
+  }
+}
+
+// ส่งสรุปรายงานของช่วงที่เลือกทาง LINE (ข้อความ)
+function shareReportLine() {
+  var cfg = loadConfig();
+  var range = rptRange(RPT_PERIOD);
+  var word = RPT_PERIOD_WORD[RPT_PERIOD] || '';
+  var pJobs = rptJobsIn(range);
+  var isDone = j => (j.status || 'done') === 'done';
+  var revDone = pJobs.filter(isDone).reduce((s, j) => s + (parseFloat(j.cost) || 0), 0);
+  var unpaidAll = DB.jobs.filter(j => (j.status || '') === 'unpaid');
+  var unpaidSum = unpaidAll.reduce((s, j) => s + (parseFloat(j.cost) || 0), 0);
+  var stuck = pJobs.filter(j => j.status === 'pending' || j.status === 'followup').length;
+  var sep = '─'.repeat(24);
+  var lines = [];
+  lines.push('📊 สรุปรายงาน' + (RPT_PERIOD === 'all' ? ' (ทั้งหมด)' : ' ' + word));
+  lines.push('🏠 ' + (cfg.shopName || 'FixPro'));
+  lines.push(sep);
+  lines.push('💵 รายได้เก็บแล้ว: ' + Math.round(revDone).toLocaleString() + ' บาท');
+  lines.push('🔧 งานทั้งหมด: ' + pJobs.length + ' งาน');
+  if (unpaidAll.length) lines.push('⚠️ รอเก็บเงิน: ' + unpaidAll.length + ' รายการ รวม ' + Math.round(unpaidSum).toLocaleString() + ' บาท');
+  if (stuck) lines.push('⏳ งานค้าง (รอทำ/ติดตาม): ' + stuck + ' งาน');
+  lines.push(sep);
+  if (RPT_PERIOD !== 'all') lines.push('📅 ช่วง: ' + formatDate(range.start) + ' - ' + formatDate(range.end));
+  lines.push('สร้างจากแอป FixPro');
+  window.open('https://line.me/R/msg/text/?' + encodeURIComponent(lines.join('\n')), '_blank');
+  toast('เปิด LINE แล้ว', 'success');
 }
 
 // ============================================================

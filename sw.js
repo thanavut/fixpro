@@ -1,5 +1,5 @@
 /* FixPro Service Worker — แคชไฟล์แอปไว้ใช้งานตอนออฟไลน์ */
-var CACHE = 'fixpro-v29';
+var CACHE = 'fixpro-v30';
 var CORE = [
   './',
   './index.html',
