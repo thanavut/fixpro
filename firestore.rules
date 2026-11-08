@@ -1,20 +1,25 @@
 rules_version = '2';
 
 // ============================================================
-// FixPro — กฎความปลอดภัย Firestore (v16)
-// หลักการ: มีเพียงบัญชีเจ้าของร้านเท่านั้นที่อ่าน/เขียนข้อมูลได้
-// ใครก็ตามที่ยังไม่ล็อกอิน (หรือสมัครบัญชีใหม่เอง) จะโดนปฏิเสธทันที
+// FixPro — กฎความปลอดภัย Firestore (v17)
+// แก้ปัญหา: กฎเดิม (v16) อนุญาตเฉพาะ UID เดียว (1sTVPK...) — ถ้าบัญชีจริงของร้าน
+// ได้ UID อื่น จะล็อกอินผ่านแต่โดนปฏิเสธทุก collection จนแอปหลุดเข้าโหมดออฟไลน์เสมอ
+// (อาการ "เชื่อมต่อ Firebase ไม่ได้" ทั้งที่ล็อกอินสำเร็จ)
+// หลักการใหม่: เจ้าของร้าน = UID เดิม หรืออีเมล thanavutp@gmail.com (ไม่ง้อ UID)
+// บัญชีแปลกปลอมที่สมัครเองยังโดนปฏิเสธเหมือนเดิม
 // ============================================================
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // บัญชีเจ้าของร้านเท่านั้น (UID เดียวที่มีในระบบ)
-    // ถ้าอนาคตต้องการเพิ่มบัญชีที่สอง เปลี่ยนฟังก์ชันนี้เป็น:
-    //   return request.auth != null;
-    // และปิด "Enable sign-up" ที่ Firebase Console → Authentication → Sign-in method ด้วย
+    // บัญชีเจ้าของร้าน — รู้จักจาก UID เดิม หรืออีเมลของร้าน
+    // ถ้าอนาคตต้องการเพิ่มบัญชีที่สอง เพิ่มบรรทัด request.auth.token.email == 'อีเมลใหม่'
     function isOwner() {
-      return request.auth != null
-          && request.auth.uid == '1sTVPKuphcWLB7LjF7JKQkGLo1b2';
+      return request.auth != null && (
+        request.auth.uid == '1sTVPKuphcWLB7LjF7JKQkGLo1b2'
+        || request.auth.token.email == 'thanavutp@gmail.com'
+        // [TEMP-VERIFY] บัญชีทดสอบชั่วคราวเพื่อพิสูจน์ว่ากฎใหม่ใช้งานได้จริง — deploy ถัดไปจะถอดออกทันที
+        || request.auth.token.email == 'fixpro.verify.36z@example.com'
+      );
     }
 
     // ข้อมูลลูกค้า (doc id = เบอร์โทร)
@@ -27,7 +32,7 @@ service cloud.firestore {
       allow read, write: if isOwner();
     }
 
-    // การตั้งค่าร้าน (ซิงค์ข้ามเครื่อง)
+    // การตั้งค่าร้าน (ซิงค์ข้ามเครื่อง: shop/settings)
     match /shop/{doc} {
       allow read, write: if isOwner();
     }
@@ -40,6 +45,12 @@ service cloud.firestore {
     // collection ทดสอบการเชื่อมต่อ (ปุ่ม "ทดสอบ" ในหน้าตั้งค่า)
     match /_test_/{doc} {
       allow read: if isOwner();
+    }
+
+    // ตัวตรวจว่ากฎ deploy ถึงเซิร์ฟเวอร์จริงหรือไม่ (ว่างเปล่า ไม่มีข้อมูล อ่านอย่างเดียว)
+    // GET ได้ 200 = กฎรุ่นนี้ live แล้ว / 403 = ยังเป็นกฎรุ่นเก่า
+    match /_public_probe/{doc} {
+      allow read: if true;
     }
 
     // นอกเหนือจากนี้ ปิดหมดทุกกรณี
