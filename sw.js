@@ -1,5 +1,5 @@
 /* FixPro Service Worker — แคชไฟล์แอปไว้ใช้งานตอนออฟไลน์ */
-var CACHE = 'fixpro-v35';
+var CACHE = 'fixpro-v36';
 var CORE = [
   './',
   './index.html',
@@ -7,6 +7,10 @@ var CORE = [
   './icons/icon-192.png',
   './icons/icon-180.png',
   './icons/icon-512.png',
+  // Firebase SDK เก็บในแอปเอง (โฟลเดอร์ /firebase) — ล็อกอินได้แม้เน็ตกระตุก/ออฟไลน์ ไม่พึ่ง gstatic อีกต่อไป
+  './firebase/firebase-app-compat.js',
+  './firebase/firebase-auth-compat.js',
+  './firebase/firebase-firestore-compat.js',
   './assets/fontawesome/css/all.min.css',
   './assets/fontawesome/webfonts/fa-solid-900.woff2',
   './assets/fontawesome/webfonts/fa-solid-900.ttf',
@@ -21,19 +25,19 @@ var CDN = [
   'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js',
-  'https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400&display=swap',
-  // Firebase SDK — เก็บลงแคชตั้งแต่ติดตั้ง SW เพื่อให้หน้าเข้าสู่ระบบใช้งานได้แม้เน็ตไม่เสถียร/ออฟไลน์
-  // (เดิมแคชตอนใช้งานเท่านั้น ถ้าอัปเดตแอปตอนเน็ตกำลังกระตุก SDK จะไม่เคยลงแคช หน้าล็อกอินจึงพัง)
-  'https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js',
-  'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js',
-  'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js'
+  'https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400&display=swap'
 ];
 
 self.addEventListener('install', function (e) {
   e.waitUntil(
     caches.open(CACHE)
-      .then(function (c) { return c.addAll(CORE.concat(CDN)); })
-      .catch(function (err) { console.warn('SW pre-cache บางรายการไม่สำเร็จ:', err); })
+      // เก็บทีละไฟล์ — ห้ามใช้ addAll เด็ดขาด เพราะ addAll จะล้มทั้งชุดถ้าเส้นใดเส้นหนึ่งพลาด
+      // (เคยทำให้ SDK ล็อกอินไม่เคยลงแคชเลย หน้าเข้าสู่ระบบจึงโหลดระบบไม่เคยสำเร็จ)
+      .then(function (c) {
+        return Promise.all(CORE.concat(CDN).map(function (u) {
+          return c.add(u).catch(function (err) { console.warn('SW pre-cache ข้ามรายการ:', u, err && err.message); });
+        }));
+      })
       .then(function () { return self.skipWaiting(); })
   );
 });

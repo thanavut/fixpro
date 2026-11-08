@@ -16,12 +16,16 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/fontawesome/css/all.min.css">
+<!-- ระบบล็อกอิน (Firebase SDK) ต้องโหลดก่อนใครเสมอ — เก็บไฟล์ไว้ในแอปเอง (โฟลเดอร์ /firebase) ไม่พึ่งเซิร์ฟเวอร์ภายนอก
+     สาเหตุที่แก้: เดิม SDK มาจาก gstatic และถูกวางหลังไลบรารี Excel/PDF (~1.4MB) ทำให้ script แบบ defer รอ execute ตามคิว
+     ถ้าเน็ตช้าสักหน่อยโค้ดล็อกอินมาไม่ทันในเวลาที่กำหนด แอปจึงฟ้อง "อินเทอร์เน็ตไม่เสถียร" ทั้งที่เน็ตปกติ -->
+<script defer src="firebase/firebase-app-compat.js"></script>
+<script defer src="firebase/firebase-auth-compat.js"></script>
+<script defer src="firebase/firebase-firestore-compat.js"></script>
+<!-- ไลบรารี Excel/PDF ใช้ตอนส่งออกไฟล์เท่านั้น ไม่เกี่ยวกับการล็อกอิน ให้โหลดตามหลังได้ -->
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" integrity="sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw" crossorigin="anonymous"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk" crossorigin="anonymous"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" integrity="sha384-fCAW/rDWORTbQXSiB7mOg0QtQ5c+r0f544y6XoKjuVva0nMBlCpNUjiFeG5iMdS3" crossorigin="anonymous"></script>
-<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" integrity="sha384-AQ3POAMqIhwS81FrUH95ekxqBZHeP5tG2JfEL3+7GuTtfRLWnrRh32UxwzM+//A9" crossorigin="anonymous"></script>
-<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js" integrity="sha384-qn4Jh88HhJA8dplNQyGjOh9OGI4izVhrfj/qIFgaKcdgOE06pXqIKGlsCILZcLAC" crossorigin="anonymous"></script>
-<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js" integrity="sha384-TnlRYaR4JYz/lpaGuaiU61PjNberSA4vjLjtF+oRC/IkohkJqnWxw5EmDSOt1vA1" crossorigin="anonymous"></script>
 <style>
 /* ===== EBED Design Tokens ===== */
 :root {
@@ -2335,7 +2339,7 @@ var _selfBackAt = 0;        // เวลาที่เราเรียก his
 var _exitShownAt = 0;       // เวลาที่เปิดหน้าต่างยืนยันปิดแอป
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
-var APP_VERSION = 'v35';
+var APP_VERSION = 'v36';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -3443,8 +3447,8 @@ function showForgotPassword() {
   var email = emailEl.value.trim();
   if (!email) { toast('กรอกอีเมลก่อน แล้วกด "ลืมรหัสผ่าน?" อีกครั้ง', 'warning'); emailEl.focus(); return; }
   toast('กำลังส่งลิงก์รีเซ็ตรหัสผ่าน...', 'info');
-  waitForFirebase(4000).then(function(ready) {
-    if (!ready) { clearSendingToasts(); toast('โหลดระบบล็อกอินไม่สำเร็จ — อินเทอร์เน็ตอาจไม่เสถียร ปิดแอปแล้วเปิดใหม่ (หรือเชื่อม Wi-Fi ที่เสถียรกว่า) แล้วลองอีกครั้ง', 'error'); return; }
+  waitForFirebase(15000).then(function(ready) {
+    if (!ready) { clearSendingToasts(); toast('ระบบล็อกอินยังโหลดไม่เสร็จ (เน็ตช้า) — รอสักครู่แล้วกด "ลืมรหัสผ่าน?" อีกครั้งได้เลย ไม่ต้องปิดแอป', 'error'); return; }
     firebase.auth().sendPasswordResetEmail(email)
       .then(function() {
         clearSendingToasts();
@@ -3465,10 +3469,11 @@ function clearSendingToasts() {
   var olds = document.querySelectorAll('#toast-container .toast');
   olds.forEach(function(t){ if (t.textContent.indexOf('กำลังส่ง') >= 0) t.remove(); });
 }
-// รอ Firebase SDK โหลดเสร็จ — กันกดปุ่มตอนสคริปต์จาก CDN ยังไม่มา/โหลดพังจากเน็ตไม่เสถียร
+// รอ Firebase SDK โหลดเสร็จ — SDK ตอนนี้เก็บในแอปเอง + SW แคชไว้ จะโหลดเร็วและใช้ได้แม้ออฟไลน์
+// สำรองไว้กันเหนียว: ถ้ายังไม่พร้อมให้รอสูงสุด 15 วิ (เดิม 4 วิ สั้นเกินไปสำหรับเน็ตมือถือ)
 function waitForFirebase(timeoutMs) {
   return new Promise(function(resolve) {
-    var deadline = Date.now() + (timeoutMs || 4000);
+    var deadline = Date.now() + (timeoutMs || 15000);
     (function check() {
       if (typeof firebase !== 'undefined' && typeof firebase.auth === 'function' && typeof firebase.initializeApp === 'function') return resolve(true);
       if (Date.now() >= deadline) return resolve(false);
@@ -3480,10 +3485,21 @@ async function doLogin() {
   var email = document.getElementById('login-email').value.trim();
   var pass = document.getElementById('login-password').value;
   if (!email || !pass) { toast('กรุณากรอกอีเมลและรหัสผ่าน', 'error'); return; }
-  if (!(await waitForFirebase(4000))) {
-    toast('โหลดระบบเข้าสู่ระบบไม่สำเร็จ — อินเทอร์เน็ตอาจไม่เสถียร ปิดแอปแล้วเปิดใหม่ (หรือเชื่อม Wi-Fi) แล้วลองอีกครั้ง', 'error');
+  // แสดงสถานะบนปุ่มระหว่างรอระบบพร้อม (เดิมไม่มี feedback ผู้ใช้นึกว่าแอปค้าง)
+  var loginBtn = document.querySelector('#login-form .btn-primary');
+  var oldBtnHtml = loginBtn ? loginBtn.innerHTML : '';
+  function setBtnLoading(on, txt) {
+    if (!loginBtn) return;
+    loginBtn.disabled = on;
+    loginBtn.style.opacity = on ? '.7' : '';
+    loginBtn.innerHTML = on ? '<i class="fas fa-spinner fa-spin"></i> ' + txt : oldBtnHtml;
+  }
+  if (!(await (function(){ var p = waitForFirebase(15000).then(function(r){ return r; }); setBtnLoading(true, 'กำลังโหลดระบบ...'); return p; })())) {
+    setBtnLoading(false);
+    toast('ระบบล็อกอินยังโหลดไม่เสร็จ (เน็ตช้า) — รอสักครู่แล้วกด "เข้าสู่ระบบ" อีกครั้งได้เลย ไม่ต้องปิดแอป', 'error');
     return;
   }
+  setBtnLoading(true, 'กำลังเข้าสู่ระบบ...');
   try {
     await firebase.auth().setPersistence(
       document.getElementById('remember-me').checked
@@ -3492,13 +3508,16 @@ async function doLogin() {
     );
     await firebase.auth().signInWithEmailAndPassword(email, pass);
   } catch(e) {
+    setBtnLoading(false);
     var code = e && e.code ? e.code : '';
     if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') toast('อีเมลหรือรหัสผ่านไม่ถูกต้อง — ตรวจอีกครั้ง หรือกด "ลืมรหัสผ่าน?"', 'error');
     else if (code === 'auth/too-many-requests') toast('พยายามหลายครั้งเกินไป รอสักครู่แล้วลองใหม่', 'warning');
     else if (code === 'auth/network-request-failed') toast('เน็ตไม่เสถียร — เช็คอินเทอร์เน็ตแล้วลองใหม่', 'error');
     else if (code === 'auth/invalid-email') toast('รูปแบบอีเมลไม่ถูกต้อง', 'error');
+    else if (code === 'auth/operation-not-allowed') toast('ยังไม่ได้เปิดใช้งานอีเมล/รหัสผ่านใน Firebase Console ของร้าน', 'error');
     else toast('เข้าสู่ระบบล้มเหลว: ' + (e && e.message ? e.message : 'ไม่ทราบสาเหตุ'), 'error');
   }
+  setBtnLoading(false);
 }
 async function doRegister() {
   var name = document.getElementById('reg-name').value.trim();
@@ -3786,9 +3805,9 @@ document.addEventListener('DOMContentLoaded', function() {
       initFirebaseAuth();
     });
   } else {
-    // โหลด Firebase SDK ไม่สำเร็จ (เน็ตไม่เสถียร) → เข้าโหมดในเครื่อง พร้อมแจ้งสาเหตุให้ผู้ใช้ทราบชัดเจน
+    // โหลด Firebase SDK ไม่สำเร็จ (เกิดได้ยากมากเพราะ SDK เก็บในแอปเอง) → เข้าโหมดในเครื่อง พร้อมแจ้งสาเหตุให้ผู้ใช้ทราบชัดเจน
     enterLocalMode(true);
-    toast('⚠️ โหลดระบบล็อกอินไม่สำเร็จ (เน็ตไม่เสถียร) — เข้าโหมดใช้งานในเครื่องชั่วคราว เมื่อเน็ตปกติแล้วปิด-เปิดแอปใหม่เพื่อเข้าสู่ระบบ', 'warning');
+    toast('⚠️ ระบบล็อกอินโหลดไม่เสร็จ — เข้าโหมดใช้งานในเครื่องชั่วคราว ปิด-เปิดแอปใหม่เพื่อล็อกอินเมื่อพร้อม', 'warning');
   }
   // PWA service worker — แคชไฟล์แอปไว้ใช้ตอนออฟไลน์
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
