@@ -1506,12 +1506,19 @@ function lsSaveJobs(arr) { localStorage.setItem(LS_JOBS, JSON.stringify(arr)); }
 var db = null;
 async function initFirebase(cfg) {
   try {
-    if (firebase.apps.length > 0) firebase.apps.forEach(a => a.delete());
-    firebase.initializeApp({
-      apiKey: cfg.apiKey, authDomain: cfg.authDomain,
-      projectId: cfg.projectId, storageBucket: cfg.storageBucket,
-      messagingSenderId: cfg.messagingSenderId, appId: cfg.appId
-    });
+    if (typeof firebase === 'undefined' || typeof firebase.initializeApp !== 'function') return false;
+    // v37 แก้บั๊กร้ายแรง: เดิมถ้ามี app อยู่แล้วจะสั่ง delete ทิ้งแล้วสร้างใหม่ทันที
+    // delete เป็นงาน async ที่ไม่ได้รอ ผลคือ app เดิมถูกลบจนหมด แต่การสร้างใหม่กลายเป็นขั้นตอนที่ไม่จำเป็น
+    // บั๊กนี้ถูกกระตุ้นทุกครั้งที่เครื่องมี session เดิมค้าง (onAuthStateChanged เรียก initFirebase ซ้ำ)
+    // ทำให้ firebase.auth() พังทั้งแอปด้วย error "No Firebase App '[DEFAULT]' has been created"
+    // วิธีใหม่: มี app อยู่แล้ว = ใช้ตัวเดิมเลย ไม่ลบไม่สร้างซ้ำ (ถ้าถูกลบจนหมดจะสร้างใหม่ให้เอง = รักษาตัวเองได้)
+    if (firebase.apps.length === 0) {
+      firebase.initializeApp({
+        apiKey: cfg.apiKey, authDomain: cfg.authDomain,
+        projectId: cfg.projectId, storageBucket: cfg.storageBucket,
+        messagingSenderId: cfg.messagingSenderId, appId: cfg.appId
+      });
+    }
     db = firebase.firestore();
     return true;
   } catch(e) { console.error('Firebase init error:', e); return false; }
@@ -2339,7 +2346,7 @@ var _selfBackAt = 0;        // เวลาที่เราเรียก his
 var _exitShownAt = 0;       // เวลาที่เปิดหน้าต่างยืนยันปิดแอป
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
-var APP_VERSION = 'v36';
+var APP_VERSION = 'v37';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -3447,7 +3454,7 @@ function showForgotPassword() {
   var email = emailEl.value.trim();
   if (!email) { toast('กรอกอีเมลก่อน แล้วกด "ลืมรหัสผ่าน?" อีกครั้ง', 'warning'); emailEl.focus(); return; }
   toast('กำลังส่งลิงก์รีเซ็ตรหัสผ่าน...', 'info');
-  waitForFirebase(15000).then(function(ready) {
+  ensureFirebaseReady(15000).then(function(ready) {
     if (!ready) { clearSendingToasts(); toast('ระบบล็อกอินยังโหลดไม่เสร็จ (เน็ตช้า) — รอสักครู่แล้วกด "ลืมรหัสผ่าน?" อีกครั้งได้เลย ไม่ต้องปิดแอป', 'error'); return; }
     firebase.auth().sendPasswordResetEmail(email)
       .then(function() {
@@ -3481,6 +3488,19 @@ function waitForFirebase(timeoutMs) {
     })();
   });
 }
+// v37: รอ SDK + การันตีว่า Firebase app ถูก initialize แล้วจริง ๆ
+// เดิม waitForFirebase เช็คแค่ว่า SDK โหลดมาแล้ว แต่ถ้าขั้น initializeApp พลาด/ถูกข้ามตอนเปิดแอป
+// กดเข้าสู่ระบบจะเจอ "No Firebase App '[DEFAULT]'" — ตอนนี้ถ้ายังไม่มี app จะสร้างให้เองทันทีตรงนี้
+// ทุกจุดที่แตะระบบล็อกอิน (เข้าสู่ระบบ/ลืมรหัสผ่าน/ลงทะเบียน) ใช้ตัวนี้เป็นประตูกลางเสมอ
+function ensureFirebaseReady(timeoutMs) {
+  return waitForFirebase(timeoutMs).then(function(ready) {
+    if (!ready) return false;
+    try { firebase.app(); return true; } catch (e) { /* ยังไม่มี app → สร้างให้เองด้านล่าง */ }
+    var cfg = loadConfig();
+    if (!cfg.apiKey || !cfg.projectId) cfg = DEFAULT_FIREBASE_CONFIG;
+    return initFirebase(cfg);
+  });
+}
 async function doLogin() {
   var email = document.getElementById('login-email').value.trim();
   var pass = document.getElementById('login-password').value;
@@ -3494,7 +3514,7 @@ async function doLogin() {
     loginBtn.style.opacity = on ? '.7' : '';
     loginBtn.innerHTML = on ? '<i class="fas fa-spinner fa-spin"></i> ' + txt : oldBtnHtml;
   }
-  if (!(await (function(){ var p = waitForFirebase(15000).then(function(r){ return r; }); setBtnLoading(true, 'กำลังโหลดระบบ...'); return p; })())) {
+  if (!(await (function(){ var p = ensureFirebaseReady(15000).then(function(r){ return r; }); setBtnLoading(true, 'กำลังโหลดระบบ...'); return p; })())) {
     setBtnLoading(false);
     toast('ระบบล็อกอินยังโหลดไม่เสร็จ (เน็ตช้า) — รอสักครู่แล้วกด "เข้าสู่ระบบ" อีกครั้งได้เลย ไม่ต้องปิดแอป', 'error');
     return;
@@ -3528,6 +3548,7 @@ async function doRegister() {
     toast('กรุณากรอกข้อมูลให้ถูกต้อง', 'error');
     return;
   }
+  if (!(await ensureFirebaseReady(15000))) { toast('ระบบล็อกอินยังโหลดไม่เสร็จ (เน็ตช้า) — รอสักครู่แล้วลองอีกครั้ง', 'error'); return; }
   try {
     var cred = await firebase.auth().createUserWithEmailAndPassword(email, pass);
     await firebase.firestore().collection('users').doc(cred.user.uid).set({
@@ -3784,31 +3805,41 @@ async function purgeDemoData() {
 // INIT
 // ============================================================
 document.addEventListener('DOMContentLoaded', function() {
+  // v37: ต่อ Firebase ให้เสร็จเป็นอย่างแรก แล้วค่อยแต่งหน้าจอ —
+  // เดิมถ้าโค้ดแต่งหน้าจอด้านบนพัง (ธีม/viewport) จะลากให้ข้ามการ initializeApp ทั้งหมด
+  // ผู้ใช้เห็นหน้าล็อกอินปกติแต่กดแล้วเจอ "No Firebase App '[DEFAULT]'"
+  try {
+    var cfg = loadConfig();
+    if (!cfg.apiKey || !cfg.projectId) { cfg = DEFAULT_FIREBASE_CONFIG; saveConfig(cfg); } // ยังไม่เคยตั้งค่า → ใช้ config ร้านที่ฝังไว้
+    if (cfg.apiKey && cfg.projectId && typeof firebase !== 'undefined' && typeof firebase.initializeApp === 'function') {
+      initFirebase(cfg).then(function(ok) {
+        if (!ok) console.warn('⚠️ Firebase init failed');
+        initFirebaseAuth();
+      });
+    } else {
+      // โหลด Firebase SDK ไม่สำเร็จ (เกิดได้ยากมากเพราะ SDK เก็บในแอปเอง) → เข้าโหมดในเครื่อง พร้อมแจ้งสาเหตุให้ผู้ใช้ทราบชัดเจน
+      enterLocalMode(true);
+      toast('⚠️ ระบบล็อกอินโหลดไม่เสร็จ — เข้าโหมดใช้งานในเครื่องชั่วคราว ปิด-เปิดแอปใหม่เพื่อล็อกอินเมื่อพร้อม', 'warning');
+    }
+  } catch (eInit) {
+    console.error('ตั้งค่าระบบล็อกอินเริ่มต้นพลาด:', eInit);
+    try { initFirebaseAuth(); } catch (e2) { try { enterLocalMode(true); } catch (e3) {} }
+  }
   // ความสูง viewport จริง (ตัดแถบ URL ของเบราว์เซอร์ออก) — แก้เมนูล่างบังท้ายรายการบน Edge/Chrome Android
-  var vv = window.visualViewport;
-  if (vv) {
-    var setAppVH = function() { if (vv.scale <= 1.05) document.documentElement.style.setProperty('--app-vh', Math.round(vv.height) + 'px'); };
-    setAppVH();
-    vv.addEventListener('resize', setAppVH);
-  }
-  var theme = localStorage.getItem('fixpro_theme') || 'light';
-  document.documentElement.setAttribute('data-theme', theme);
-  if (theme === 'dark') {
-    document.getElementById('theme-icon').className = 'fas fa-sun';
-    document.getElementById('auth-theme-icon').className = 'fas fa-sun';
-  }
-  var cfg = loadConfig();
-  if (!cfg.apiKey || !cfg.projectId) { cfg = DEFAULT_FIREBASE_CONFIG; saveConfig(cfg); } // ยังไม่เคยตั้งค่า → ใช้ config ร้านที่ฝังไว้
-  if (cfg.apiKey && cfg.projectId && typeof firebase !== 'undefined' && typeof firebase.initializeApp === 'function') {
-    initFirebase(cfg).then(function(ok) {
-      if (!ok) console.warn('⚠️ Firebase init failed');
-      initFirebaseAuth();
-    });
-  } else {
-    // โหลด Firebase SDK ไม่สำเร็จ (เกิดได้ยากมากเพราะ SDK เก็บในแอปเอง) → เข้าโหมดในเครื่อง พร้อมแจ้งสาเหตุให้ผู้ใช้ทราบชัดเจน
-    enterLocalMode(true);
-    toast('⚠️ ระบบล็อกอินโหลดไม่เสร็จ — เข้าโหมดใช้งานในเครื่องชั่วคราว ปิด-เปิดแอปใหม่เพื่อล็อกอินเมื่อพร้อม', 'warning');
-  }
+  try {
+    var vv = window.visualViewport;
+    if (vv) {
+      var setAppVH = function() { if (vv.scale <= 1.05) document.documentElement.style.setProperty('--app-vh', Math.round(vv.height) + 'px'); };
+      setAppVH();
+      vv.addEventListener('resize', setAppVH);
+    }
+    var theme = localStorage.getItem('fixpro_theme') || 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+    if (theme === 'dark') {
+      document.getElementById('theme-icon').className = 'fas fa-sun';
+      document.getElementById('auth-theme-icon').className = 'fas fa-sun';
+    }
+  } catch (eUI) { console.warn('ตั้งค่าหน้าจอเริ่มต้นพลาด (ไม่กระทบการใช้งาน):', eUI); }
   // PWA service worker — แคชไฟล์แอปไว้ใช้ตอนออฟไลน์
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
     navigator.serviceWorker.register('sw.js').catch(function() {});
