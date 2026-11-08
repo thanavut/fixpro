@@ -986,6 +986,9 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
               <button class="btn btn-secondary btn-sm" title="ส่งออกไฟล์ Excel" onclick="exportExcel()"><i class="fas fa-file-excel"></i> Excel</button>
               <button class="btn btn-secondary btn-sm" title="ส่งออกไฟล์ PDF" onclick="exportPDFReport()"><i class="fas fa-file-pdf"></i> PDF</button>
             </div>
+            <div class="backup-row" style="margin-top:8px;">
+              <button class="btn btn-sm" style="background:#fff7e6;color:#8a5a00;border:1px solid #f0d9a8;" title="กู้คืนข้อมูลจากชุดสำรองฉุกเฉินที่ระบบเก็บอัตโนมัติก่อนซิงค์ล่าสุด (เก็บไว้ 3 ชุด)" onclick="restoreEmergencySnapshot()"><i class="fas fa-life-ring"></i> กู้คืนฉุกเฉิน (สำรองอัตโนมัติ)</button>
+            </div>
           </div>
         </div>
 
@@ -1501,6 +1504,42 @@ function lsGetJobs() { try { return JSON.parse(localStorage.getItem(LS_JOBS) || 
 function lsSaveJobs(arr) { localStorage.setItem(LS_JOBS, JSON.stringify(arr)); }
 
 // ============================================================
+// v38 — ป้องกันข้อมูลหายเงียบๆ (ต้นเหตุ "ลูกค้าหายคนหนึ่ง"):
+// เดิมตอนซิงค์คลาวด์สำเร็จ แอปจะเขียนทับข้อมูลในเครื่องด้วยคลาวด์ทั้งชุด โดยไม่รวมข้อมูลค้างและไม่มีสำเนาก่อนเขียนทับ
+// ลูกค้า/งานที่เซฟไว้ตอนระบบขัดข้อง (เขียนคลาวด์ไม่สำเร็จ อยู่แค่ในเครื่อง) จึงหายทันทีที่ล็อกอินกลับมาสำเร็จ
+// แก้ 3 ชั้น: (1) สำรองฉุกเฉินก่อนซิงค์ทุกครั้งเก็บ 3 ชุดล่าสุด (2) ผนวกข้อมูลค้างในเครื่องกลับเข้าระบบ+อัปคลาวด์ให้เอง
+// (3) tombstone — จดทะเบียนเบอร์ที่ผู้ใช้ลบเอง กันระบบกู้คืนดึงของที่ลบแล้วกลับมาโดยไม่ตั้งใจ
+// ============================================================
+var LS_TOMB = 'fixpro_deleted_phones';
+var LS_SNAP_C = 'fixpro_snap_customers';
+var LS_SNAP_J = 'fixpro_snap_jobs';
+function getTombstones() { try { return JSON.parse(localStorage.getItem(LS_TOMB) || '[]'); } catch(e) { return []; } }
+function addTombstone(phone) {
+  if (!phone) return;
+  var t = getTombstones();
+  if (t.indexOf(phone) >= 0) return;
+  t.push(phone);
+  try { localStorage.setItem(LS_TOMB, JSON.stringify(t)); } catch (e) {}
+  if (db) { db.collection('shop').doc('deleted_phones').set({ phones: t, updatedAt: new Date().toISOString() }).catch(function(){}); }
+}
+function snapshotBeforeSync() {
+  try {
+    var curC = localStorage.getItem(LS_CUSTOMERS);
+    var curJ = localStorage.getItem(LS_JOBS);
+    if (!curC && !curJ) return;
+    var snC, snJ;
+    try { snC = JSON.parse(localStorage.getItem(LS_SNAP_C) || '[]'); } catch (e) { snC = []; }
+    try { snJ = JSON.parse(localStorage.getItem(LS_SNAP_J) || '[]'); } catch (e) { snJ = []; }
+    var stamp = new Date().toISOString();
+    if (curC) { var arrC = JSON.parse(curC) || []; snC.unshift({ at: stamp, count: arrC.length, data: arrC }); }
+    if (curJ) { var arrJ = JSON.parse(curJ) || []; snJ.unshift({ at: stamp, count: arrJ.length, data: arrJ }); }
+    snC = snC.slice(0, 3); snJ = snJ.slice(0, 3); // เก็บ 3 ชุดล่าสุดพอ กันพื้นที่เครื่องบวมเกิน
+    localStorage.setItem(LS_SNAP_C, JSON.stringify(snC));
+    localStorage.setItem(LS_SNAP_J, JSON.stringify(snJ));
+  } catch (e) { console.warn('เก็บสำรองฉุกเฉินไม่สำเร็จ:', e); }
+}
+
+// ============================================================
 // FIREBASE
 // ============================================================
 var db = null;
@@ -1551,11 +1590,45 @@ async function loadAllData() {
   if (db) {
     try {
       var cSnap = await db.collection('customers').get();
-      DB.customers = cSnap.docs.map(function(d){ return Object.assign({}, d.data(), {phone: d.id}); });
+      var cloudC = cSnap.docs.map(function(d){ return Object.assign({}, d.data(), {phone: d.id}); });
       var jSnap = await db.collection('jobs').orderBy('serviceDate', 'desc').get();
-      DB.jobs = dedupeJobs(jSnap.docs.map(function(d){ return Object.assign({}, d.data(), {id: d.id}); }));
+      var cloudJ = jSnap.docs.map(function(d){ return Object.assign({}, d.data(), {id: d.id}); });
+      // v38: เก็บสำเนาฉุกเฉินของข้อมูลในเครื่องไว้ก่อนเขียนทับด้วยคลาวด์ทุกครั้ง
+      snapshotBeforeSync();
+      // v38: รวมรายการเบอร์ที่ผู้ใช้ลบเองแล้ว (tombstone) จากคลาวด์+เครื่อง กันกู้คืนสิ่งที่ลบโดยตั้งใจ
+      var tomb = getTombstones();
+      try {
+        var tDoc = await db.collection('shop').doc('deleted_phones').get();
+        var cloudTomb = (tDoc.exists && tDoc.data()) ? (tDoc.data().phones || []) : [];
+        if (Array.isArray(cloudTomb)) {
+          cloudTomb.forEach(function(p){ if (tomb.indexOf(p) < 0) tomb.push(p); });
+          localStorage.setItem(LS_TOMB, JSON.stringify(tomb));
+        }
+      } catch (eT) { /* อ่านไม่ได้ก็ข้าม ใช้รายการในเครื่องพอ */ }
+      // v38 กู้คืนอัตโนมัติ: ข้อมูลที่เคยเซฟในเครื่องตอนระบบขัดข้อง (เขียนคลาวด์ไม่สำเร็จ ค้างอยู่เฉพาะเครื่อง)
+      // จะถูกผนวกกลับเข้าระบบและอัปขึ้นคลาวด์ให้เอง — เดิมขั้นตอนนี้เขียนทับด้วยคลาวด์ทั้งชุด ข้อมูลค้างจึงหายเงียบๆ
+      var cloudPhones = {};
+      cloudC.forEach(function(c){ cloudPhones[c.phone] = true; });
+      var rescuedC = [];
+      lsGetCustomers().forEach(function(c){
+        if (c && c.phone && !cloudPhones[c.phone] && tomb.indexOf(c.phone) < 0) { cloudC.unshift(c); cloudPhones[c.phone] = true; rescuedC.push(c); }
+      });
+      var cloudIds = {};
+      cloudJ.forEach(function(j){ cloudIds[j.id] = true; });
+      var rescuedJ = [];
+      lsGetJobs().forEach(function(j){
+        if (j && j.id && !cloudIds[j.id] && j.customerPhone && tomb.indexOf(j.customerPhone) < 0) { cloudJ.unshift(j); cloudIds[j.id] = true; rescuedJ.push(j); }
+      });
+      DB.customers = cloudC;
+      DB.jobs = dedupeJobs(cloudJ);
       lsSaveCustomers(DB.customers);
       lsSaveJobs(DB.jobs);
+      if (rescuedC.length || rescuedJ.length) {
+        rescuedC.forEach(function(c){ db.collection('customers').doc(c.phone).set(c).catch(function(e){ console.warn('อัปข้อมูลกู้คืน (ลูกค้า) ไม่สำเร็จ:', e); }); });
+        rescuedJ.forEach(function(j){ db.collection('jobs').doc(j.id).set(j).catch(function(e){ console.warn('อัปข้อมูลกู้คืน (งาน) ไม่สำเร็จ:', e); }); });
+        console.info('FixPro กู้คืนข้อมูลค้างซิงค์: ลูกค้า ' + rescuedC.length + ' รายการ งาน ' + rescuedJ.length + ' งาน');
+        toast('🔄 พบข้อมูลที่ยังไม่ทันซิงค์ — กู้คืนกลับมาแล้ว: ลูกค้า ' + rescuedC.length + ' รายการ, งาน ' + rescuedJ.length + ' งาน', 'success');
+      }
     } catch(e) {
       console.warn('Firestore error, using local cache:', e);
       DB.customers = lsGetCustomers();
@@ -1585,6 +1658,8 @@ async function saveCustomerData(customer) {
   }
 }
 async function deleteCustomerData(phone) {
+  snapshotBeforeSync(); // v38: เก็บสำเนาไว้ก่อนลบเสมอ กันลบพลาดย้อนได้จากปุ่มกู้คืนฉุกเฉิน
+  addTombstone(phone); // v38: จดทะเบียนเบอร์ที่ลบเอง กันระบบกู้คืนดึงกลับมาโดยไม่ตั้งใจ
   DB.customers = DB.customers.filter(function(c){ return c.phone !== phone; });
   DB.jobs = DB.jobs.filter(function(j){ return j.customerPhone !== phone; });
   lsSaveCustomers(DB.customers);
@@ -2346,7 +2421,7 @@ var _selfBackAt = 0;        // เวลาที่เราเรียก his
 var _exitShownAt = 0;       // เวลาที่เปิดหน้าต่างยืนยันปิดแอป
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
-var APP_VERSION = 'v37';
+var APP_VERSION = 'v38';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -3288,6 +3363,7 @@ function restoreData(e) {
     document.getElementById('confirm-msg').style.whiteSpace = 'pre-line';
     document.getElementById('confirm-ok-btn').onclick = async function() {
       closeModal('modal-confirm');
+      snapshotBeforeSync(); // v38: เก็บสำเนาข้อมูลปัจจุบันไว้ก่อนกู้คืนทับทุกครั้ง
       DB.customers = custs;
       DB.jobs = jobsArr;
       lsSaveCustomers(DB.customers);
@@ -3306,6 +3382,45 @@ function restoreData(e) {
     openModal('modal-confirm');
   };
   reader.readAsText(file);
+}
+
+// v38: กู้คืนจากชุดสำรองฉุกเฉินที่ระบบเก็บอัตโนมัติก่อนซิงค์ล่าสุด (เก็บไว้ 3 ชุด)
+// ผนวกเฉพาะรายการที่ปัจจุบันไม่มีแล้วเท่านั้น ไม่เขียนทับข้อมูลปัจจุบัน และอัปขึ้นคลาวด์ให้เอง
+function restoreEmergencySnapshot() {
+  var snC = [], snJ = [];
+  try { snC = JSON.parse(localStorage.getItem(LS_SNAP_C) || '[]'); } catch (e) {}
+  try { snJ = JSON.parse(localStorage.getItem(LS_SNAP_J) || '[]'); } catch (e) {}
+  if (!snC.length && !snJ.length) { toast('ยังไม่มีข้อมูลสำรองฉุกเฉิน — ระบบจะเก็บให้อัตโนมัติหลังซิงค์ครั้งต่อไป', 'info'); return; }
+  var sC = snC[0] || { data: [], at: '' };
+  var sJ = snJ[0] || { data: [], at: '' };
+  var when = new Date(sC.at || sJ.at || Date.now()).toLocaleString('th-TH');
+  document.getElementById('confirm-title').textContent = 'กู้คืนฉุกเฉิน';
+  document.getElementById('confirm-ok-btn').innerHTML = '<i class="fas fa-life-ring"></i> กู้คืน';
+  document.getElementById('confirm-msg').style.whiteSpace = 'pre-line';
+  document.getElementById('confirm-msg').textContent = 'ผนวกข้อมูลสำรองฉุกเฉิน (เก็บเมื่อ ' + when + ')\nลูกค้า ' + (sC.count || 0) + ' รายการ, งาน ' + (sJ.count || 0) + ' งาน\n\nเฉพาะรายการที่ปัจจุบันไม่มีแล้วเท่านั้นที่จะถูกเพิ่มกลับ (ไม่ทับข้อมูลปัจจุบัน) และอัปขึ้นคลาวด์ให้เอง';
+  document.getElementById('confirm-ok-btn').onclick = async function() {
+    closeModal('modal-confirm');
+    var tomb = getTombstones();
+    var addedC = 0, addedJ = 0;
+    (sC.data || []).forEach(function(c){
+      if (!c || !c.phone || tomb.indexOf(c.phone) >= 0) return;
+      if (DB.customers.find(function(x){ return x.phone === c.phone; })) return;
+      DB.customers.unshift(c); addedC++;
+      if (db) db.collection('customers').doc(c.phone).set(c).catch(function(){});
+    });
+    (sJ.data || []).forEach(function(j){
+      if (!j || !j.id || !j.customerPhone || tomb.indexOf(j.customerPhone) >= 0) return;
+      if (DB.jobs.find(function(x){ return x.id === j.id; })) return;
+      DB.jobs.unshift(j); addedJ++;
+      if (db) db.collection('jobs').doc(j.id).set(j).catch(function(){});
+    });
+    lsSaveCustomers(DB.customers);
+    lsSaveJobs(DB.jobs);
+    refreshAll();
+    if (addedC + addedJ) toast('กู้คืนกลับมาแล้ว: ลูกค้า ' + addedC + ' รายการ, งาน ' + addedJ + ' งาน', 'success');
+    else toast('ข้อมูลในสำรองฉุกเฉินปัจจุบันมีครบอยู่แล้ว ไม่มีอะไรต้องเพิ่ม', 'info');
+  };
+  openModal('modal-confirm');
 }
 
 // ============================================================
