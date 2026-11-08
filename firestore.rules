@@ -1,9 +1,7 @@
 rules_version = '2';
 
 // ============================================================
-// FixPro — กฎความปลอดภัย Firestore (v19-TEMP-DIAG)
-// ⚠️ ชั่วคราว: เพิ่มบัญชีวินิจฉัย (อ่านอย่างเดียว) ตรวจงานซ่อมของ mooaun —
-// จะถอดออกใน commit ถัดไปทันที กลับเป็น v18 เป๊ะ
+// FixPro — กฎความปลอดภัย Firestore (v18)
 // ผ่านการทดสอบจริงบนเว็บไลฟ์แล้ว: ล็อกอินด้วยบัญชีที่ตรงเงื่อนไข → เข้าแอป + ซิงค์คลาวด์สมบูรณ์
 // (อ่าน/เขียน users profile, ลูกค้า, งานซ่อม, การตั้งค่าร้าน ได้ครบ ไม่มี permission-denied)
 // แก้ปัญหา: กฎเดิม (v16) อนุญาตเฉพาะ UID เดียว (1sTVPK...) — ถ้าบัญชีจริงของร้าน
@@ -24,21 +22,14 @@ service cloud.firestore {
       );
     }
 
-    // [TEMP-DIAG] บัญชีวินิจฉัยชั่วคราว — อ่านอย่างเดียว ไม่มีสิทธิ์เขียน
-    function isDiag() {
-      return request.auth != null && request.auth.uid == 'rvuET7F66Qf43p7lX4uvpRwtOX53';
-    }
-
     // ข้อมูลลูกค้า (doc id = เบอร์โทร)
     match /customers/{phone} {
       allow read, write: if isOwner();
-      allow get, list: if isDiag();
     }
 
     // ประวัติงานซ่อม
     match /jobs/{id} {
       allow read, write: if isOwner();
-      allow get, list: if isDiag();
     }
 
     // การตั้งค่าร้าน (ซิงค์ข้ามเครื่อง: shop/settings)
