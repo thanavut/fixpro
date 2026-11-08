@@ -1,9 +1,7 @@
 rules_version = '2';
 
 // ============================================================
-// FixPro — กฎความปลอดภัย Firestore (v19-TEMP-RESTORE)
-// ⚠️ ชั่วคราว: บัญชีกู้คืนข้อมูล — เขียนได้เฉพาะ customers เท่านั้น (ไม่มีสิทธิ์อื่นทั้งหมด)
-// ภารกิจ: เพิ่มลูกค้า Mooaun ที่เจ้าของร้านแจ้งข้อมูลมาเอง — จะถอดใน commit ถัดไปทันที
+// FixPro — กฎความปลอดภัย Firestore (v18)
 // ผ่านการทดสอบจริงบนเว็บไลฟ์แล้ว: ล็อกอินด้วยบัญชีที่ตรงเงื่อนไข → เข้าแอป + ซิงค์คลาวด์สมบูรณ์
 // (อ่าน/เขียน users profile, ลูกค้า, งานซ่อม, การตั้งค่าร้าน ได้ครบ ไม่มี permission-denied)
 // แก้ปัญหา: กฎเดิม (v16) อนุญาตเฉพาะ UID เดียว (1sTVPK...) — ถ้าบัญชีจริงของร้าน
@@ -24,15 +22,9 @@ service cloud.firestore {
       );
     }
 
-    // [TEMP-RESTORE] บัญชีกู้คืนชั่วคราว — เขียนได้เฉพาะ collection ลูกค้า
-    function isRestore() {
-      return request.auth != null && request.auth.uid == 'GgxEvw1vvIOYTbUZagpdAmvVj302';
-    }
-
     // ข้อมูลลูกค้า (doc id = เบอร์โทร)
     match /customers/{phone} {
       allow read, write: if isOwner();
-      allow get, create, update: if isRestore();
     }
 
     // ประวัติงานซ่อม
