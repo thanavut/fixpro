@@ -1,5 +1,5 @@
 /* FixPro Service Worker — แคชไฟล์แอปไว้ใช้งานตอนออฟไลน์ */
-var CACHE = 'fixpro-v34';
+var CACHE = 'fixpro-v35';
 var CORE = [
   './',
   './index.html',
@@ -21,7 +21,12 @@ var CDN = [
   'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js',
-  'https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400&display=swap'
+  'https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400&display=swap',
+  // Firebase SDK — เก็บลงแคชตั้งแต่ติดตั้ง SW เพื่อให้หน้าเข้าสู่ระบบใช้งานได้แม้เน็ตไม่เสถียร/ออฟไลน์
+  // (เดิมแคชตอนใช้งานเท่านั้น ถ้าอัปเดตแอปตอนเน็ตกำลังกระตุก SDK จะไม่เคยลงแคช หน้าล็อกอินจึงพัง)
+  'https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js',
+  'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js',
+  'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js'
 ];
 
 self.addEventListener('install', function (e) {

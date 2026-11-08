@@ -114,9 +114,9 @@ body { font-family: 'Kanit', sans-serif; background: var(--bg); color: var(--tex
 .form-control:focus { border-color: var(--primary); background: var(--surface); box-shadow: 0 0 0 3px rgba(46,125,50,0.12); }
 textarea.form-control { resize: vertical; min-height: 80px; }
 .input-icon { position: relative; }
-.input-icon .form-control { padding-left: 44px; }
+.input-icon .form-control { padding-left: 44px; padding-right: 44px; }
 .input-icon i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 16px; }
-.toggle-pass { left: auto; right: 14px; cursor: pointer; }
+.input-icon i.toggle-pass { left: auto; right: 14px; width: auto; cursor: pointer; }
 .form-error { color: var(--danger); font-size: 13px; margin-top: 4px; display: none; }
 .form-error.show { display: block; }
 .form-check { display: flex; align-items: center; gap: 10px; }
@@ -2335,7 +2335,7 @@ var _selfBackAt = 0;        // เวลาที่เราเรียก his
 var _exitShownAt = 0;       // เวลาที่เปิดหน้าต่างยืนยันปิดแอป
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
-var APP_VERSION = 'v34';
+var APP_VERSION = 'v35';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -3442,29 +3442,48 @@ function showForgotPassword() {
   var emailEl = document.getElementById('login-email');
   var email = emailEl.value.trim();
   if (!email) { toast('กรอกอีเมลก่อน แล้วกด "ลืมรหัสผ่าน?" อีกครั้ง', 'warning'); emailEl.focus(); return; }
-  if (typeof firebase === 'undefined' || !firebase.auth) { toast('Firebase Auth ไม่พร้อม — เช็คอินเทอร์เน็ตแล้วลองใหม่', 'error'); return; }
-  var btnToast = toast('กำลังส่งลิงก์รีเซ็ตรหัสผ่าน...', 'info');
-  firebase.auth().sendPasswordResetEmail(email)
-    .then(function() {
-      var olds = document.querySelectorAll('#toast-container .toast');
-      olds.forEach(function(t){ if (t.textContent.indexOf('กำลังส่ง') >= 0) t.remove(); });
-      toast('ส่งลิงก์ตั้งรหัสผ่านใหม่ไปที่ ' + email + ' แล้ว — เปิดอีเมลเพื่อกดตั้งรหัสใหม่ (เช็คถังสแปมด้วย)', 'success');
-    })
-    .catch(function(err) {
-      var olds = document.querySelectorAll('#toast-container .toast');
-      olds.forEach(function(t){ if (t.textContent.indexOf('กำลังส่ง') >= 0) t.remove(); });
-      var code = err && err.code ? err.code : '';
-      if (code === 'auth/user-not-found') toast('ไม่พบบัญชีอีเมลนี้ในระบบ — ตรวจสอบอีเมลอีกครั้ง', 'error');
-      else if (code === 'auth/too-many-requests') toast('ลองหลายครั้งเกินไป รอสักครู่แล้วลองใหม่', 'warning');
-      else if (code === 'auth/invalid-email') toast('รูปแบบอีเมลไม่ถูกต้อง', 'error');
-      else if (code === 'auth/network-request-failed') toast('เน็ตหลุด — เชื่อมอินเทอร์เน็ตแล้วลองใหม่', 'error');
-      else toast('เกิดข้อผิดพลาด: ' + (err && err.message ? err.message : 'ไม่ทราบสาเหตุ'), 'error');
-    });
+  toast('กำลังส่งลิงก์รีเซ็ตรหัสผ่าน...', 'info');
+  waitForFirebase(4000).then(function(ready) {
+    if (!ready) { clearSendingToasts(); toast('โหลดระบบล็อกอินไม่สำเร็จ — อินเทอร์เน็ตอาจไม่เสถียร ปิดแอปแล้วเปิดใหม่ (หรือเชื่อม Wi-Fi ที่เสถียรกว่า) แล้วลองอีกครั้ง', 'error'); return; }
+    firebase.auth().sendPasswordResetEmail(email)
+      .then(function() {
+        clearSendingToasts();
+        toast('ส่งลิงก์ตั้งรหัสผ่านใหม่ไปที่ ' + email + ' แล้ว — เปิดอีเมลเพื่อกดตั้งรหัสใหม่ (เช็คถังสแปมด้วย)', 'success');
+      })
+      .catch(function(err) {
+        clearSendingToasts();
+        var code = err && err.code ? err.code : '';
+        if (code === 'auth/user-not-found') toast('ไม่พบบัญชีอีเมลนี้ในระบบ — ตรวจสอบอีเมลอีกครั้ง', 'error');
+        else if (code === 'auth/too-many-requests') toast('ลองหลายครั้งเกินไป รอสักครู่แล้วลองใหม่', 'warning');
+        else if (code === 'auth/invalid-email') toast('รูปแบบอีเมลไม่ถูกต้อง', 'error');
+        else if (code === 'auth/network-request-failed') toast('เน็ตไม่เสถียร — เช็คอินเทอร์เน็ตแล้วลองใหม่', 'error');
+        else toast('เกิดข้อผิดพลาด: ' + (err && err.message ? err.message : 'ไม่ทราบสาเหตุ'), 'error');
+      });
+  });
+}
+function clearSendingToasts() {
+  var olds = document.querySelectorAll('#toast-container .toast');
+  olds.forEach(function(t){ if (t.textContent.indexOf('กำลังส่ง') >= 0) t.remove(); });
+}
+// รอ Firebase SDK โหลดเสร็จ — กันกดปุ่มตอนสคริปต์จาก CDN ยังไม่มา/โหลดพังจากเน็ตไม่เสถียร
+function waitForFirebase(timeoutMs) {
+  return new Promise(function(resolve) {
+    var deadline = Date.now() + (timeoutMs || 4000);
+    (function check() {
+      if (typeof firebase !== 'undefined' && typeof firebase.auth === 'function' && typeof firebase.initializeApp === 'function') return resolve(true);
+      if (Date.now() >= deadline) return resolve(false);
+      setTimeout(check, 250);
+    })();
+  });
 }
 async function doLogin() {
   var email = document.getElementById('login-email').value.trim();
   var pass = document.getElementById('login-password').value;
   if (!email || !pass) { toast('กรุณากรอกอีเมลและรหัสผ่าน', 'error'); return; }
+  if (!(await waitForFirebase(4000))) {
+    toast('โหลดระบบเข้าสู่ระบบไม่สำเร็จ — อินเทอร์เน็ตอาจไม่เสถียร ปิดแอปแล้วเปิดใหม่ (หรือเชื่อม Wi-Fi) แล้วลองอีกครั้ง', 'error');
+    return;
+  }
   try {
     await firebase.auth().setPersistence(
       document.getElementById('remember-me').checked
@@ -3473,7 +3492,12 @@ async function doLogin() {
     );
     await firebase.auth().signInWithEmailAndPassword(email, pass);
   } catch(e) {
-    toast('เข้าสู่ระบบล้มเหลว: ' + e.message, 'error');
+    var code = e && e.code ? e.code : '';
+    if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') toast('อีเมลหรือรหัสผ่านไม่ถูกต้อง — ตรวจอีกครั้ง หรือกด "ลืมรหัสผ่าน?"', 'error');
+    else if (code === 'auth/too-many-requests') toast('พยายามหลายครั้งเกินไป รอสักครู่แล้วลองใหม่', 'warning');
+    else if (code === 'auth/network-request-failed') toast('เน็ตไม่เสถียร — เช็คอินเทอร์เน็ตแล้วลองใหม่', 'error');
+    else if (code === 'auth/invalid-email') toast('รูปแบบอีเมลไม่ถูกต้อง', 'error');
+    else toast('เข้าสู่ระบบล้มเหลว: ' + (e && e.message ? e.message : 'ไม่ทราบสาเหตุ'), 'error');
   }
 }
 async function doRegister() {
@@ -3762,8 +3786,9 @@ document.addEventListener('DOMContentLoaded', function() {
       initFirebaseAuth();
     });
   } else {
-    // โหลด Firebase SDK ไม่ได้ (เน็ตหลุด/SDK ล้มเหลว) → เข้าโหมดในเครื่องทันที
+    // โหลด Firebase SDK ไม่สำเร็จ (เน็ตไม่เสถียร) → เข้าโหมดในเครื่อง พร้อมแจ้งสาเหตุให้ผู้ใช้ทราบชัดเจน
     enterLocalMode(true);
+    toast('⚠️ โหลดระบบล็อกอินไม่สำเร็จ (เน็ตไม่เสถียร) — เข้าโหมดใช้งานในเครื่องชั่วคราว เมื่อเน็ตปกติแล้วปิด-เปิดแอปใหม่เพื่อเข้าสู่ระบบ', 'warning');
   }
   // PWA service worker — แคชไฟล์แอปไว้ใช้ตอนออฟไลน์
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
