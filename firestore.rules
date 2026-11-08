@@ -1,7 +1,9 @@
 rules_version = '2';
 
 // ============================================================
-// FixPro — กฎความปลอดภัย Firestore (v17)
+// FixPro — กฎความปลอดภัย Firestore (v18)
+// ผ่านการทดสอบจริงบนเว็บไลฟ์แล้ว: ล็อกอินด้วยบัญชีที่ตรงเงื่อนไข → เข้าแอป + ซิงค์คลาวด์สมบูรณ์
+// (อ่าน/เขียน users profile, ลูกค้า, งานซ่อม, การตั้งค่าร้าน ได้ครบ ไม่มี permission-denied)
 // แก้ปัญหา: กฎเดิม (v16) อนุญาตเฉพาะ UID เดียว (1sTVPK...) — ถ้าบัญชีจริงของร้าน
 // ได้ UID อื่น จะล็อกอินผ่านแต่โดนปฏิเสธทุก collection จนแอปหลุดเข้าโหมดออฟไลน์เสมอ
 // (อาการ "เชื่อมต่อ Firebase ไม่ได้" ทั้งที่ล็อกอินสำเร็จ)
@@ -17,8 +19,6 @@ service cloud.firestore {
       return request.auth != null && (
         request.auth.uid == '1sTVPKuphcWLB7LjF7JKQkGLo1b2'
         || request.auth.token.email == 'thanavutp@gmail.com'
-        // [TEMP-VERIFY] บัญชีทดสอบชั่วคราวเพื่อพิสูจน์ว่ากฎใหม่ใช้งานได้จริง — deploy ถัดไปจะถอดออกทันที
-        || request.auth.token.email == 'fixpro.verify.36z@example.com'
       );
     }
 
