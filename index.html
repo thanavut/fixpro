@@ -633,10 +633,6 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
       <h1>FixPro</h1>
       <p>ระบบจัดการงานช่าง</p>
     </div>
-    <div class="auth-tabs">
-      <div class="auth-tab active" onclick="switchAuthTab('login')">เข้าสู่ระบบ</div>
-      <div class="auth-tab" onclick="switchAuthTab('register')" style="display:none;">ลงทะเบียน</div>
-    </div>
     <div id="login-form">
       <div class="form-group">
         <label class="form-label">อีเมล</label>
@@ -660,7 +656,7 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
           <input type="checkbox" id="remember-me">
           <span style="font-size:13px;color:var(--text2);">จดจำฉัน</span>
         </label>
-        <span style="font-size:13px;color:var(--primary);cursor:pointer;" onclick="showForgotPassword()">ลืมรหัสผ่าน?</span>
+        <a href="javascript:void(0)" onclick="showForgotPassword()" style="font-size:13px;color:var(--primary);cursor:pointer;text-decoration:underline;font-weight:600;padding:6px 2px;display:inline-block;">ลืมรหัสผ่าน?</a>
       </div>
       <button class="btn btn-primary btn-full" onclick="doLogin()">
         <i class="fas fa-sign-in-alt"></i> เข้าสู่ระบบ
@@ -707,15 +703,6 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
         <i class="fas fa-user-plus"></i> ลงทะเบียน
       </button>
     </div>
-    <div style="display:flex;align-items:center;gap:10px;margin:18px 0 12px;">
-      <div style="flex:1;height:1px;background:var(--border);"></div>
-      <span style="font-size:12px;color:var(--text3);">หรือ</span>
-      <div style="flex:1;height:1px;background:var(--border);"></div>
-    </div>
-    <button class="btn btn-secondary btn-full" onclick="enterLocalMode()">
-      <i class="fas fa-bolt"></i> เริ่มใช้งานเลย (ไม่ต้องเข้าสู่ระบบ)
-    </button>
-    <div style="font-size:11px;color:var(--text3);text-align:center;margin-top:10px;line-height:1.5;">ข้อมูลเก็บในเครื่องนี้ · ซิงค์ข้ามเครื่อง = เข้าสู่ระบบด้วยอีเมลเจ้าของร้าน<br>(การลงทะเบียนใหม่ถูกปิดเพื่อความปลอดภัยของข้อมูลลูกค้า)</div>
   </div>
   <div style="position:absolute;bottom:8px;right:12px;font-size:10px;color:rgba(255,255,255,.4);text-align:right;">
     thanavutp&#64;gmail.com
@@ -1013,6 +1000,14 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
               3. กด <b>เพิ่ม</b> — จะได้ไอคอน FixPro บนหน้าจอหลัก
             </div>
             <div id="install-done-note" style="display:none;font-size:12.5px;color:var(--success);font-weight:600;"><i class="fas fa-circle-check"></i> ติดตั้งเป็นแอปแล้ว — ตอนนี้คุณกำลังใช้งานผ่านแอปอยู่</div>
+          </div>
+        </div>
+
+        <!-- Log Out -->
+        <div class="card">
+          <div class="card-body" style="padding-top:4px;">
+            <button class="btn btn-danger btn-full" onclick="doLogout()"><i class="fas fa-right-from-bracket"></i> ออกจากระบบ (Log Out)</button>
+            <div style="font-size:11px;color:var(--text3);text-align:center;margin-top:8px;">ออกไปหน้าเข้าสู่ระบบ — ข้อมูลในเครื่องยังอยู่เหมือนเดิม ไม่หาย</div>
           </div>
         </div>
 
@@ -2340,7 +2335,7 @@ var _selfBackAt = 0;        // เวลาที่เราเรียก his
 var _exitShownAt = 0;       // เวลาที่เปิดหน้าต่างยืนยันปิดแอป
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
-var APP_VERSION = 'v33';
+var APP_VERSION = 'v34';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -3444,12 +3439,27 @@ function togglePassword(id, icon) {
   else { el.type = 'password'; icon.className = 'fas fa-eye toggle-pass'; }
 }
 function showForgotPassword() {
-  var email = document.getElementById('login-email').value.trim();
-  if (!email) { toast('กรุณากรอกอีเมล', 'warning'); return; }
-  if (!firebase.auth) { toast('Firebase Auth ไม่พร้อม', 'error'); return; }
+  var emailEl = document.getElementById('login-email');
+  var email = emailEl.value.trim();
+  if (!email) { toast('กรอกอีเมลก่อน แล้วกด "ลืมรหัสผ่าน?" อีกครั้ง', 'warning'); emailEl.focus(); return; }
+  if (typeof firebase === 'undefined' || !firebase.auth) { toast('Firebase Auth ไม่พร้อม — เช็คอินเทอร์เน็ตแล้วลองใหม่', 'error'); return; }
+  var btnToast = toast('กำลังส่งลิงก์รีเซ็ตรหัสผ่าน...', 'info');
   firebase.auth().sendPasswordResetEmail(email)
-    .then(() => toast('ส่งอีเมลรีเซ็ตรหัสผ่านแล้ว', 'success'))
-    .catch(err => toast('เกิดข้อผิดพลาด: ' + err.message, 'error'));
+    .then(function() {
+      var olds = document.querySelectorAll('#toast-container .toast');
+      olds.forEach(function(t){ if (t.textContent.indexOf('กำลังส่ง') >= 0) t.remove(); });
+      toast('ส่งลิงก์ตั้งรหัสผ่านใหม่ไปที่ ' + email + ' แล้ว — เปิดอีเมลเพื่อกดตั้งรหัสใหม่ (เช็คถังสแปมด้วย)', 'success');
+    })
+    .catch(function(err) {
+      var olds = document.querySelectorAll('#toast-container .toast');
+      olds.forEach(function(t){ if (t.textContent.indexOf('กำลังส่ง') >= 0) t.remove(); });
+      var code = err && err.code ? err.code : '';
+      if (code === 'auth/user-not-found') toast('ไม่พบบัญชีอีเมลนี้ในระบบ — ตรวจสอบอีเมลอีกครั้ง', 'error');
+      else if (code === 'auth/too-many-requests') toast('ลองหลายครั้งเกินไป รอสักครู่แล้วลองใหม่', 'warning');
+      else if (code === 'auth/invalid-email') toast('รูปแบบอีเมลไม่ถูกต้อง', 'error');
+      else if (code === 'auth/network-request-failed') toast('เน็ตหลุด — เชื่อมอินเทอร์เน็ตแล้วลองใหม่', 'error');
+      else toast('เกิดข้อผิดพลาด: ' + (err && err.message ? err.message : 'ไม่ทราบสาเหตุ'), 'error');
+    });
 }
 async function doLogin() {
   var email = document.getElementById('login-email').value.trim();
