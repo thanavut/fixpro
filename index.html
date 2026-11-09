@@ -556,6 +556,23 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
   padding: 10px 0 6px; border-bottom: 1px solid var(--border);
   margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
 }
+.settings-section-header .sh-title { display: inline-flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+/* v42: การ์ดตั้งค่าล็อกไว้เสมอ — กด "แก้ไข" ค่อยเปิดช่อง, กด "บันทึก/เสร็จ" ล็อกกลับ
+   ช่องล็อกต้องหน้าตาปกติ ห้ามเปลี่ยนสีพื้นหลัง (ตามที่เจ้าของร้านสั่ง) */
+.btn-card-edit, .btn-card-done {
+  flex-shrink: 0; border: 1.5px solid var(--border); background: transparent; color: var(--text2);
+  font-size: 12px; font-weight: 700; padding: 5px 14px; border-radius: 999px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px; transition: var(--transition); font-family: inherit; line-height: 1;
+}
+.btn-card-edit:hover, .btn-card-done:hover { border-color: var(--primary); color: var(--primary); }
+.btn-card-edit:active, .btn-card-done:active { transform: scale(0.96); }
+.card.editing { border-color: var(--primary); }
+.card.editing .btn-card-edit { display: none; }
+.card.locked .btn-card-done { display: none; }
+.card.locked .js-save, .card.locked .js-cancel { display: none; }
+.card.locked .form-control { pointer-events: none; }
+.card.locked .card-body label { pointer-events: none; cursor: default; }
+.card.locked .jt-iconbtn, .card.locked .jt-add { display: none; }
 .settings-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
 .settings-row:last-child { border-bottom: none; }
 .settings-label { font-size: 13px; font-weight: 500; }
@@ -807,8 +824,11 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
         </div>
 
         <!-- ข้อมูลร้าน -->
-        <div class="card">
-          <div class="settings-section-header"><i class="fas fa-store"></i> ข้อมูลร้าน / ช่าง</div>
+        <div class="card" id="card-shop">
+          <div class="settings-section-header">
+            <span class="sh-title"><i class="fas fa-store"></i> ข้อมูลร้าน / ช่าง</span>
+            <button type="button" class="btn-card-edit" onclick="setCardEditing('shop', true)"><i class="fas fa-pen"></i> แก้ไข</button>
+          </div>
           <div class="card-body" style="padding-top:4px;">
             <div class="form-group">
               <label class="form-label">ชื่อร้าน / ชื่อช่าง</label>
@@ -834,22 +854,32 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
                 <span style="font-size:13px;">🔔 แจ้งเตือนบนเครื่องนี้ (ลูกค้าถึงกำหนด / รอเก็บเงิน)</span>
               </label>
             </div>
-            <button class="btn btn-primary btn-sm" onclick="saveShopConfig()"><i class="fas fa-save"></i> บันทึก</button>
+            <div class="card-actions">
+              <button class="btn btn-primary btn-sm js-save" onclick="saveShopConfig()"><i class="fas fa-save"></i> บันทึก</button>
+              <button type="button" class="btn btn-secondary btn-sm js-cancel" onclick="cancelCardEdit('shop')"><i class="fas fa-xmark"></i> ยกเลิก</button>
+            </div>
           </div>
         </div>
 
         <!-- ประเภทงาน -->
-        <div class="card">
-          <div class="settings-section-header"><i class="fas fa-list-check" style="color:var(--primary);"></i> ประเภทงาน</div>
+        <div class="card" id="card-jobtypes">
+          <div class="settings-section-header">
+            <span class="sh-title"><i class="fas fa-list-check" style="color:var(--primary);"></i> ประเภทงาน</span>
+            <button type="button" class="btn-card-edit" onclick="setCardEditing('jobtypes', true)"><i class="fas fa-pen"></i> แก้ไข</button>
+            <button type="button" class="btn-card-done" onclick="finishCardEdit('jobtypes')"><i class="fas fa-check"></i> เสร็จ</button>
+          </div>
           <div class="card-body" style="padding-top:4px;">
-            <div style="font-size:11px;color:var(--text3);margin-bottom:10px;">กดปุ่มดินสอเพื่อแก้ไขชื่อ · ลบประเภทที่ไม่ใช้ด้วยปุ่มถังขยะ · งานเก่าจะยังแสดงชื่อประเภทเดิม</div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:10px;">งานเก่าจะยังแสดงชื่อประเภทเดิม · กด “แก้ไข” เพื่อเปลี่ยนชื่อ (ดินสอ) ลบ (ถังขยะ) เพิ่มประเภทใหม่ แล้วกด “เสร็จ”</div>
             <div id="jobtypes-rows"></div>
           </div>
         </div>
 
         <!-- Firebase -->
-        <div class="card">
-          <div class="settings-section-header"><i class="fas fa-fire" style="color:#f97316;"></i> Firebase Configuration</div>
+        <div class="card" id="card-firebase">
+          <div class="settings-section-header">
+            <span class="sh-title"><i class="fas fa-fire" style="color:#f97316;"></i> Firebase Configuration</span>
+            <button type="button" class="btn-card-edit" onclick="setCardEditing('firebase', true)"><i class="fas fa-pen"></i> แก้ไข</button>
+          </div>
           <div class="card-body" style="padding-top:4px;">
             <div id="firebase-status" class="config-status warn"><i class="fas fa-circle-exclamation"></i> ยังไม่ได้ตั้งค่า</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
@@ -861,15 +891,19 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
               <div class="form-group"><label class="form-label" style="font-size:11px;">App ID</label><input type="text" class="form-control" id="cfg-fb-appid" placeholder="1:xxx:web:yyy" style="font-size:12px;"></div>
             </div>
             <div class="card-actions">
-              <button class="btn btn-primary btn-sm" onclick="saveFirebaseConfig()"><i class="fas fa-save"></i> บันทึก</button>
+              <button class="btn btn-primary btn-sm js-save" onclick="saveFirebaseConfig()"><i class="fas fa-save"></i> บันทึก</button>
+              <button type="button" class="btn btn-secondary btn-sm js-cancel" onclick="cancelCardEdit('firebase')"><i class="fas fa-xmark"></i> ยกเลิก</button>
               <button class="btn btn-info btn-sm" onclick="testFirebase()"><i class="fas fa-plug"></i> ทดสอบ</button>
             </div>
           </div>
         </div>
 
         <!-- Cloudinary -->
-        <div class="card">
-          <div class="settings-section-header"><i class="fas fa-cloud" style="color:#4f9ee8;"></i> Cloudinary Configuration</div>
+        <div class="card" id="card-cloudinary">
+          <div class="settings-section-header">
+            <span class="sh-title"><i class="fas fa-cloud" style="color:#4f9ee8;"></i> Cloudinary Configuration</span>
+            <button type="button" class="btn-card-edit" onclick="setCardEditing('cloudinary', true)"><i class="fas fa-pen"></i> แก้ไข</button>
+          </div>
           <div class="card-body" style="padding-top:4px;">
             <div id="cloudinary-status" class="config-status warn"><i class="fas fa-circle-exclamation"></i> ยังไม่ได้ตั้งค่า</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
@@ -877,7 +911,8 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
               <div class="form-group"><label class="form-label" style="font-size:11px;">Upload Preset</label><input type="text" class="form-control" id="cfg-cld-preset" placeholder="ml_default" style="font-size:12px;"></div>
             </div>
             <div class="card-actions">
-              <button class="btn btn-primary btn-sm" onclick="saveCloudinaryConfig()"><i class="fas fa-save"></i> บันทึก</button>
+              <button class="btn btn-primary btn-sm js-save" onclick="saveCloudinaryConfig()"><i class="fas fa-save"></i> บันทึก</button>
+              <button type="button" class="btn btn-secondary btn-sm js-cancel" onclick="cancelCardEdit('cloudinary')"><i class="fas fa-xmark"></i> ยกเลิก</button>
               <button class="btn btn-info btn-sm" onclick="testCloudinary(this)"><i class="fas fa-plug"></i> ทดสอบ</button>
             </div>
           </div>
@@ -1251,7 +1286,19 @@ function xlsxSafe(v) { return (typeof v === 'string' && /^[=+\-@\t\r]/.test(v)) 
 function loadConfig() {
   try { return JSON.parse(localStorage.getItem(CFG_KEY) || '{}'); } catch(e) { return {}; }
 }
-function saveConfig(cfg) { localStorage.setItem(CFG_KEY, JSON.stringify(cfg)); queueConfigPush(); }
+// v42: dirtyKeys = รายชื่อฟิลด์ที่ผู้ใช้แก้เองจากหน้าตั้งค่า — จะยิงคลาวด์เฉพาะเมื่อระบุ dirtyKeys เท่านั้น
+// (เขียนในเครื่องเสมอ แต่ห้ามพาค่าที่ไม่ได้แก้ขึ้นคลาวด์ไปเขียนทับเครื่องอื่น)
+function saveConfig(cfg, dirtyKeys) {
+  localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
+  if (dirtyKeys && dirtyKeys.length) { markCfgDirty(dirtyKeys); queueConfigPush(); }
+}
+function markCfgDirty(keys) {
+  try {
+    var l = loadConfig(); var d = Array.isArray(l.cfgDirty) ? l.cfgDirty : [];
+    keys.forEach(function(k){ if (d.indexOf(k) < 0) d.push(k); });
+    l.cfgDirty = d; localStorage.setItem(CFG_KEY, JSON.stringify(l));
+  } catch(e) {}
+}
 
 // ===== ซิงค์การตั้งค่าข้ามเครื่อง (Firestore: shop/settings) =====
 // หลักการ: เครื่องที่มีข้อมูลจริงเครื่องแรกจะอัปโหลดอัตโนมัติ / เครื่องอื่นดึงลงตอนเปิดแอป / แก้ไขเมื่อไร push ทันที (timestamp ใหม่ชนะ)
@@ -1267,12 +1314,20 @@ function queueConfigPush() {
 }
 function cfgSyncPayload() {
   var cfg = loadConfig(); var out = { updatedAt: new Date().toISOString() };
-  // v40: อัปเฉพาะค่าที่มีจริง — ห้ามส่ง null/ลิสต์ว่างขึ้นคลาวด์เด็ดขาด
-  // (สาเหตุ "ค่าตั้งค่าหาย": เครื่องที่ config ในเครื่องโดนล้างจะยิงค่าว่างทับคลาวด์ ทำให้ทุกเครื่องเห็นหน้าตั้งค่าเปล่า)
+  // v40: ห้ามส่ง null/ลิสต์ว่างขึ้นคลาวด์โดยไม่จำเป็น (สาเหตุ "ค่าตั้งค่าหาย" รุ่นเก่า)
+  // v42: ถ้ามีรายการ cfgDirty = ผู้ใช้แก้เองจากหน้าตั้งค่า → ส่งเฉพาะฟิลด์นั้น
+  //      ค่าว่างที่แก้เองส่งเป็น null ได้ (Firestore merge จะลบฟิลด์ = ล้างตามที่ผู้ใช้ตั้งใจ)
+  //      ฟิลด์ที่ไม่ได้แก้จะไม่ถูกพาไปเขียนทับคลาวด์เด็ดขาด
+  var dirty = (Array.isArray(cfg.cfgDirty) && cfg.cfgDirty.length) ? cfg.cfgDirty : null;
   CFG_SYNC_KEYS.forEach(function(k){
+    if (dirty && dirty.indexOf(k) < 0) return;
     var v = cfg[k];
+    if (k === 'jobTypes') {
+      if (!(Array.isArray(v) && v.length)) return; // ลิสต์ว่างยังห้ามส่งเหมือนเดิม
+      out[k] = v; return;
+    }
+    if (dirty) { out[k] = (v === undefined || v === null) ? null : v; return; }
     if (v === undefined || v === null || v === '') return;
-    if (k === 'jobTypes' && !(Array.isArray(v) && v.length)) return;
     out[k] = v;
   });
   return out;
@@ -1295,7 +1350,7 @@ function cfgHasMeaningfulData() {
 // v41: ซิงค์ตั้งค่าต้อง "ไม่มีทางหลุดแบบเงียบๆ" — ถ้าตอนกดบันทึกเชื่อมคลาวด์ไม่ได้ (db ยังไม่พร้อม/เน็ตกระตุก)
 // ระบบจะจดสถานะค้างไว้แล้วลองส่งใหม่เองทุก 15 วิ + ทันทีที่ออนไลน์กลับมา + ทันทีที่เปิดแอปครั้งถัดไป
 // (ต้นเหตุ "ข้อมูลร้าน/ช่าง บันทึกแล้วหาย": รอบก่อนถ้า db ไม่พร้อมตอนกดบันทึก ระบบเงียบและไม่เคยลองใหม่)
-var _cfgPushPending = false, _cfgPushRetryTimer = null;
+var _cfgPushPending = false, _cfgPushRetryTimer = null, _cfgPullDeferred = false;
 function markCfgPushPending() {
   _cfgPushPending = true;
   try { var l = loadConfig(); l.cfgPushPending = true; localStorage.setItem(CFG_KEY, JSON.stringify(l)); } catch (e) {}
@@ -1308,12 +1363,20 @@ function clearCfgPushPending() {
 window.addEventListener('online', function() { if (_cfgPushPending && db) pushConfigToCloud(); });
 async function pushConfigToCloud() {
   if (!db) { markCfgPushPending(); return false; }
-  if (!cfgHasMeaningfulData()) { clearCfgPushPending(); return true; } // v40: ไม่มีข้อมูลจริง = ไม่อัปเด็ดขาด (เดิม bypass ด้วย cfgSyncedAt ทำให้ยิงค่าว่างทับคลาวด์ได้)
+  var _l0 = loadConfig();
+  var _hasDirty = Array.isArray(_l0.cfgDirty) && _l0.cfgDirty.length > 0;
+  if (!cfgHasMeaningfulData() && !_hasDirty) { clearCfgPushPending(); return true; } // v42: ไม่มีข้อมูลจริงและไม่ได้แก้อะไรเอง = ไม่อัปเด็ดขาด
   try {
     var p = cfgSyncPayload();
     await db.collection(CFG_SYNC_COL).doc(CFG_SYNC_DOC).set(p, { merge: true }); // v40: merge = ไม่ลบฟิลด์อื่นที่คลาวด์มีอยู่
     clearCfgPushPending();
-    var l = loadConfig(); l.cfgSyncedAt = p.updatedAt; localStorage.setItem(CFG_KEY, JSON.stringify(l));
+    var l = loadConfig(); l.cfgSyncedAt = p.updatedAt;
+    var sent = Object.keys(p).filter(function(k){ return k !== 'updatedAt'; });
+    if (Array.isArray(l.cfgDirty)) { // v42: เคลียร์เฉพาะฟิลด์ที่ส่งสำเร็จ
+      l.cfgDirty = l.cfgDirty.filter(function(k){ return sent.indexOf(k) < 0; });
+      if (!l.cfgDirty.length) delete l.cfgDirty;
+    }
+    localStorage.setItem(CFG_KEY, JSON.stringify(l));
     return true;
   } catch(e) {
     console.warn('อัปโหลดการตั้งค่าไม่สำเร็จ — ระบบจะลองใหม่เอง:', e);
@@ -1333,11 +1396,21 @@ async function syncConfigFromCloud() {
     var local = loadConfig();
     var remoteTs = remote.updatedAt || '', localTs = local.cfgSyncedAt || '';
     if (!remoteTs || remoteTs <= localTs) return;
+    if (anyCardEditing()) { // v42: กำลังแก้ไขหน้าตั้งค่าอยู่ — ห้ามคลาวด์เขียนทับสิ่งที่กำลังกรอก รอกดบันทึก/ยกเลิกก่อนแล้วค่อยดึง
+      _cfgPullDeferred = true;
+      console.info('มีการแก้ไขหน้าตั้งค่าค้างอยู่ — เลื่อนการรับค่าจากคลาวด์ออกไปก่อน');
+      return;
+    }
     var merged = Object.assign({}, local);
     CFG_SYNC_KEYS.forEach(function(k) {
+      if (!remote.hasOwnProperty(k)) return; // v42: ไม่มีฟิลด์นี้บนคลาวด์ = ไม่แตะค่าเดิมในเครื่อง
       var v = remote[k];
-      if (v === undefined || v === null) return;
-      if (k === 'jobTypes' && !(Array.isArray(v) && v.length)) return; // ลิสต์ว่างไม่ทับของเดิม
+      if (k === 'jobTypes') {
+        if (!(Array.isArray(v) && v.length)) return; // ลิสต์ว่างไม่ทับของเดิม
+        merged[k] = v; return;
+      }
+      if (v === undefined) return;
+      if (v === null || v === '') { delete merged[k]; return; } // v42: ถูกผู้ใช้ล้างบนคลาวด์จริง (ส่ง null ตามที่แก้เอง) → ล้างตาม
       merged[k] = v;
     });
     merged.cfgSyncedAt = remoteTs;
@@ -1376,7 +1449,17 @@ async function v40ConfigResync() {
       }
     }
     var l2 = loadConfig(); l2.v40resync = new Date().toISOString(); localStorage.setItem(CFG_KEY, JSON.stringify(l2));
-    if (cfgHasMeaningfulData()) queueConfigPush(); // ถ้าเครื่องนี้มีค่าที่คลาวด์ขาด อัปขึ้นเติมให้ด้วย (merge ไม่ทับของเดิม)
+    // v42: อัปเฉพาะฟิลด์ที่คลาวด์ไม่มีเลย — ห้ามเขียนทับค่าที่คลาวด์มีอยู่แล้วเด็ดขาด (เดิม push ทั้งชุด = ทับได้)
+    var remoteAll = (snap && snap.exists) ? (snap.data() || {}) : {};
+    var missing = { updatedAt: new Date().toISOString() }, hasMissing = false;
+    CFG_SYNC_KEYS.forEach(function(k){
+      if (remoteAll.hasOwnProperty(k)) return;
+      var v = cfg[k];
+      if (v === undefined || v === null || v === '') return;
+      if (k === 'jobTypes' && !(Array.isArray(v) && v.length)) return;
+      missing[k] = v; hasMissing = true;
+    });
+    if (hasMissing) await db.collection(CFG_SYNC_COL).doc(CFG_SYNC_DOC).set(missing, { merge: true });
   } catch(e) { /* ออฟไลน์/เชื่อมไม่ได้ → ยังไม่เซ็ต flag รอบหน้าจะลองใหม่เอง */ }
 }
 
@@ -1690,8 +1773,9 @@ function jobTypesFromConfig() {
 function saveJobTypesList(list) {
   var cfg = loadConfig();
   cfg.jobTypes = list;
-  saveConfig(cfg);
+  saveConfig(cfg, ['jobTypes']);
   applyJobTypes();
+  pushConfigToCloud(); // v42: เพิ่ม/เปลี่ยนชื่อ/ลบประเภทงาน → ซิงค์คลาวด์ทันที
 }
 function getJobTypes(includeDeleted) {
   var list = jobTypesFromConfig();
@@ -3316,23 +3400,26 @@ function restoreData(e) {
 // ============================================================
 // SETTINGS (EBED Style)
 // ============================================================
-function loadSettingsPage() {
+function refillCardValues(name) {
+  // v42: เติมค่าจาก config ในเครื่องกลับลงช่องของการ์ดนั้นๆ (ใช้ตอนเปิดหน้า + ตอนกดยกเลิก)
   var cfg = loadConfig();
-  document.getElementById('cfg-shop-name').value = cfg.shopName || '';
-  document.getElementById('cfg-tech-phone').value = cfg.techPhone || '';
-  document.getElementById('cfg-receipt-footer').value = cfg.receiptFooter || '';
-  document.getElementById('cfg-auto-line-popup').checked = cfg.autoLinePopup !== false;
-  document.getElementById('cfg-notify-local').checked = !!cfg.notifyLocal;
-  document.getElementById('cfg-fb-apikey').value = cfg.apiKey || '';
-  document.getElementById('cfg-fb-authdomain').value = cfg.authDomain || '';
-  document.getElementById('cfg-fb-projectid').value = cfg.projectId || '';
-  document.getElementById('cfg-fb-storagebucket').value = cfg.storageBucket || '';
-  document.getElementById('cfg-fb-senderid').value = cfg.messagingSenderId || '';
-  document.getElementById('cfg-fb-appid').value = cfg.appId || '';
-  document.getElementById('cfg-cld-name').value = cfg.cloudName || '';
-  document.getElementById('cfg-cld-preset').value = cfg.uploadPreset || '';
+  var v = function(id, key) { var el = document.getElementById(id); if (el) el.value = cfg[key] || ''; };
+  if (name === 'shop') {
+    v('cfg-shop-name','shopName'); v('cfg-tech-phone','techPhone'); v('cfg-receipt-footer','receiptFooter');
+    var cb = document.getElementById('cfg-auto-line-popup'); if (cb) cb.checked = cfg.autoLinePopup !== false;
+    var cb2 = document.getElementById('cfg-notify-local'); if (cb2) cb2.checked = !!cfg.notifyLocal;
+  } else if (name === 'firebase') {
+    v('cfg-fb-apikey','apiKey'); v('cfg-fb-authdomain','authDomain'); v('cfg-fb-projectid','projectId');
+    v('cfg-fb-storagebucket','storageBucket'); v('cfg-fb-senderid','messagingSenderId'); v('cfg-fb-appid','appId');
+  } else if (name === 'cloudinary') {
+    v('cfg-cld-name','cloudName'); v('cfg-cld-preset','uploadPreset');
+  }
+}
+function loadSettingsPage() {
+  refillCardValues('shop'); refillCardValues('firebase'); refillCardValues('cloudinary');
   renderJobTypeSettings();
   updateConfigStatus();
+  setAllCardsLocked(); // v42: เปิดหน้าตั้งค่า = ทุกการ์ดล็อกเสมอ กด "แก้ไข" ที่การ์ดจึงจะแก้ได้
 }
 function updateConfigStatus() {
   // v40: ไม่มีระบบล็อกอินแล้ว — แอปเชื่อมคลาวด์อัตโนมัติเมื่อเปิด จึงแสดงสถานะจากค่า config อย่างเดียว
@@ -3350,8 +3437,47 @@ function updateConfigStatus() {
     cldEl.className = 'config-status warn'; cldEl.innerHTML = '<i class="fas fa-circle-exclamation"></i> ยังไม่ได้ตั้งค่า (รูปเก็บชั่วคราว)';
   }
 }
-function saveShopConfig() {
-  // v41: อ่านค่าแบบกันพัง + แจ้งความจริงว่าขึ้นคลาวด์หรือยัง (เดิมบอก "บันทึกแล้ว" ทั้งที่ซิงค์ไม่ทัน)
+// ============================================================
+// v42 — การ์ดตั้งค่าล็อกไว้เสมอ + ปุ่ม "แก้ไข" รายการ์ด + ซิงค์ทันทีที่กดบันทึก
+// ตามที่เจ้าของร้านสั่ง: ปิดช่องกรอกตลอด หน้าตาปกติ (ไม่เปลี่ยนสีพื้นหลัง)
+// แก้ได้เฉพาะกด "แก้ไข" ที่การ์ดนั้นๆ พอกด "บันทึก/เสร็จ" → ซิงค์คลาวด์ทันทีแล้วล็อกกลับ
+// ระหว่างแก้ไข ระบบจะไม่ดึงค่าจากคลาวด์มาทับ จนกว่าจะกดบันทึกหรือยกเลิก
+// ============================================================
+var _editCards = {};
+function anyCardEditing() {
+  for (var k in _editCards) { if (_editCards[k]) return true; }
+  return false;
+}
+function setCardEditing(name, on) {
+  var card = document.getElementById('card-' + name);
+  if (!card) return;
+  _editCards[name] = !!on;
+  card.classList.toggle('locked', !on);
+  card.classList.toggle('editing', !!on);
+  card.querySelectorAll('.form-control').forEach(function(el) { try { el.readOnly = !on; } catch(e) {} });
+  if (!on) { var a = document.activeElement; if (a && card.contains(a) && a.blur) a.blur(); }
+  if (name === 'jobtypes') renderJobTypeSettings(); // ปุ่มดินสอ/ถังขยะ/เพิ่ม โผล่เฉพาะตอนแก้ไข
+  if (!on && !anyCardEditing() && _cfgPullDeferred) {
+    _cfgPullDeferred = false;
+    syncConfigFromCloud(); // แก้เสร็จแล้ว ค่อยรับค่ารอบที่เลื่อนไว้จากคลาวด์
+  }
+}
+function setAllCardsLocked() {
+  ['shop','jobtypes','firebase','cloudinary'].forEach(function(n) { setCardEditing(n, false); });
+}
+function cancelCardEdit(name) {
+  refillCardValues(name); // ทิ้งสิ่งที่พิมพ์ค้าง คืนค่าเดิมจากเครื่องนี้
+  setCardEditing(name, false);
+  toast('ยกเลิกการแก้ไข — ค่าเดิมไม่เปลี่ยน', 'info');
+}
+function finishCardEdit(name) {
+  // ใช้กับการ์ด "ประเภทงาน" (บันทึกทีละรายการอยู่แล้ว) — กด "เสร็จ" = ล็อกกลับ + ยืนยันซิงค์สิ่งที่แก้ค้าง
+  setCardEditing(name, false);
+  var l = loadConfig();
+  if (Array.isArray(l.cfgDirty) && l.cfgDirty.length) pushConfigToCloud();
+}
+async function saveShopConfig() {
+  // v42: บันทึกการ์ด "ข้อมูลร้าน/ช่าง" — เขียนเครื่องนี้ทันที + ยิงคลาวด์ทันทีเฉพาะฟิลด์ของการ์ดนี้ แล้วล็อกกลับ
   var g = function(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; };
   var cb = document.getElementById('cfg-auto-line-popup');
   var cfg = loadConfig();
@@ -3359,8 +3485,10 @@ function saveShopConfig() {
   cfg.techPhone = g('cfg-tech-phone');
   cfg.receiptFooter = g('cfg-receipt-footer');
   cfg.autoLinePopup = cb ? !!cb.checked : true;
-  saveConfig(cfg); // เขียนในเครื่องทันที + ตั้งเวลาซิงค์คลาวด์ (ถ้าคลาวด์ไม่พร้อม v41 จะจดค้างแล้วลองใหม่เอง)
-  toast(db ? '✅ บันทึกและซิงค์คลาวด์แล้ว' : 'บันทึกในเครื่องแล้ว — ระบบจะซิงค์คลาวด์ให้เองเมื่อเชื่อมต่อได้', db ? 'success' : 'warning');
+  saveConfig(cfg, ['shopName','techPhone','receiptFooter','autoLinePopup']);
+  var ok = await pushConfigToCloud();
+  setCardEditing('shop', false);
+  toast(ok ? '✅ บันทึกและซิงค์คลาวด์แล้ว' : 'บันทึกในเครื่องแล้ว — ระบบจะซิงค์คลาวด์ให้เองเมื่อพร้อม', ok ? 'success' : 'warning');
 }
 async function saveFirebaseConfig() {
   var cfg = loadConfig();
@@ -3370,11 +3498,11 @@ async function saveFirebaseConfig() {
   cfg.storageBucket = document.getElementById('cfg-fb-storagebucket').value.trim();
   cfg.messagingSenderId = document.getElementById('cfg-fb-senderid').value.trim();
   cfg.appId = document.getElementById('cfg-fb-appid').value.trim();
-  saveConfig(cfg);
+  saveConfig(cfg); // firebase keys เป็นค่าเฉพาะเครื่อง (ไม่ซิงค์ข้ามเครื่อง) — ไม่ต้อง mark dirty
   var ok = await initFirebase(cfg);
   updateConfigStatus();
-  if (ok) { toast('บันทึก Firebase เรียบร้อย', 'success'); loadAllData(); }
-  else toast('ไม่สามารถเชื่อมต่อ Firebase ได้', 'error');
+  if (ok) { toast('บันทึก Firebase เรียบร้อย', 'success'); setCardEditing('firebase', false); loadAllData(); }
+  else toast('ไม่สามารถเชื่อมต่อ Firebase ได้ — ตรวจค่าใหม่ หรือกดยกเลิก', 'error');
 }
 async function testFirebase() {
   if (!db) { toast('ยังไม่ได้ตั้งค่า Firebase', 'error'); return; }
@@ -3385,13 +3513,16 @@ async function testFirebase() {
     toast('เชื่อมถึงโปรเจกต์ได้ แต่อ่านข้อมูลไม่ได้ (' + (e.code || 'permission-denied') + ') — เช็คอินเทอร์เน็ตแล้วลองใหม่', 'warning');
   }
 }
-function saveCloudinaryConfig(silent) {
+async function saveCloudinaryConfig(silent) {
   var cfg = loadConfig();
   cfg.cloudName = document.getElementById('cfg-cld-name').value.trim();
   cfg.uploadPreset = document.getElementById('cfg-cld-preset').value.trim();
-  saveConfig(cfg);
+  saveConfig(cfg, ['cloudName','uploadPreset']);
   updateConfigStatus();
-  if (!silent) toast('บันทึก Cloudinary เรียบร้อย', 'success');
+  if (silent) { pushConfigToCloud(); return; } // เรียกจากปุ่มทดสอบ — เซ็ตเงียบๆ แล้วซิงค์เบื้องหลัง
+  var ok = await pushConfigToCloud();
+  setCardEditing('cloudinary', false);
+  toast(ok ? '✅ บันทึกและซิงค์คลาวด์แล้ว' : 'บันทึกในเครื่องแล้ว — ระบบจะซิงค์คลาวด์ให้เองเมื่อพร้อม', ok ? 'success' : 'warning');
 }
 async function testCloudinary(btn) {
   var name = document.getElementById('cfg-cld-name').value.trim();
