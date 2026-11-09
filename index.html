@@ -623,7 +623,7 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
 <!-- TOAST -->
 <div id="toast-container"></div>
 
-<!-- v40: หน้าเข้าสู่ระบบถูกถอนออกทั้งหมดตามที่เจ้าของร้านขอ — เปิดแอปแล้วเข้าใช้งานได้ทันที -->
+<!-- v40: หน้าเข้าสู่ระบบถูกถอนออกทั้งหมดตามที่เจ้าของร้านขอ — เปิดแอปแล้วเข้าใช้งานได้ทันที | v41: ซิงค์ตั้งค่ามีระบบลองใหม่เอง ไม่มีทางหลุดแบบเงียบๆ -->
 
 <!-- ============================================================
      APP SCREEN
@@ -1292,14 +1292,34 @@ function cfgHasMeaningfulData() {
   }
   return false;
 }
+// v41: ซิงค์ตั้งค่าต้อง "ไม่มีทางหลุดแบบเงียบๆ" — ถ้าตอนกดบันทึกเชื่อมคลาวด์ไม่ได้ (db ยังไม่พร้อม/เน็ตกระตุก)
+// ระบบจะจดสถานะค้างไว้แล้วลองส่งใหม่เองทุก 15 วิ + ทันทีที่ออนไลน์กลับมา + ทันทีที่เปิดแอปครั้งถัดไป
+// (ต้นเหตุ "ข้อมูลร้าน/ช่าง บันทึกแล้วหาย": รอบก่อนถ้า db ไม่พร้อมตอนกดบันทึก ระบบเงียบและไม่เคยลองใหม่)
+var _cfgPushPending = false, _cfgPushRetryTimer = null;
+function markCfgPushPending() {
+  _cfgPushPending = true;
+  try { var l = loadConfig(); l.cfgPushPending = true; localStorage.setItem(CFG_KEY, JSON.stringify(l)); } catch (e) {}
+  if (!_cfgPushRetryTimer) _cfgPushRetryTimer = setInterval(function() { if (_cfgPushPending && db) pushConfigToCloud(); }, 15000);
+}
+function clearCfgPushPending() {
+  _cfgPushPending = false;
+  try { var l = loadConfig(); delete l.cfgPushPending; localStorage.setItem(CFG_KEY, JSON.stringify(l)); } catch (e) {}
+}
+window.addEventListener('online', function() { if (_cfgPushPending && db) pushConfigToCloud(); });
 async function pushConfigToCloud() {
-  if (!db) return;
-  if (!cfgHasMeaningfulData()) return; // v40: ไม่มีข้อมูลจริง = ไม่อัปเด็ดขาด (เดิม bypass ด้วย cfgSyncedAt ทำให้ยิงค่าว่างทับคลาวด์ได้)
+  if (!db) { markCfgPushPending(); return false; }
+  if (!cfgHasMeaningfulData()) { clearCfgPushPending(); return true; } // v40: ไม่มีข้อมูลจริง = ไม่อัปเด็ดขาด (เดิม bypass ด้วย cfgSyncedAt ทำให้ยิงค่าว่างทับคลาวด์ได้)
   try {
     var p = cfgSyncPayload();
     await db.collection(CFG_SYNC_COL).doc(CFG_SYNC_DOC).set(p, { merge: true }); // v40: merge = ไม่ลบฟิลด์อื่นที่คลาวด์มีอยู่
+    clearCfgPushPending();
     var l = loadConfig(); l.cfgSyncedAt = p.updatedAt; localStorage.setItem(CFG_KEY, JSON.stringify(l));
-  } catch(e) { console.warn('อัปโหลดการตั้งค่าไม่สำเร็จ:', e); }
+    return true;
+  } catch(e) {
+    console.warn('อัปโหลดการตั้งค่าไม่สำเร็จ — ระบบจะลองใหม่เอง:', e);
+    markCfgPushPending();
+    return false;
+  }
 }
 async function syncConfigFromCloud() {
   if (!db) return;
@@ -2329,7 +2349,7 @@ var _selfBackAt = 0;        // เวลาที่เราเรียก his
 var _exitShownAt = 0;       // เวลาที่เปิดหน้าต่างยืนยันปิดแอป
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
-var APP_VERSION = 'v40';
+var APP_VERSION = 'v41';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -3331,13 +3351,16 @@ function updateConfigStatus() {
   }
 }
 function saveShopConfig() {
+  // v41: อ่านค่าแบบกันพัง + แจ้งความจริงว่าขึ้นคลาวด์หรือยัง (เดิมบอก "บันทึกแล้ว" ทั้งที่ซิงค์ไม่ทัน)
+  var g = function(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; };
+  var cb = document.getElementById('cfg-auto-line-popup');
   var cfg = loadConfig();
-  cfg.shopName = document.getElementById('cfg-shop-name').value.trim();
-  cfg.techPhone = document.getElementById('cfg-tech-phone').value.trim();
-  cfg.receiptFooter = document.getElementById('cfg-receipt-footer').value.trim();
-  cfg.autoLinePopup = document.getElementById('cfg-auto-line-popup').checked;
-  saveConfig(cfg);
-  toast('บันทึกข้อมูลร้านแล้ว', 'success');
+  cfg.shopName = g('cfg-shop-name');
+  cfg.techPhone = g('cfg-tech-phone');
+  cfg.receiptFooter = g('cfg-receipt-footer');
+  cfg.autoLinePopup = cb ? !!cb.checked : true;
+  saveConfig(cfg); // เขียนในเครื่องทันที + ตั้งเวลาซิงค์คลาวด์ (ถ้าคลาวด์ไม่พร้อม v41 จะจดค้างแล้วลองใหม่เอง)
+  toast(db ? '✅ บันทึกและซิงค์คลาวด์แล้ว' : 'บันทึกในเครื่องแล้ว — ระบบจะซิงค์คลาวด์ให้เองเมื่อเชื่อมต่อได้', db ? 'success' : 'warning');
 }
 async function saveFirebaseConfig() {
   var cfg = loadConfig();
@@ -3538,6 +3561,7 @@ document.addEventListener('DOMContentLoaded', function() {
       : Promise.resolve(false);
     boot.then(function(ok) {
       if (!ok) console.warn('⚠️ เชื่อมคลาวด์ตอนเปิดแอปไม่สำเร็จ — ใช้ข้อมูลในเครื่องก่อน ระบบจะลองซิงค์ใหม่เองเมื่อออนไลน์');
+      else if (loadConfig().cfgPushPending) { pushConfigToCloud(); } // v41: ของที่บันทึกค้างไว้ตอนออฟไลน์ ส่งขึ้นคลาวด์ทันทีที่เชื่อมได้
       enterApp();
     }).catch(function(eBoot) {
       console.warn('เปิดแอปขัดข้องเล็กน้อย ลองเข้าแอปตรง ๆ:', eBoot);
