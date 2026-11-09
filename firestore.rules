@@ -1,50 +1,33 @@
 rules_version = '2';
 
 // ============================================================
-// FixPro — กฎความปลอดภัย Firestore (v18)
-// ผ่านการทดสอบจริงบนเว็บไลฟ์แล้ว: ล็อกอินด้วยบัญชีที่ตรงเงื่อนไข → เข้าแอป + ซิงค์คลาวด์สมบูรณ์
-// (อ่าน/เขียน users profile, ลูกค้า, งานซ่อม, การตั้งค่าร้าน ได้ครบ ไม่มี permission-denied)
-// แก้ปัญหา: กฎเดิม (v16) อนุญาตเฉพาะ UID เดียว (1sTVPK...) — ถ้าบัญชีจริงของร้าน
-// ได้ UID อื่น จะล็อกอินผ่านแต่โดนปฏิเสธทุก collection จนแอปหลุดเข้าโหมดออฟไลน์เสมอ
-// (อาการ "เชื่อมต่อ Firebase ไม่ได้" ทั้งที่ล็อกอินสำเร็จ)
-// หลักการใหม่: เจ้าของร้าน = UID เดิม หรืออีเมล thanavutp@gmail.com (ไม่ง้อ UID)
-// บัญชีแปลกปลอมที่สมัครเองยังโดนปฏิเสธเหมือนเดิม
+// FixPro — กฎความปลอดภัย Firestore (v20)
+// v40 ถอนระบบเข้าสู่ระบบ/ออกจากระบบออกทั้งหมดตามที่เจ้าของร้านขอ — แอปเปิดแล้วใช้ได้ทันที เชื่อมคลาวด์เองโดยไม่ต้องล็อกอิน
+// จึงเปิดสิทธิ์เฉพาะ 3 collection ที่แอปใช้จริง (ลูกค้า / งานซ่อม / ตั้งค่าร้าน) ส่วนอื่นปิดหมด
+// หมายเหตุสำคัญ: เนื่องจากไม่มีระบบล็อกอินแล้ว ความปลอดภัยขึ้นกับการเก็บลิงก์เว็บไว้เป็นความลับภายในร้าน
+// (ห้ามเผยแพร่ลิงก์ fixpro-7b397.web.app ต่อสาธารณะ เพราะใครที่รู้ลิงก์+project id จะเข้าถึงข้อมูลได้)
 // ============================================================
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // บัญชีเจ้าของร้าน — รู้จักจาก UID เดิม หรืออีเมลของร้าน
-    // ถ้าอนาคตต้องการเพิ่มบัญชีที่สอง เพิ่มบรรทัด request.auth.token.email == 'อีเมลใหม่'
-    function isOwner() {
-      return request.auth != null && (
-        request.auth.uid == '1sTVPKuphcWLB7LjF7JKQkGLo1b2'
-        || request.auth.token.email == 'thanavutp@gmail.com'
-      );
-    }
-
     // ข้อมูลลูกค้า (doc id = เบอร์โทร)
     match /customers/{phone} {
-      allow read, write: if isOwner();
+      allow read, write: if true;
     }
 
     // ประวัติงานซ่อม
     match /jobs/{id} {
-      allow read, write: if isOwner();
+      allow read, write: if true;
     }
 
-    // การตั้งค่าร้าน (ซิงค์ข้ามเครื่อง: shop/settings)
+    // การตั้งค่าร้าน (ซิงค์ข้ามเครื่อง: shop/settings) + รายการเบอร์ที่ผู้ใช้ลบแล้ว (shop/deleted_phones)
     match /shop/{doc} {
-      allow read, write: if isOwner();
+      allow read, write: if true;
     }
 
-    // โปรไฟล์ผู้ใช้ — เจ้าของแก้เฉพาะ doc ของตัวเอง
-    match /users/{uid} {
-      allow read, write: if isOwner() && request.auth.uid == uid;
-    }
-
-    // collection ทดสอบการเชื่อมต่อ (ปุ่ม "ทดสอบ" ในหน้าตั้งค่า)
+    // collection ทดสอบการเชื่อมต่อ (ปุ่ม "ทดสอบ" ในหน้าตั้งค่า) — อ่านอย่างเดียว
     match /_test_/{doc} {
-      allow read: if isOwner();
+      allow read: if true;
     }
 
     // ตัวตรวจว่ากฎ deploy ถึงเซิร์ฟเวอร์จริงหรือไม่ (ว่างเปล่า ไม่มีข้อมูล อ่านอย่างเดียว)
@@ -53,7 +36,7 @@ service cloud.firestore {
       allow read: if true;
     }
 
-    // นอกเหนือจากนี้ ปิดหมดทุกกรณี
+    // นอกเหนือจากนี้ ปิดหมดทุกกรณี (รวม users — ไม่ใช้แล้วหลังถอนระบบล็อกอิน)
     match /{document=**} {
       allow read, write: if false;
     }

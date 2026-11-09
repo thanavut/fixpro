@@ -1,5 +1,5 @@
 /* FixPro Service Worker — แคชไฟล์แอปไว้ใช้งานตอนออฟไลน์ */
-var CACHE = 'fixpro-v39';
+var CACHE = 'fixpro-v40';
 var CORE = [
   './',
   './index.html',
@@ -7,9 +7,9 @@ var CORE = [
   './icons/icon-192.png',
   './icons/icon-180.png',
   './icons/icon-512.png',
-  // Firebase SDK เก็บในแอปเอง (โฟลเดอร์ /firebase) — ล็อกอินได้แม้เน็ตกระตุก/ออฟไลน์ ไม่พึ่ง gstatic อีกต่อไป
+  // Firebase SDK เก็บในแอปเอง (โฟลเดอร์ /firebase) — เชื่อมคลาวด์ได้แม้เน็ตกระตุก/ออฟไลน์ ไม่พึ่ง gstatic อีกต่อไป
+  // v40: ถอนระบบล็อกอินแล้วจึงไม่โหลด firebase-auth-compat.js (ไฟล์คงอยู่ใน repo สำหรับหน้าเก่าที่แคชค้างเท่านั้น)
   './firebase/firebase-app-compat.js',
-  './firebase/firebase-auth-compat.js',
   './firebase/firebase-firestore-compat.js',
   './assets/fontawesome/css/all.min.css',
   './assets/fontawesome/webfonts/fa-solid-900.woff2',

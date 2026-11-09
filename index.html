@@ -20,7 +20,6 @@
      สาเหตุที่แก้: เดิม SDK มาจาก gstatic และถูกวางหลังไลบรารี Excel/PDF (~1.4MB) ทำให้ script แบบ defer รอ execute ตามคิว
      ถ้าเน็ตช้าสักหน่อยโค้ดล็อกอินมาไม่ทันในเวลาที่กำหนด แอปจึงฟ้อง "อินเทอร์เน็ตไม่เสถียร" ทั้งที่เน็ตปกติ -->
 <script defer src="firebase/firebase-app-compat.js"></script>
-<script defer src="firebase/firebase-auth-compat.js"></script>
 <script defer src="firebase/firebase-firestore-compat.js"></script>
 <!-- ไลบรารี Excel/PDF ใช้ตอนส่งออกไฟล์เท่านั้น ไม่เกี่ยวกับการล็อกอิน ให้โหลดตามหลังได้ -->
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" integrity="sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw" crossorigin="anonymous"></script>
@@ -624,94 +623,7 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
 <!-- TOAST -->
 <div id="toast-container"></div>
 
-<!-- ============================================================
-     AUTH SCREEN
-     ============================================================ -->
-<div class="screen" id="auth-screen">
-  <button onclick="toggleTheme()" style="position:absolute;top:12px;right:12px;z-index:10;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;">
-    <i id="auth-theme-icon" class="fas fa-moon" style="font-size:16px;"></i>
-  </button>
-  <div class="auth-card">
-    <div class="auth-logo">
-      <div class="logo-icon">🔧</div>
-      <h1>FixPro</h1>
-      <p>ระบบจัดการงานช่าง</p>
-    </div>
-    <div id="login-form">
-      <div class="form-group">
-        <label class="form-label">อีเมล</label>
-        <div class="input-icon">
-          <i class="fas fa-envelope"></i>
-          <input type="email" class="form-control" id="login-email" placeholder="กรอกอีเมล" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()">
-        </div>
-        <div class="form-error" id="err-login-email">กรุณากรอกอีเมลให้ถูกต้อง</div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">รหัสผ่าน</label>
-        <div class="input-icon">
-          <i class="fas fa-lock"></i>
-          <input type="password" class="form-control" id="login-password" placeholder="กรอกรหัสผ่าน" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
-          <i class="fas fa-eye toggle-pass" onclick="togglePassword('login-password', this)"></i>
-        </div>
-        <div class="form-error" id="err-login-password">กรุณากรอกรหัสผ่าน</div>
-      </div>
-      <div class="form-group" style="display:flex;justify-content:space-between;align-items:center;">
-        <label class="form-check">
-          <input type="checkbox" id="remember-me">
-          <span style="font-size:13px;color:var(--text2);">จดจำฉัน</span>
-        </label>
-        <a href="javascript:void(0)" onclick="showForgotPassword()" style="font-size:13px;color:var(--primary);cursor:pointer;text-decoration:underline;font-weight:600;padding:6px 2px;display:inline-block;">ลืมรหัสผ่าน?</a>
-      </div>
-      <button class="btn btn-primary btn-full" onclick="doLogin()">
-        <i class="fas fa-sign-in-alt"></i> เข้าสู่ระบบ
-      </button>
-    </div>
-    <div id="register-form" style="display:none;">
-      <div style="background:#FFF8E1;border:1px solid #FFD54F;border-radius:8px;padding:10px 14px;font-size:13px;color:#7B5E00;margin-bottom:14px;display:flex;align-items:flex-start;gap:8px;">
-        <i class="fas fa-clock" style="color:#F59E0B;margin-top:2px;flex-shrink:0;"></i>
-        <span>ลงทะเบียนเสร็จ <b>ใช้งานได้ทันที</b> — ข้อมูลซิงค์ผ่าน Firebase Cloud</span>
-      </div>
-      <div class="form-group">
-        <label class="form-label">ชื่อ-นามสกุล</label>
-        <div class="input-icon">
-          <i class="fas fa-user"></i>
-          <input type="text" class="form-control" id="reg-name" placeholder="กรอกชื่อ-นามสกุล">
-        </div>
-        <div class="form-error" id="err-reg-name">กรุณากรอกชื่อ-นามสกุล</div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">อีเมล</label>
-        <div class="input-icon">
-          <i class="fas fa-envelope"></i>
-          <input type="email" class="form-control" id="reg-email" placeholder="กรอกอีเมล">
-        </div>
-        <div class="form-error" id="err-reg-email">กรุณากรอกอีเมลให้ถูกต้อง</div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">รหัสผ่าน</label>
-        <div class="input-icon">
-          <i class="fas fa-lock"></i>
-          <input type="password" class="form-control" id="reg-password" placeholder="อย่างน้อย 6 ตัว">
-        </div>
-        <div class="form-error" id="err-reg-password">รหัสผ่านต้องมีอย่างน้อย 6 ตัว</div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">ยืนยันรหัสผ่าน</label>
-        <div class="input-icon">
-          <i class="fas fa-lock"></i>
-          <input type="password" class="form-control" id="reg-confirm" placeholder="ยืนยันรหัสผ่าน">
-        </div>
-        <div class="form-error" id="err-reg-confirm">รหัสผ่านไม่ตรงกัน</div>
-      </div>
-      <button class="btn btn-primary btn-full" onclick="doRegister()">
-        <i class="fas fa-user-plus"></i> ลงทะเบียน
-      </button>
-    </div>
-  </div>
-  <div style="position:absolute;bottom:8px;right:12px;font-size:10px;color:rgba(255,255,255,.4);text-align:right;">
-    thanavutp&#64;gmail.com
-  </div>
-</div>
+<!-- v40: หน้าเข้าสู่ระบบถูกถอนออกทั้งหมดตามที่เจ้าของร้านขอ — เปิดแอปแล้วเข้าใช้งานได้ทันที -->
 
 <!-- ============================================================
      APP SCREEN
@@ -728,7 +640,6 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
       <div class="header-btn" onclick="toggleTheme()" title="ธีม">
         <i class="fas fa-moon" id="theme-icon"></i>
       </div>
-      <div class="user-avatar" onclick="openProfileModal()" id="header-avatar">?</div>
     </div>
   </header>
 
@@ -941,9 +852,6 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
           <div class="settings-section-header"><i class="fas fa-fire" style="color:#f97316;"></i> Firebase Configuration</div>
           <div class="card-body" style="padding-top:4px;">
             <div id="firebase-status" class="config-status warn"><i class="fas fa-circle-exclamation"></i> ยังไม่ได้ตั้งค่า</div>
-            <div id="fb-login-row" style="display:none;align-items:center;gap:8px;margin-bottom:8px;">
-              <button class="btn btn-primary btn-sm" onclick="goLoginFromSettings()"><i class="fas fa-right-to-bracket"></i> ล็อกอินเพื่อเชื่อมต่อคลาวด์</button>
-            </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
               <div class="form-group"><label class="form-label" style="font-size:11px;">API Key</label><input type="text" class="form-control" id="cfg-fb-apikey" placeholder="AIza..." style="font-size:12px;"></div>
               <div class="form-group"><label class="form-label" style="font-size:11px;">Auth Domain</label><input type="text" class="form-control" id="cfg-fb-authdomain" placeholder="app.firebaseapp.com" style="font-size:12px;"></div>
@@ -986,9 +894,6 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
               <button class="btn btn-secondary btn-sm" title="ส่งออกไฟล์ Excel" onclick="exportExcel()"><i class="fas fa-file-excel"></i> Excel</button>
               <button class="btn btn-secondary btn-sm" title="ส่งออกไฟล์ PDF" onclick="exportPDFReport()"><i class="fas fa-file-pdf"></i> PDF</button>
             </div>
-            <div class="backup-row" style="margin-top:8px;">
-              <button class="btn btn-sm" style="background:#fff7e6;color:#8a5a00;border:1px solid #f0d9a8;" title="กู้คืนข้อมูลจากชุดสำรองฉุกเฉินที่ระบบเก็บอัตโนมัติก่อนซิงค์ล่าสุด (เก็บไว้ 3 ชุด)" onclick="restoreEmergencySnapshot()"><i class="fas fa-life-ring"></i> กู้คืนฉุกเฉิน (สำรองอัตโนมัติ)</button>
-            </div>
           </div>
         </div>
 
@@ -1007,14 +912,6 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
               3. กด <b>เพิ่ม</b> — จะได้ไอคอน FixPro บนหน้าจอหลัก
             </div>
             <div id="install-done-note" style="display:none;font-size:12.5px;color:var(--success);font-weight:600;"><i class="fas fa-circle-check"></i> ติดตั้งเป็นแอปแล้ว — ตอนนี้คุณกำลังใช้งานผ่านแอปอยู่</div>
-          </div>
-        </div>
-
-        <!-- Log Out -->
-        <div class="card">
-          <div class="card-body" style="padding-top:4px;">
-            <button class="btn btn-danger btn-full" onclick="doLogout()"><i class="fas fa-right-from-bracket"></i> ออกจากระบบ (Log Out)</button>
-            <div style="font-size:11px;color:var(--text3);text-align:center;margin-top:8px;">ออกไปหน้าเข้าสู่ระบบ — ข้อมูลในเครื่องยังอยู่เหมือนเดิม ไม่หาย</div>
           </div>
         </div>
 
@@ -1295,29 +1192,6 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
   </div>
 </div>
 
-<!-- Profile -->
-<div class="modal-overlay" id="modal-profile">
-  <div class="modal" style="max-width:400px;">
-    <div class="modal-header">
-      <span class="modal-title"><i class="fas fa-user-circle"></i> ข้อมูลผู้ใช้</span>
-      <div class="modal-close" onclick="closeModal('modal-profile')"><i class="fas fa-times"></i></div>
-    </div>
-    <div class="modal-body">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
-        <div id="profile-avatar" style="width:48px;height:48px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;flex-shrink:0;"></div>
-        <div><div id="profile-name" style="font-size:15px;font-weight:700;"></div><div id="profile-email" style="font-size:12px;color:var(--text3);"></div></div>
-      </div>
-      <div class="form-group"><label class="form-label">รหัสผ่านเดิม</label><input type="password" class="form-control" id="profile-old-pass" placeholder="รหัสผ่านเดิม"></div>
-      <div class="form-group"><label class="form-label">รหัสผ่านใหม่</label><input type="password" class="form-control" id="profile-new-pass" placeholder="รหัสผ่านใหม่"></div>
-      <div class="form-group"><label class="form-label">ยืนยันรหัสผ่าน</label><input type="password" class="form-control" id="profile-confirm-pass" placeholder="ยืนยันรหัสผ่าน"></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeModal('modal-profile')">ปิด</button>
-      <button class="btn btn-primary" onclick="changePasswordFromProfile()"><i class="fas fa-key"></i> เปลี่ยน</button>
-    </div>
-  </div>
-</div>
-
 <!-- Job Complete Popup -->
 <div id="job-complete-overlay">
   <div class="job-complete-sheet">
@@ -1343,7 +1217,6 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
 // CONFIG & STATE
 // ============================================================
 var DB = { customers: [], jobs: [] };
-var currentUser = null;
 var currentPage = 'dashboard';
 var currentCustomerPhone = null;
 var pendingPhotos = [];
@@ -1382,6 +1255,8 @@ function saveConfig(cfg) { localStorage.setItem(CFG_KEY, JSON.stringify(cfg)); q
 
 // ===== ซิงค์การตั้งค่าข้ามเครื่อง (Firestore: shop/settings) =====
 // หลักการ: เครื่องที่มีข้อมูลจริงเครื่องแรกจะอัปโหลดอัตโนมัติ / เครื่องอื่นดึงลงตอนเปิดแอป / แก้ไขเมื่อไร push ทันที (timestamp ใหม่ชนะ)
+// v40 แข็งแรงขึ้น: อัปแบบ merge เฉพาะค่าที่มีจริง — ห้าม null/ค่าว่างทับคลาวด์เด็ดขาด (สาเหตุที่ค่าหน้าตั้งค่าเคยหาย)
+// และตอนดึงกลับก็รับเฉพาะค่าที่ไม่ว่างเท่านั้น ทำให้ไม่มีทางที่เครื่องใดจะล้างข้อมูลตั้งค่าของเครื่องอื่นได้
 var CFG_SYNC_COL = 'shop';
 var CFG_SYNC_DOC = 'settings';
 var CFG_SYNC_KEYS = ['shopName','techPhone','receiptFooter','autoLinePopup','cloudName','uploadPreset','jobTypes'];
@@ -1392,7 +1267,14 @@ function queueConfigPush() {
 }
 function cfgSyncPayload() {
   var cfg = loadConfig(); var out = { updatedAt: new Date().toISOString() };
-  CFG_SYNC_KEYS.forEach(function(k){ out[k] = (cfg[k] !== undefined) ? cfg[k] : null; });
+  // v40: อัปเฉพาะค่าที่มีจริง — ห้ามส่ง null/ลิสต์ว่างขึ้นคลาวด์เด็ดขาด
+  // (สาเหตุ "ค่าตั้งค่าหาย": เครื่องที่ config ในเครื่องโดนล้างจะยิงค่าว่างทับคลาวด์ ทำให้ทุกเครื่องเห็นหน้าตั้งค่าเปล่า)
+  CFG_SYNC_KEYS.forEach(function(k){
+    var v = cfg[k];
+    if (v === undefined || v === null || v === '') return;
+    if (k === 'jobTypes' && !(Array.isArray(v) && v.length)) return;
+    out[k] = v;
+  });
   return out;
 }
 function cfgHasMeaningfulData() {
@@ -1412,10 +1294,10 @@ function cfgHasMeaningfulData() {
 }
 async function pushConfigToCloud() {
   if (!db) return;
-  if (!cfgHasMeaningfulData() && !loadConfig().cfgSyncedAt) return; // ยังไม่เคยตั้งอะไร → ไม่ต้องอัปโหลด
+  if (!cfgHasMeaningfulData()) return; // v40: ไม่มีข้อมูลจริง = ไม่อัปเด็ดขาด (เดิม bypass ด้วย cfgSyncedAt ทำให้ยิงค่าว่างทับคลาวด์ได้)
   try {
     var p = cfgSyncPayload();
-    await db.collection(CFG_SYNC_COL).doc(CFG_SYNC_DOC).set(p);
+    await db.collection(CFG_SYNC_COL).doc(CFG_SYNC_DOC).set(p, { merge: true }); // v40: merge = ไม่ลบฟิลด์อื่นที่คลาวด์มีอยู่
     var l = loadConfig(); l.cfgSyncedAt = p.updatedAt; localStorage.setItem(CFG_KEY, JSON.stringify(l));
   } catch(e) { console.warn('อัปโหลดการตั้งค่าไม่สำเร็จ:', e); }
 }
@@ -1444,6 +1326,38 @@ async function syncConfigFromCloud() {
     refreshAll();
     console.info('ซิงค์การตั้งค่าจากคลาวด์แล้ว (' + remoteTs + ')');
   } catch(e) { console.warn('ดึงการตั้งค่าจากคลาวด์ไม่สำเร็จ:', e); }
+}
+
+// v40: กู้ค่าการตั้งค่ากลับจากคลาวด์ ครั้งเดียวหลังอัปเกรด — กรณีค่าในเครื่องหายแต่คลาวด์ยังมีอยู่
+// เติมเฉพาะช่องที่เครื่องนี้ว่างเท่านั้น ไม่เขียนทับค่าที่มีอยู่ จึงไม่มีทางลบข้อมูลฝั่งไหน (อ่านอย่างเดียว + เขียนแบบ merge)
+async function v40ConfigResync() {
+  if (!db) return;
+  var cfg = loadConfig();
+  if (cfg.v40resync) return;
+  try {
+    var snap = await db.collection(CFG_SYNC_COL).doc(CFG_SYNC_DOC).get();
+    if (snap.exists) {
+      var remote = snap.data() || {};
+      var filled = [];
+      CFG_SYNC_KEYS.forEach(function(k){
+        var rv = remote[k];
+        if (rv === undefined || rv === null) return;
+        if (k === 'jobTypes' && !(Array.isArray(rv) && rv.length)) return;
+        var lv = cfg[k];
+        var lEmpty = (lv === undefined || lv === null || lv === '');
+        if (k === 'jobTypes') lEmpty = !(Array.isArray(lv) && lv.length);
+        if (lEmpty) { cfg[k] = rv; filled.push(k); }
+      });
+      if (filled.length) {
+        localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
+        applyJobTypes();
+        refreshAll();
+        toast('✅ ดึงการตั้งค่าที่หายไปกลับมาจากคลาวด์แล้ว', 'success');
+      }
+    }
+    var l2 = loadConfig(); l2.v40resync = new Date().toISOString(); localStorage.setItem(CFG_KEY, JSON.stringify(l2));
+    if (cfgHasMeaningfulData()) queueConfigPush(); // ถ้าเครื่องนี้มีค่าที่คลาวด์ขาด อัปขึ้นเติมให้ด้วย (merge ไม่ทับของเดิม)
+  } catch(e) { /* ออฟไลน์/เชื่อมไม่ได้ → ยังไม่เซ็ต flag รอบหน้าจะลองใหม่เอง */ }
 }
 
 // ===== แจ้งเตือนบนเครื่อง (Notification API) =====
@@ -1504,15 +1418,13 @@ function lsGetJobs() { try { return JSON.parse(localStorage.getItem(LS_JOBS) || 
 function lsSaveJobs(arr) { localStorage.setItem(LS_JOBS, JSON.stringify(arr)); }
 
 // ============================================================
-// v38 — ป้องกันข้อมูลหายเงียบๆ (ต้นเหตุ "ลูกค้าหายคนหนึ่ง"):
-// เดิมตอนซิงค์คลาวด์สำเร็จ แอปจะเขียนทับข้อมูลในเครื่องด้วยคลาวด์ทั้งชุด โดยไม่รวมข้อมูลค้างและไม่มีสำเนาก่อนเขียนทับ
-// ลูกค้า/งานที่เซฟไว้ตอนระบบขัดข้อง (เขียนคลาวด์ไม่สำเร็จ อยู่แค่ในเครื่อง) จึงหายทันทีที่ล็อกอินกลับมาสำเร็จ
-// แก้ 3 ชั้น: (1) สำรองฉุกเฉินก่อนซิงค์ทุกครั้งเก็บ 3 ชุดล่าสุด (2) ผนวกข้อมูลค้างในเครื่องกลับเข้าระบบ+อัปคลาวด์ให้เอง
+// v38 — กันข้อมูลหายเงียบๆ ตอนซิงค์ (v40 ปรับตามที่เจ้าของร้านขอ: ถอนปุ่ม "กู้คืนฉุกเฉิน" และไฟล์สำรองฉุกเฉินออกทั้งหมด
+// เหลือกลไกที่ทำงานเงียบๆ ในเบื้องหลังเพื่อความไวข้อมูลเท่านั้น):
+// (1) ตอนซิงค์ ถ้าพบลูกค้า/งานที่อยู่ในเครื่องแต่คลาวด์ไม่มี (ของที่เซฟค้างตอนออฟไลน์) จะผนวกกลับเข้าระบบและอัปขึ้นคลาวด์ให้เอง
+// (2) tombstone — จดทะเบียนเบอร์ที่ผู้ใช้ลบเอง กันของที่ลบแล้วฟื้นกลับมาจากคลาวด์ตอนซิงค์
 // (3) tombstone — จดทะเบียนเบอร์ที่ผู้ใช้ลบเอง กันระบบกู้คืนดึงของที่ลบแล้วกลับมาโดยไม่ตั้งใจ
 // ============================================================
 var LS_TOMB = 'fixpro_deleted_phones';
-var LS_SNAP_C = 'fixpro_snap_customers';
-var LS_SNAP_J = 'fixpro_snap_jobs';
 function getTombstones() { try { return JSON.parse(localStorage.getItem(LS_TOMB) || '[]'); } catch(e) { return []; } }
 function addTombstone(phone) {
   if (!phone) return;
@@ -1522,23 +1434,6 @@ function addTombstone(phone) {
   try { localStorage.setItem(LS_TOMB, JSON.stringify(t)); } catch (e) {}
   if (db) { db.collection('shop').doc('deleted_phones').set({ phones: t, updatedAt: new Date().toISOString() }).catch(function(){}); }
 }
-function snapshotBeforeSync() {
-  try {
-    var curC = localStorage.getItem(LS_CUSTOMERS);
-    var curJ = localStorage.getItem(LS_JOBS);
-    if (!curC && !curJ) return;
-    var snC, snJ;
-    try { snC = JSON.parse(localStorage.getItem(LS_SNAP_C) || '[]'); } catch (e) { snC = []; }
-    try { snJ = JSON.parse(localStorage.getItem(LS_SNAP_J) || '[]'); } catch (e) { snJ = []; }
-    var stamp = new Date().toISOString();
-    if (curC) { var arrC = JSON.parse(curC) || []; snC.unshift({ at: stamp, count: arrC.length, data: arrC }); }
-    if (curJ) { var arrJ = JSON.parse(curJ) || []; snJ.unshift({ at: stamp, count: arrJ.length, data: arrJ }); }
-    snC = snC.slice(0, 3); snJ = snJ.slice(0, 3); // เก็บ 3 ชุดล่าสุดพอ กันพื้นที่เครื่องบวมเกิน
-    localStorage.setItem(LS_SNAP_C, JSON.stringify(snC));
-    localStorage.setItem(LS_SNAP_J, JSON.stringify(snJ));
-  } catch (e) { console.warn('เก็บสำรองฉุกเฉินไม่สำเร็จ:', e); }
-}
-
 // ============================================================
 // FIREBASE
 // ============================================================
@@ -1546,11 +1441,8 @@ var db = null;
 async function initFirebase(cfg) {
   try {
     if (typeof firebase === 'undefined' || typeof firebase.initializeApp !== 'function') return false;
-    // v37 แก้บั๊กร้ายแรง: เดิมถ้ามี app อยู่แล้วจะสั่ง delete ทิ้งแล้วสร้างใหม่ทันที
-    // delete เป็นงาน async ที่ไม่ได้รอ ผลคือ app เดิมถูกลบจนหมด แต่การสร้างใหม่กลายเป็นขั้นตอนที่ไม่จำเป็น
-    // บั๊กนี้ถูกกระตุ้นทุกครั้งที่เครื่องมี session เดิมค้าง (onAuthStateChanged เรียก initFirebase ซ้ำ)
-    // ทำให้ firebase.auth() พังทั้งแอปด้วย error "No Firebase App '[DEFAULT]' has been created"
-    // วิธีใหม่: มี app อยู่แล้ว = ใช้ตัวเดิมเลย ไม่ลบไม่สร้างซ้ำ (ถ้าถูกลบจนหมดจะสร้างใหม่ให้เอง = รักษาตัวเองได้)
+    // v37 แก้บั๊กเดิม (สร้าง app ซ้ำจน "No Firebase App [DEFAULT]") — v40 คงไว้:
+    // มี app อยู่แล้ว = ใช้ตัวเดิมเลย ไม่ลบไม่สร้างซ้ำ (ถ้าถูกลบจนหมดจะสร้างใหม่ให้เอง = รักษาตัวเองได้)
     if (firebase.apps.length === 0) {
       firebase.initializeApp({
         apiKey: cfg.apiKey, authDomain: cfg.authDomain,
@@ -1593,8 +1485,6 @@ async function loadAllData() {
       var cloudC = cSnap.docs.map(function(d){ return Object.assign({}, d.data(), {phone: d.id}); });
       var jSnap = await db.collection('jobs').orderBy('serviceDate', 'desc').get();
       var cloudJ = jSnap.docs.map(function(d){ return Object.assign({}, d.data(), {id: d.id}); });
-      // v38: เก็บสำเนาฉุกเฉินของข้อมูลในเครื่องไว้ก่อนเขียนทับด้วยคลาวด์ทุกครั้ง
-      snapshotBeforeSync();
       // v38: รวมรายการเบอร์ที่ผู้ใช้ลบเองแล้ว (tombstone) จากคลาวด์+เครื่อง กันกู้คืนสิ่งที่ลบโดยตั้งใจ
       var tomb = getTombstones();
       try {
@@ -1654,6 +1544,7 @@ async function loadAllData() {
   }
   await purgeDemoData();
   if (db) await syncConfigFromCloud();
+  if (db) await v40ConfigResync(); // v40: ครั้งแรกหลังอัปเกรด — เติมค่าตั้งค่าที่เครื่องขาดจากคลาวด์ (ไม่ทับของเดิม)
   refreshAll();
   checkAndNotify();
 }
@@ -1675,8 +1566,7 @@ async function saveCustomerData(customer) {
   return false;
 }
 async function deleteCustomerData(phone) {
-  snapshotBeforeSync(); // v38: เก็บสำเนาไว้ก่อนลบเสมอ กันลบพลาดย้อนได้จากปุ่มกู้คืนฉุกเฉิน
-  addTombstone(phone); // v38: จดทะเบียนเบอร์ที่ลบเอง กันระบบกู้คืนดึงกลับมาโดยไม่ตั้งใจ
+  addTombstone(phone); // จดทะเบียนเบอร์ที่ลบเอง กันของที่ลบแล้วฟื้นกลับมาจากคลาวด์ตอนซิงค์
   DB.customers = DB.customers.filter(function(c){ return c.phone !== phone; });
   DB.jobs = DB.jobs.filter(function(j){ return j.customerPhone !== phone; });
   lsSaveCustomers(DB.customers);
@@ -2439,7 +2329,7 @@ var _selfBackAt = 0;        // เวลาที่เราเรียก his
 var _exitShownAt = 0;       // เวลาที่เปิดหน้าต่างยืนยันปิดแอป
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
-var APP_VERSION = 'v39';
+var APP_VERSION = 'v40';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -3383,7 +3273,6 @@ function restoreData(e) {
     document.getElementById('confirm-msg').style.whiteSpace = 'pre-line';
     document.getElementById('confirm-ok-btn').onclick = async function() {
       closeModal('modal-confirm');
-      snapshotBeforeSync(); // v38: เก็บสำเนาข้อมูลปัจจุบันไว้ก่อนกู้คืนทับทุกครั้ง
       DB.customers = custs;
       DB.jobs = jobsArr;
       lsSaveCustomers(DB.customers);
@@ -3402,45 +3291,6 @@ function restoreData(e) {
     openModal('modal-confirm');
   };
   reader.readAsText(file);
-}
-
-// v38: กู้คืนจากชุดสำรองฉุกเฉินที่ระบบเก็บอัตโนมัติก่อนซิงค์ล่าสุด (เก็บไว้ 3 ชุด)
-// ผนวกเฉพาะรายการที่ปัจจุบันไม่มีแล้วเท่านั้น ไม่เขียนทับข้อมูลปัจจุบัน และอัปขึ้นคลาวด์ให้เอง
-function restoreEmergencySnapshot() {
-  var snC = [], snJ = [];
-  try { snC = JSON.parse(localStorage.getItem(LS_SNAP_C) || '[]'); } catch (e) {}
-  try { snJ = JSON.parse(localStorage.getItem(LS_SNAP_J) || '[]'); } catch (e) {}
-  if (!snC.length && !snJ.length) { toast('ยังไม่มีข้อมูลสำรองฉุกเฉิน — ระบบจะเก็บให้อัตโนมัติหลังซิงค์ครั้งต่อไป', 'info'); return; }
-  var sC = snC[0] || { data: [], at: '' };
-  var sJ = snJ[0] || { data: [], at: '' };
-  var when = new Date(sC.at || sJ.at || Date.now()).toLocaleString('th-TH');
-  document.getElementById('confirm-title').textContent = 'กู้คืนฉุกเฉิน';
-  document.getElementById('confirm-ok-btn').innerHTML = '<i class="fas fa-life-ring"></i> กู้คืน';
-  document.getElementById('confirm-msg').style.whiteSpace = 'pre-line';
-  document.getElementById('confirm-msg').textContent = 'ผนวกข้อมูลสำรองฉุกเฉิน (เก็บเมื่อ ' + when + ')\nลูกค้า ' + (sC.count || 0) + ' รายการ, งาน ' + (sJ.count || 0) + ' งาน\n\nเฉพาะรายการที่ปัจจุบันไม่มีแล้วเท่านั้นที่จะถูกเพิ่มกลับ (ไม่ทับข้อมูลปัจจุบัน) และอัปขึ้นคลาวด์ให้เอง';
-  document.getElementById('confirm-ok-btn').onclick = async function() {
-    closeModal('modal-confirm');
-    var tomb = getTombstones();
-    var addedC = 0, addedJ = 0;
-    (sC.data || []).forEach(function(c){
-      if (!c || !c.phone || tomb.indexOf(c.phone) >= 0) return;
-      if (DB.customers.find(function(x){ return x.phone === c.phone; })) return;
-      DB.customers.unshift(c); addedC++;
-      if (db) db.collection('customers').doc(c.phone).set(c).catch(function(){});
-    });
-    (sJ.data || []).forEach(function(j){
-      if (!j || !j.id || !j.customerPhone || tomb.indexOf(j.customerPhone) >= 0) return;
-      if (DB.jobs.find(function(x){ return x.id === j.id; })) return;
-      DB.jobs.unshift(j); addedJ++;
-      if (db) db.collection('jobs').doc(j.id).set(j).catch(function(){});
-    });
-    lsSaveCustomers(DB.customers);
-    lsSaveJobs(DB.jobs);
-    refreshAll();
-    if (addedC + addedJ) toast('กู้คืนกลับมาแล้ว: ลูกค้า ' + addedC + ' รายการ, งาน ' + addedJ + ' งาน', 'success');
-    else toast('ข้อมูลในสำรองฉุกเฉินปัจจุบันมีครบอยู่แล้ว ไม่มีอะไรต้องเพิ่ม', 'info');
-  };
-  openModal('modal-confirm');
 }
 
 // ============================================================
@@ -3464,36 +3314,21 @@ function loadSettingsPage() {
   renderJobTypeSettings();
   updateConfigStatus();
 }
-function isFbLoggedIn() {
-  try { return !!(window.firebase && firebase.auth && firebase.auth().currentUser); } catch(e) { return false; }
-}
 function updateConfigStatus() {
+  // v40: ไม่มีระบบล็อกอินแล้ว — แอปเชื่อมคลาวด์อัตโนมัติเมื่อเปิด จึงแสดงสถานะจากค่า config อย่างเดียว
   var cfg = loadConfig();
   var fbEl = document.getElementById('firebase-status');
-  var loggedIn = isFbLoggedIn();
   if (cfg.apiKey && cfg.projectId) {
-    if (loggedIn) {
-      fbEl.className = 'config-status ok'; fbEl.innerHTML = '<i class="fas fa-circle-check"></i> เชื่อมต่อคลาวด์สำเร็จ · ' + esc(cfg.projectId);
-    } else {
-      fbEl.className = 'config-status warn'; fbEl.innerHTML = '<i class="fas fa-circle-info"></i> ค่า config ถูกฝังในแอปเรียบร้อยแล้ว — แต่ยังไม่ได้ล็อกอิน ข้อมูลจึงยังเชื่อมคลาวด์ไม่ได้';
-    }
+    fbEl.className = 'config-status ok'; fbEl.innerHTML = '<i class="fas fa-circle-check"></i> เชื่อมต่อคลาวด์อัตโนมัติ · ' + esc(cfg.projectId);
   } else {
     fbEl.className = 'config-status warn'; fbEl.innerHTML = '<i class="fas fa-circle-exclamation"></i> ยังไม่ได้ตั้งค่า (ใช้ LocalStorage)';
   }
-  var loginRow = document.getElementById('fb-login-row');
-  if (loginRow) loginRow.style.display = (cfg.apiKey && cfg.projectId && !loggedIn) ? 'flex' : 'none';
   var cldEl = document.getElementById('cloudinary-status');
   if (cfg.cloudName && cfg.uploadPreset) {
     cldEl.className = 'config-status ok'; cldEl.innerHTML = '<i class="fas fa-circle-check"></i> ตั้งค่าแล้ว · ' + esc(cfg.cloudName);
-  } else if (loggedIn) {
-    cldEl.className = 'config-status warn'; cldEl.innerHTML = '<i class="fas fa-circle-exclamation"></i> ยังไม่ได้ตั้งค่า (รูปเก็บชั่วคราว)';
   } else {
-    cldEl.className = 'config-status warn'; cldEl.innerHTML = '<i class="fas fa-circle-info"></i> ยังไม่แสดงค่า — ถ้าเคยกรอกไว้ ค่าจะกลับมาเองเมื่อล็อกอิน (แอปดึงจากคลาวด์ให้)';
+    cldEl.className = 'config-status warn'; cldEl.innerHTML = '<i class="fas fa-circle-exclamation"></i> ยังไม่ได้ตั้งค่า (รูปเก็บชั่วคราว)';
   }
-}
-function goLoginFromSettings() {
-  try { if (window.firebase && firebase.apps && firebase.apps.length && firebase.auth().currentUser) firebase.auth().signOut(); } catch(e) {}
-  showAuthScreen('ล็อกอินจากหน้าตั้งค่า');
 }
 function saveShopConfig() {
   var cfg = loadConfig();
@@ -3524,8 +3359,7 @@ async function testFirebase() {
     await db.collection('_test_').limit(1).get();
     toast('เชื่อมต่อ Firebase สำเร็จ!', 'success');
   } catch(e) {
-    if (!isFbLoggedIn()) toast('ค่า config พร้อมแล้ว แต่ยังไม่ได้ล็อกอิน — กดปุ่ม "ล็อกอินเพื่อเชื่อมต่อคลาวด์" ด้านบน', 'warning');
-    else toast('ถึงโปรเจกต์ได้แต่อ่านข้อมูลไม่ได้ (' + (e.code || 'permission-denied') + ')', 'warning');
+    toast('เชื่อมถึงโปรเจกต์ได้ แต่อ่านข้อมูลไม่ได้ (' + (e.code || 'permission-denied') + ') — เช็คอินเทอร์เน็ตแล้วลองใหม่', 'warning');
   }
 }
 function saveCloudinaryConfig(silent) {
@@ -3569,172 +3403,18 @@ async function testCloudinary(btn) {
 }
 
 // ============================================================
-// AUTH
+// v40 — เปิดแอปเข้าใช้งานได้ทันที (ถอนระบบเข้าสู่ระบบ/ออกจากระบบออกทั้งหมดตามที่เจ้าของร้านขอ)
+// ไม่มีหน้าล็อกอินอีกต่อไป: เปิดแอป = เห็นข้อมูลทันที ระบบเชื่อมคลาวด์ (Firestore) ให้เองเบื้องหลัง
 // ============================================================
-function switchAuthTab(tab) {
-  // เดิมอ้าง id auth-login-title/auth-register-title ที่ไม่มีใน HTML ทำให้ error
-  var tabs = document.querySelectorAll('#auth-screen .auth-tab');
-  if (tabs[0]) tabs[0].classList.toggle('active', tab === 'login');
-  if (tabs[1]) tabs[1].classList.toggle('active', tab === 'register');
-  document.getElementById('login-form').style.display = tab === 'login' ? 'block' : 'none';
-  document.getElementById('register-form').style.display = tab === 'register' ? 'block' : 'none';
-}
-function togglePassword(id, icon) {
-  var el = document.getElementById(id);
-  if (el.type === 'password') { el.type = 'text'; icon.className = 'fas fa-eye-slash toggle-pass'; }
-  else { el.type = 'password'; icon.className = 'fas fa-eye toggle-pass'; }
-}
-function showForgotPassword() {
-  var emailEl = document.getElementById('login-email');
-  var email = emailEl.value.trim();
-  if (!email) { toast('กรอกอีเมลก่อน แล้วกด "ลืมรหัสผ่าน?" อีกครั้ง', 'warning'); emailEl.focus(); return; }
-  toast('กำลังส่งลิงก์รีเซ็ตรหัสผ่าน...', 'info');
-  ensureFirebaseReady(15000).then(function(ready) {
-    if (!ready) { clearSendingToasts(); toast('ระบบล็อกอินยังโหลดไม่เสร็จ (เน็ตช้า) — รอสักครู่แล้วกด "ลืมรหัสผ่าน?" อีกครั้งได้เลย ไม่ต้องปิดแอป', 'error'); return; }
-    firebase.auth().sendPasswordResetEmail(email)
-      .then(function() {
-        clearSendingToasts();
-        toast('ส่งลิงก์ตั้งรหัสผ่านใหม่ไปที่ ' + email + ' แล้ว — เปิดอีเมลเพื่อกดตั้งรหัสใหม่ (เช็คถังสแปมด้วย)', 'success');
-      })
-      .catch(function(err) {
-        clearSendingToasts();
-        var code = err && err.code ? err.code : '';
-        if (code === 'auth/user-not-found') toast('ไม่พบบัญชีอีเมลนี้ในระบบ — ตรวจสอบอีเมลอีกครั้ง', 'error');
-        else if (code === 'auth/too-many-requests') toast('ลองหลายครั้งเกินไป รอสักครู่แล้วลองใหม่', 'warning');
-        else if (code === 'auth/invalid-email') toast('รูปแบบอีเมลไม่ถูกต้อง', 'error');
-        else if (code === 'auth/network-request-failed') toast('เน็ตไม่เสถียร — เช็คอินเทอร์เน็ตแล้วลองใหม่', 'error');
-        else toast('เกิดข้อผิดพลาด: ' + (err && err.message ? err.message : 'ไม่ทราบสาเหตุ'), 'error');
-      });
-  });
-}
-function clearSendingToasts() {
-  var olds = document.querySelectorAll('#toast-container .toast');
-  olds.forEach(function(t){ if (t.textContent.indexOf('กำลังส่ง') >= 0) t.remove(); });
-}
-// รอ Firebase SDK โหลดเสร็จ — SDK ตอนนี้เก็บในแอปเอง + SW แคชไว้ จะโหลดเร็วและใช้ได้แม้ออฟไลน์
-// สำรองไว้กันเหนียว: ถ้ายังไม่พร้อมให้รอสูงสุด 15 วิ (เดิม 4 วิ สั้นเกินไปสำหรับเน็ตมือถือ)
-function waitForFirebase(timeoutMs) {
-  return new Promise(function(resolve) {
-    var deadline = Date.now() + (timeoutMs || 15000);
-    (function check() {
-      if (typeof firebase !== 'undefined' && typeof firebase.auth === 'function' && typeof firebase.initializeApp === 'function') return resolve(true);
-      if (Date.now() >= deadline) return resolve(false);
-      setTimeout(check, 250);
-    })();
-  });
-}
-// v37: รอ SDK + การันตีว่า Firebase app ถูก initialize แล้วจริง ๆ
-// เดิม waitForFirebase เช็คแค่ว่า SDK โหลดมาแล้ว แต่ถ้าขั้น initializeApp พลาด/ถูกข้ามตอนเปิดแอป
-// กดเข้าสู่ระบบจะเจอ "No Firebase App '[DEFAULT]'" — ตอนนี้ถ้ายังไม่มี app จะสร้างให้เองทันทีตรงนี้
-// ทุกจุดที่แตะระบบล็อกอิน (เข้าสู่ระบบ/ลืมรหัสผ่าน/ลงทะเบียน) ใช้ตัวนี้เป็นประตูกลางเสมอ
-function ensureFirebaseReady(timeoutMs) {
-  return waitForFirebase(timeoutMs).then(function(ready) {
-    if (!ready) return false;
-    try { firebase.app(); return true; } catch (e) { /* ยังไม่มี app → สร้างให้เองด้านล่าง */ }
-    var cfg = loadConfig();
-    if (!cfg.apiKey || !cfg.projectId) cfg = DEFAULT_FIREBASE_CONFIG;
-    return initFirebase(cfg);
-  });
-}
-async function doLogin() {
-  var email = document.getElementById('login-email').value.trim();
-  var pass = document.getElementById('login-password').value;
-  if (!email || !pass) { toast('กรุณากรอกอีเมลและรหัสผ่าน', 'error'); return; }
-  // แสดงสถานะบนปุ่มระหว่างรอระบบพร้อม (เดิมไม่มี feedback ผู้ใช้นึกว่าแอปค้าง)
-  var loginBtn = document.querySelector('#login-form .btn-primary');
-  var oldBtnHtml = loginBtn ? loginBtn.innerHTML : '';
-  function setBtnLoading(on, txt) {
-    if (!loginBtn) return;
-    loginBtn.disabled = on;
-    loginBtn.style.opacity = on ? '.7' : '';
-    loginBtn.innerHTML = on ? '<i class="fas fa-spinner fa-spin"></i> ' + txt : oldBtnHtml;
-  }
-  if (!(await (function(){ var p = ensureFirebaseReady(15000).then(function(r){ return r; }); setBtnLoading(true, 'กำลังโหลดระบบ...'); return p; })())) {
-    setBtnLoading(false);
-    toast('ระบบล็อกอินยังโหลดไม่เสร็จ (เน็ตช้า) — รอสักครู่แล้วกด "เข้าสู่ระบบ" อีกครั้งได้เลย ไม่ต้องปิดแอป', 'error');
-    return;
-  }
-  setBtnLoading(true, 'กำลังเข้าสู่ระบบ...');
-  try {
-    await firebase.auth().setPersistence(
-      document.getElementById('remember-me').checked
-        ? firebase.auth.Auth.Persistence.LOCAL
-        : firebase.auth.Auth.Persistence.SESSION
-    );
-    await firebase.auth().signInWithEmailAndPassword(email, pass);
-  } catch(e) {
-    setBtnLoading(false);
-    var code = e && e.code ? e.code : '';
-    if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') toast('อีเมลหรือรหัสผ่านไม่ถูกต้อง — ตรวจอีกครั้ง หรือกด "ลืมรหัสผ่าน?"', 'error');
-    else if (code === 'auth/too-many-requests') toast('พยายามหลายครั้งเกินไป รอสักครู่แล้วลองใหม่', 'warning');
-    else if (code === 'auth/network-request-failed') toast('เน็ตไม่เสถียร — เช็คอินเทอร์เน็ตแล้วลองใหม่', 'error');
-    else if (code === 'auth/invalid-email') toast('รูปแบบอีเมลไม่ถูกต้อง', 'error');
-    else if (code === 'auth/operation-not-allowed') toast('ยังไม่ได้เปิดใช้งานอีเมล/รหัสผ่านใน Firebase Console ของร้าน', 'error');
-    else toast('เข้าสู่ระบบล้มเหลว: ' + (e && e.message ? e.message : 'ไม่ทราบสาเหตุ'), 'error');
-  }
-  setBtnLoading(false);
-}
-async function doRegister() {
-  var name = document.getElementById('reg-name').value.trim();
-  var email = document.getElementById('reg-email').value.trim();
-  var pass = document.getElementById('reg-password').value;
-  var confirm = document.getElementById('reg-confirm').value;
-  if (!name || !email || !pass || pass.length < 6 || pass !== confirm) {
-    toast('กรุณากรอกข้อมูลให้ถูกต้อง', 'error');
-    return;
-  }
-  if (!(await ensureFirebaseReady(15000))) { toast('ระบบล็อกอินยังโหลดไม่เสร็จ (เน็ตช้า) — รอสักครู่แล้วลองอีกครั้ง', 'error'); return; }
-  try {
-    var cred = await firebase.auth().createUserWithEmailAndPassword(email, pass);
-    await firebase.firestore().collection('users').doc(cred.user.uid).set({
-      uid: cred.user.uid, name, email, role: 'owner', status: 'approved', created_at: new Date().toISOString()
-    });
-    try {
-      // เข้าสู่ระบบทันทีหลังสมัคร — onAuthStateChanged จะพาเข้าแอปเอง
-      await firebase.auth().signInWithEmailAndPassword(email, pass);
-      toast('ลงทะเบียนสำเร็จ! ยินดีต้อนรับ 🎉', 'success');
-    } catch (e2) {
-      toast('ลงทะเบียนสำเร็จ กรุณาเข้าสู่ระบบ', 'success');
-      switchAuthTab('login');
-    }
-  } catch(e) {
-    toast('ลงทะเบียนล้มเหลว: ' + e.message, 'error');
-  }
-}
-async function doLogout() {
-  try { if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) await firebase.auth().signOut(); } catch (e) { console.warn(e); }
-  currentUser = null;
-  showAuthScreen();
+function enterApp() {
+  hideLoadingOverlay();
+  var authEl = document.getElementById('auth-screen');
+  if (authEl) authEl.classList.remove('active');
+  document.getElementById('app-screen').classList.add('active');
   updateOfflineBar();
-  toast('ออกจากระบบสำเร็จ', 'success');
+  loadAllData();
+  showPage('dashboard');
 }
-function openProfileModal() {
-  if (!currentUser) return;
-  document.getElementById('profile-avatar').textContent = (currentUser.name||'?')[0].toUpperCase();
-  document.getElementById('profile-name').textContent = currentUser.name || '';
-  document.getElementById('profile-email').textContent = currentUser.email || '';
-  ['profile-old-pass','profile-new-pass','profile-confirm-pass'].forEach(id => document.getElementById(id).value = '');
-  openModal('modal-profile');
-}
-async function changePasswordFromProfile() {
-  var oldPass = document.getElementById('profile-old-pass').value;
-  var newPass = document.getElementById('profile-new-pass').value;
-  var confirm = document.getElementById('profile-confirm-pass').value;
-  if (!oldPass || !newPass || !confirm) { toast('กรอกข้อมูลให้ครบ', 'error'); return; }
-  if (newPass.length < 6) { toast('รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัว', 'warn'); return; }
-  if (newPass !== confirm) { toast('รหัสผ่านใหม่ไม่ตรงกัน', 'error'); return; }
-  try {
-    var fbUser = firebase.auth().currentUser;
-    var cred = firebase.auth.EmailAuthProvider.credential(fbUser.email, oldPass);
-    await fbUser.reauthenticateWithCredential(cred);
-    await fbUser.updatePassword(newPass);
-    toast('เปลี่ยนรหัสผ่านสำเร็จ', 'success');
-    closeModal('modal-profile');
-  } catch(e) {
-    toast('เปลี่ยนรหัสผ่านล้มเหลว: ' + e.message, 'error');
-  }
-}
-
 // ============================================================
 // TOAST
 // ============================================================
@@ -3759,8 +3439,6 @@ function toggleTheme() {
   localStorage.setItem('fixpro_theme', newTheme);
   var icon = document.getElementById('theme-icon');
   if (icon) icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-  var authIcon = document.getElementById('auth-theme-icon');
-  if (authIcon) authIcon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
 }
 
 // ============================================================
@@ -3769,35 +3447,6 @@ function toggleTheme() {
 function hideLoadingOverlay() {
   var el = document.getElementById('loading-overlay');
   if (el) el.style.display = 'none';
-}
-function showAuthScreen(reason) {
-  console.warn('แสดงหน้าเข้าสู่ระบบ:', reason || '');
-  hideLoadingOverlay();
-  document.getElementById('auth-screen').classList.add('active');
-  document.getElementById('app-screen').classList.remove('active');
-}
-// เริ่มใช้งานทันทีโดยไม่ต้องมีบัญชี — ข้อมูลอยู่ในเครื่อง (localStorage) เชื่อม Firebase ได้ภายหลัง
-// silent = เข้าอัตโนมัติตอนเปิดแอป (ไม่ต้องแจ้งเตือนทุกครั้ง)
-function enterLocalMode(silent) {
-  hideLoadingOverlay();
-  document.getElementById('auth-screen').classList.remove('active');
-  document.getElementById('app-screen').classList.add('active');
-  currentUser = { uid: 'local_' + Date.now(), name: 'โหมดใช้งานส่วนตัว', email: '', role: 'owner' };
-  document.getElementById('header-avatar').textContent = 'L';
-  loadAllData();
-  showPage('dashboard');
-  if (!silent) toast('⚡ เริ่มใช้งานแล้ว — ข้อมูลเก็บในเครื่องนี้ (จะซิงค์คลาวด์เมื่อล็อกอิน)', 'success');
-}
-function enterOfflineMode(reason) {
-  console.warn('⚠️ เข้าโหมด Offline:', reason);
-  hideLoadingOverlay();
-  document.getElementById('auth-screen').classList.remove('active');
-  document.getElementById('app-screen').classList.add('active');
-  currentUser = { uid: 'offline_' + Date.now(), name: 'ผู้ใช้งาน (Local)', email: 'local@fixpro.com', role: 'admin' };
-  document.getElementById('header-avatar').textContent = 'L';
-  loadAllData();
-  showPage('dashboard');
-  toast('💾 ทำงานแบบ Offline (ข้อมูลเก็บในเครื่อง)', 'info');
 }
 // แสดงแถบ Offline เฉพาะเมื่ออยู่ในแอปและเน็ตหลุดจริง
 function updateOfflineBar() {
@@ -3809,69 +3458,6 @@ function updateOfflineBar() {
 window.addEventListener('online', updateOfflineBar);
 window.addEventListener('offline', updateOfflineBar);
 
-// ============================================================
-// FIREBASE AUTH INIT
-// ============================================================
-function initFirebaseAuth() {
-  if (typeof firebase === 'undefined' || typeof firebase.auth !== 'function') {
-    enterLocalMode(true);
-    return;
-  }
-  // ยังไม่มี initializeApp → firebase.auth() จะ throw (เดิมทำให้แอปค้างหน้าโหลดตลอดไป)
-  try {
-    firebase.app();
-  } catch (e) {
-    enterLocalMode(true);
-    return;
-  }
-  var timeoutId = setTimeout(function() {
-    var lo = document.getElementById('loading-overlay');
-    if (lo && lo.style.display !== 'none') {
-      enterLocalMode(true);
-    }
-  }, 8000);
-
-  firebase.auth().onAuthStateChanged(async function(user) {
-    clearTimeout(timeoutId);
-    if (!user) {
-      // ยังไม่ล็อกอิน → โชว์หน้าล็อกอิน (ล็อกอินครั้งเดียว ครั้งต่อไปเข้าเลย)
-      showAuthScreen();
-      return;
-    }
-    try {
-      var profile = await firebase.firestore().collection('users').doc(user.uid).get();
-      var data = profile.exists ? (profile.data() || {}) : {};
-      if (!profile.exists) {
-        // บัญชีไม่มี profile (สร้างนอกแอป/หลุดระหว่างสมัคร) — สร้างให้เอง ใช้งานได้เลย
-        data = { uid: user.uid, name: user.email ? user.email.split('@')[0] : 'ผู้ใช้', email: user.email || '', role: 'owner', status: 'approved', created_at: new Date().toISOString() };
-        try { await firebase.firestore().collection('users').doc(user.uid).set(data); } catch (e2) { console.warn('สร้าง profile ไม่สำเร็จ (ไปต่อด้วยข้อมูลในเครื่อง):', e2); }
-      }
-      // สมาชิกเดิมที่ติดสถานะ pending ให้ปลดล็อกเป็น owner อัตโนมัติ (ระบบไม่มีหน้าอนุมัติ)
-      if (data.role === 'pending' || data.status === 'pending') {
-        try { await firebase.firestore().collection('users').doc(user.uid).set({ role: 'owner', status: 'approved' }, { merge: true }); } catch (e2) {}
-        data.role = 'owner'; data.status = 'approved';
-      }
-      if (data.status === 'deleted' || data.disabled) {
-        toast('🚫 บัญชีถูกปิด', 'error'); await firebase.auth().signOut(); return;
-      }
-      currentUser = { uid: user.uid, name: data.name, email: data.email, role: data.role };
-      document.getElementById('header-avatar').textContent = (data.name||'?')[0].toUpperCase();
-      var cfg = loadConfig();
-      if (cfg.apiKey && cfg.projectId) {
-        var ok = await initFirebase(cfg);
-        if (!ok) console.warn('Firebase init failed, using local storage');
-      }
-      await loadAllData();
-      document.getElementById('loading-overlay').style.display = 'none';
-      document.getElementById('auth-screen').classList.remove('active');
-      document.getElementById('app-screen').classList.add('active');
-      showPage('dashboard');
-    } catch(e) {
-      console.error('Auth error:', e);
-      enterOfflineMode('เกิดข้อผิดพลาดในการโหลดข้อมูล');
-    }
-  });
-}
 
 // ============================================================
 // PURGE DEMO DATA (v33) — ตัดการใส่ข้อมูลทดสอบอัตโนมัติ + ไล่ลบชุดเดิมทิ้ง
@@ -3944,21 +3530,22 @@ document.addEventListener('DOMContentLoaded', function() {
   // เดิมถ้าโค้ดแต่งหน้าจอด้านบนพัง (ธีม/viewport) จะลากให้ข้ามการ initializeApp ทั้งหมด
   // ผู้ใช้เห็นหน้าล็อกอินปกติแต่กดแล้วเจอ "No Firebase App '[DEFAULT]'"
   try {
+    // v40: ถอนระบบล็อกอินออกทั้งหมด — เปิดแอปแล้วเข้าใช้งานได้เลย ระบบเชื่อมคลาวด์ให้เอง (ไม่มีหน้าเข้าสู่ระบบอีกต่อไป)
     var cfg = loadConfig();
     if (!cfg.apiKey || !cfg.projectId) { cfg = DEFAULT_FIREBASE_CONFIG; saveConfig(cfg); } // ยังไม่เคยตั้งค่า → ใช้ config ร้านที่ฝังไว้
-    if (cfg.apiKey && cfg.projectId && typeof firebase !== 'undefined' && typeof firebase.initializeApp === 'function') {
-      initFirebase(cfg).then(function(ok) {
-        if (!ok) console.warn('⚠️ Firebase init failed');
-        initFirebaseAuth();
-      });
-    } else {
-      // โหลด Firebase SDK ไม่สำเร็จ (เกิดได้ยากมากเพราะ SDK เก็บในแอปเอง) → เข้าโหมดในเครื่อง พร้อมแจ้งสาเหตุให้ผู้ใช้ทราบชัดเจน
-      enterLocalMode(true);
-      toast('⚠️ ระบบล็อกอินโหลดไม่เสร็จ — เข้าโหมดใช้งานในเครื่องชั่วคราว ปิด-เปิดแอปใหม่เพื่อล็อกอินเมื่อพร้อม', 'warning');
-    }
+    var boot = (cfg.apiKey && cfg.projectId && typeof firebase !== 'undefined' && typeof firebase.initializeApp === 'function')
+      ? initFirebase(cfg)
+      : Promise.resolve(false);
+    boot.then(function(ok) {
+      if (!ok) console.warn('⚠️ เชื่อมคลาวด์ตอนเปิดแอปไม่สำเร็จ — ใช้ข้อมูลในเครื่องก่อน ระบบจะลองซิงค์ใหม่เองเมื่อออนไลน์');
+      enterApp();
+    }).catch(function(eBoot) {
+      console.warn('เปิดแอปขัดข้องเล็กน้อย ลองเข้าแอปตรง ๆ:', eBoot);
+      try { enterApp(); } catch (e2) {}
+    });
   } catch (eInit) {
-    console.error('ตั้งค่าระบบล็อกอินเริ่มต้นพลาด:', eInit);
-    try { initFirebaseAuth(); } catch (e2) { try { enterLocalMode(true); } catch (e3) {} }
+    console.error('เปิดแอปเริ่มต้นพลาด:', eInit);
+    try { enterApp(); } catch (e2) {}
   }
   // ความสูง viewport จริง (ตัดแถบ URL ของเบราว์เซอร์ออก) — แก้เมนูล่างบังท้ายรายการบน Edge/Chrome Android
   try {
@@ -3972,7 +3559,6 @@ document.addEventListener('DOMContentLoaded', function() {
     document.documentElement.setAttribute('data-theme', theme);
     if (theme === 'dark') {
       document.getElementById('theme-icon').className = 'fas fa-sun';
-      document.getElementById('auth-theme-icon').className = 'fas fa-sun';
     }
   } catch (eUI) { console.warn('ตั้งค่าหน้าจอเริ่มต้นพลาด (ไม่กระทบการใช้งาน):', eUI); }
   // PWA service worker — แคชไฟล์แอปไว้ใช้ตอนออฟไลน์
