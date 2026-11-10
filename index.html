@@ -392,13 +392,13 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 
 /* ===== SEARCH & FILTER ===== */
 .search-bar {
-  display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius-sm); padding: 8px 14px; transition: border-color var(--transition);
-  margin-bottom: 10px;
+  display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); padding: 0 10px 0 12px; transition: border-color var(--transition);
+  margin-bottom: 10px; height: 38px;
 }
 .search-bar:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(46,125,50,0.12); }
-.search-bar input { border: none; outline: none; flex: 1; font-size: 15px; font-family: inherit; background: transparent; color: var(--text); min-height: 36px; }
-.search-bar i { color: var(--text3); font-size: 15px; }
+.search-bar input { border: none; outline: none; flex: 1; font-size: 14px; font-family: inherit; background: transparent; color: var(--text); min-height: 35px; padding: 0; }
+.search-bar i { color: var(--text3); font-size: 14px; }
 
 .filter-bar {
   display: flex; gap: 6px; align-items: center; flex-wrap: nowrap; overflow-x: auto;
@@ -409,10 +409,10 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 .filter-bar .search-input input {
   width: 100%; padding: 7px 10px 7px 32px; border: 1.5px solid var(--border);
   border-radius: var(--radius-sm); background: var(--surface); color: var(--text);
-  outline: none; font-size: 14px; min-height: 38px;
+  outline: none; font-size: 14px; font-family: inherit; min-height: 38px;
 }
 .filter-bar .search-input input:focus { border-color: var(--primary); }
-.filter-bar .search-input i { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 13px; }
+.filter-bar .search-input i { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 14px; }
 select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); outline: none; font-size: 13px; cursor: pointer; min-height: 38px; }
 
 /* ===== MODAL ===== */
@@ -570,7 +570,7 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
 .card.editing .btn-card-edit { display: none; }
 .card.locked .btn-card-done { display: none; }
 .card.locked .js-save, .card.locked .js-cancel { display: none; }
-.card.locked .form-control { pointer-events: none; background: transparent; border-color: var(--border); }
+.card.locked .form-control { pointer-events: none; background: transparent; border-color: transparent; }
 .card.locked .card-body label { pointer-events: none; cursor: default; }
 .card.locked .jt-iconbtn, .card.locked .jt-add { display: none; }
 .settings-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
@@ -2094,10 +2094,20 @@ function renderDashboard() {
 // CUSTOMERS
 // ============================================================
 var customerFilterText = '';
+// v45: เรียงล่าสุดก่อน — รายชื่อลูกค้า/ประวัติงาน เรียงตามเวลาเพิ่มหรือแก้ไขล่าสุด (updatedAt) ขึ้นบนสุด
+function touchOfCust(c) { return c.updatedAt || ''; }
+function touchOfJob(j) { return j.updatedAt || ((j.serviceDate || '') + '~'); }
+function sortByLatest(arr, touchFn) {
+  return arr.slice().sort(function(a, b) {
+    var ta = touchFn(a) || '', tb = touchFn(b) || '';
+    if (ta === tb) return 0;
+    return tb > ta ? 1 : -1;
+  });
+}
 function renderCustomers(filter) {
   if (filter !== undefined) customerFilterText = filter;
   var ft = customerFilterText.toLowerCase();
-  var list = DB.customers.filter(c => !ft || c.name?.toLowerCase().includes(ft) || c.phone?.includes(ft) || c.address?.toLowerCase().includes(ft));
+  var list = sortByLatest(DB.customers.filter(c => !ft || c.name?.toLowerCase().includes(ft) || c.phone?.includes(ft) || c.address?.toLowerCase().includes(ft)), touchOfCust);
   var container = document.getElementById('customer-list-container');
   if (list.length === 0) {
     container.innerHTML = '<div class="empty-state"><i class="fas fa-user-slash"></i><p>' + (customerFilterText ? 'ไม่พบลูกค้า' : 'ยังไม่มีลูกค้า') + '</p>' +
@@ -2125,13 +2135,13 @@ function renderJobs() {
   var ft = (document.getElementById('job-search')?.value || '').toLowerCase();
   var typeFilter = document.getElementById('job-filter-type')?.value || '';
   var statusFilter = document.getElementById('job-filter-status')?.value || '';
-  var list = DB.jobs.filter(j => {
+  var list = sortByLatest(DB.jobs.filter(j => {
     var cust = DB.customers.find(c => c.phone === j.customerPhone);
     var matchText = !ft || (cust?.name || '').toLowerCase().includes(ft) || (j.customerPhone || '').includes(ft) || (j.description || '').toLowerCase().includes(ft) || (j.deviceInfo || '').toLowerCase().includes(ft);
     var matchType = !typeFilter || j.serviceType === typeFilter;
     var matchStatus = !statusFilter || (j.status || 'done') === statusFilter;
     return matchText && matchType && matchStatus;
-  });
+  }), touchOfJob);
   var container = document.getElementById('jobs-mobile-list');
   var empty = document.getElementById('jobs-empty');
   if (list.length === 0) {
