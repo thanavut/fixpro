@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="FixPro">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#6366F1">
+<meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
@@ -26,53 +26,51 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk" crossorigin="anonymous"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" integrity="sha384-fCAW/rDWORTbQXSiB7mOg0QtQ5c+r0f544y6XoKjuVva0nMBlCpNUjiFeG5iMdS3" crossorigin="anonymous"></script>
 <style>
-/* ===== EBED Design Tokens — v49 Modern Indigo ยกโฉมใหม่ทั้งแอป (โทนเดิมเขียว Material → ม่วง-น้ำเงินแนว SaaS ร่วมสมัย) ===== */
+/* ===== EBED Design Tokens ===== */
 :root {
-  --primary: #6366F1;
-  --primary-l: #818CF8;
-  --primary-d: #4338CA;
-  --primary-bg: #EEF2FF;
-  --accent: #F97316;
-  --accent-l: #FB923C;
-  --amber: #F59E0B;
-  --bg: #F3F4FA;
+  --primary: #2E7D32;
+  --primary-l: #43A047;
+  --primary-d: #1B5E20;
+  --primary-bg: #E8F5E9;
+  --accent: #FF7043;
+  --accent-l: #FF8A65;
+  --amber: #FFA000;
+  --bg: #F5F6FA;
   --surface: #FFFFFF;
-  --surface2: #F7F8FC;
-  --border: #E5E7F2;
-  --text: #181B2D;
-  --text2: #5D6684;
-  --text3: #98A0B8;
-  --success: #10B981;
+  --surface2: #F8F9FC;
+  --border: #E8EAF0;
+  --text: #1A1D23;
+  --text2: #6B7280;
+  --text3: #9CA3AF;
+  --success: #2E7D32;
   --warning: #F59E0B;
-  --danger: #EF4444;
-  --info: #0EA5E9;
-  --purple: #8B5CF6;
-  --shadow-sm: 0 1px 3px rgba(24,27,45,0.07), 0 1px 2px rgba(24,27,45,0.05);
-  --btn2-bg: #EEF0F7; --btn2-border: #D8DCE9; --btn2-text: #3D4564;
-  --shadow: 0 6px 22px rgba(24,27,45,0.10);
-  --shadow-lg: 0 16px 48px rgba(24,27,45,0.16);
-  --radius: 14px;
-  --radius-sm: 10px;
-  --radius-lg: 22px;
+  --danger: #DC2626;
+  --info: #1976D2;
+  --purple: #7C3AED;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --btn2-bg: #E2E8F0; --btn2-border: #CBD5E1; --btn2-text: #33415C;
+  --shadow: 0 4px 16px rgba(0,0,0,0.10);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.14);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-lg: 20px;
   --header-h: 56px;
   --nav-h: 64px;
   --transition: 0.2s ease;
-  --brand-grad: linear-gradient(120deg, #4F46E5, #8B5CF6 60%, #D946EF);
 }
 [data-theme="dark"] {
-  --bg: #0B0D15;
-  --surface: #141826;
-  --surface2: #1B2030;
-  --border: #262C40;
-  --text: #F1F3FA;
-  --text2: #9DA6C0;
-  --text3: #6B7490;
-  --primary-bg: #1F2340;
-  --btn2-bg: #222741; --btn2-border: #333A5C; --btn2-text: #C7CDE2;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.35);
-  --shadow: 0 6px 22px rgba(0,0,0,0.45);
-  --shadow-lg: 0 16px 48px rgba(0,0,0,0.55);
-  --brand-grad: linear-gradient(120deg, #A5B4FC, #C4B5FD 60%, #F0ABFC);
+  --bg: #0F1117;
+  --surface: #1A1D26;
+  --surface2: #23273A;
+  --border: #2D3148;
+  --text: #F1F3F9;
+  --text2: #9CA3B8;
+  --text3: #6B7280;
+  --primary-bg: #1B2E1C;
+  --btn2-bg: #2B3143; --btn2-border: #414A63; --btn2-text: #C6CDDD;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow: 0 4px 16px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; overflow: hidden; }
@@ -89,7 +87,7 @@ input, select, textarea, button { font-family: inherit; }
 /* ===== AUTH ===== */
 #auth-screen {
   align-items: center; justify-content: center;
-  background: linear-gradient(135deg, #4338CA 0%, #6366F1 40%, #8B5CF6 70%, #D946EF 100%);
+  background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 40%, #388E3C 70%, #4CAF50 100%);
   position: relative; overflow: hidden; padding: 16px;
 }
 .auth-card {
@@ -99,9 +97,9 @@ input, select, textarea, button { font-family: inherit; }
 }
 .auth-logo { text-align: center; margin-bottom: 24px; }
 .auth-logo .logo-icon {
-  width: 56px; height: 56px; background: var(--brand-grad);
+  width: 56px; height: 56px; background: linear-gradient(135deg, #1a2744, #243461);
   border-radius: 16px; display: inline-flex; align-items: center; justify-content: center;
-  font-size: 24px; color: white; margin-bottom: 8px; box-shadow: 0 4px 16px rgba(99,102,241,0.4);
+  font-size: 24px; color: white; margin-bottom: 8px; box-shadow: 0 4px 16px rgba(46,125,50,0.4);
 }
 .auth-logo h1 { font-size: 24px; font-weight: 700; color: var(--primary); }
 .auth-logo p { color: var(--text2); font-size: 13px; }
@@ -118,7 +116,7 @@ input, select, textarea, button { font-family: inherit; }
   border-radius: var(--radius-sm); background: var(--bg); color: var(--text);
   font-size: 14px; transition: var(--transition); outline: none; min-height: 38px; font-family: inherit;
 }
-.form-control:focus { border-color: var(--primary); background: var(--surface); box-shadow: 0 0 0 3px rgba(99,102,241,0.14); }
+.form-control:focus { border-color: var(--primary); background: var(--surface); box-shadow: 0 0 0 3px rgba(46,125,50,0.12); }
 textarea.form-control { resize: vertical; min-height: 80px; }
 .input-icon { position: relative; }
 .input-icon .form-control { padding-left: 44px; padding-right: 44px; }
@@ -138,7 +136,7 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 }
 .btn:active { transform: scale(0.96); }
 .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-l)); color: white; }
-.btn-primary:active { box-shadow: 0 4px 12px rgba(99,102,241,0.4); }
+.btn-primary:active { box-shadow: 0 4px 12px rgba(46,125,50,0.4); }
 .btn-secondary { background: var(--btn2-bg); color: var(--btn2-text); border: 1.5px solid var(--btn2-border); }
 .btn-secondary:active { background: var(--btn2-border); }
 .btn-secondary.active-filter { background: var(--primary); border-color: var(--primary); color: #fff; }
@@ -146,8 +144,8 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 .btn-danger:active { box-shadow: 0 4px 12px rgba(220,38,38,0.4); }
 .btn-line { background: linear-gradient(135deg, #06C755, #04AC4A); color: white; }
 .btn-line:active { box-shadow: 0 4px 12px rgba(6,199,85,0.4); }
-.btn-info { background: linear-gradient(135deg, var(--info), #0284C7); color: white; }
-.btn-info:active { box-shadow: 0 4px 12px rgba(14,165,233,0.4); }
+.btn-info { background: linear-gradient(135deg, var(--info), #1259A6); color: white; }
+.btn-info:active { box-shadow: 0 4px 12px rgba(25,118,210,0.4); }
 .btn-sm { padding: 5px 12px; font-size: 12.5px; min-height: 34px; }
 .btn-full { width: 100%; }
 .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
@@ -175,7 +173,7 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 }
 .header-brand { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
 .header-brand .brand-icon {
-  width: 34px; height: 34px; background: var(--brand-grad);
+  width: 34px; height: 34px; background: linear-gradient(135deg, #1a2744, #243461);
   border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px;
 }
 .header-brand h2 { font-size: 17px; font-weight: 700; color: var(--primary); white-space: nowrap; }
@@ -186,7 +184,7 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 }
 .header-btn:active { background: var(--bg); }
 .user-avatar {
-  width: 34px; height: 34px; border-radius: 10px; background: var(--brand-grad);
+  width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg, #1a2744, var(--accent));
   display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 14px;
   cursor: pointer;
 }
@@ -337,7 +335,7 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 .map-btn i { font-size: 16px; }
 .map-btn-go {
   background: linear-gradient(135deg, var(--primary-l), var(--primary)); color: #fff;
-  box-shadow: 0 4px 12px rgba(99,102,241,0.35);
+  box-shadow: 0 4px 12px rgba(46,125,50,0.35);
 }
 .map-btn-open {
   background: var(--surface); color: var(--primary); border: 2px solid var(--primary-bg); box-shadow: var(--shadow-sm);
@@ -369,11 +367,11 @@ textarea.form-control { resize: vertical; min-height: 80px; }
   padding: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .jt-iconbtn {
-  width: 32px; height: 32px; border-radius: 8px; border: none; background: rgba(14,165,233,0.12); color: var(--info);
+  width: 32px; height: 32px; border-radius: 8px; border: none; background: rgba(25,118,210,0.12); color: var(--info);
   flex-shrink: 0; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center;
   transition: var(--transition);
 }
-.jt-iconbtn:active { background: rgba(14,165,233,0.28); }
+.jt-iconbtn:active { background: rgba(25,118,210,0.28); }
 .jt-iconbtn.danger { color: var(--danger); background: rgba(220,38,38,0.12); }
 .jt-iconbtn.danger:active { background: rgba(220,38,38,0.28); }
 /* v47: ปุ่มเพิ่มประเภทงานย้ายมาอยู่แถวเดียวกับปุ่ม บันทึก/ยกเลิก และย่อขนาดเท่าปุ่มอื่น (เดิมเป็นปุ่มใหญ่กว้างเต็มแถวใต้รายการ) */
@@ -401,7 +399,7 @@ textarea.form-control { resize: vertical; min-height: 80px; }
   border-radius: var(--radius-sm); padding: 0 10px 0 12px; transition: border-color var(--transition);
   margin-bottom: 10px; height: 38px;
 }
-.search-bar:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99,102,241,0.14); }
+.search-bar:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(46,125,50,0.12); }
 .search-bar input { border: none; outline: none; flex: 1; font-size: 14px; font-family: inherit; background: transparent; color: var(--text); min-height: 35px; padding: 0; }
 .search-bar i { color: var(--text3); font-size: 14px; }
 
@@ -491,7 +489,7 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
   color: #fff; border-radius: 50%; border: none;
   display: flex; align-items: center; justify-content: center;
   font-size: 24px; cursor: pointer;
-  box-shadow: 0 4px 20px rgba(99,102,241,0.45); z-index: 80;
+  box-shadow: 0 4px 20px rgba(46,125,50,0.45); z-index: 80;
   transition: all var(--transition); touch-action: manipulation;
 }
 #fab:active { transform: scale(0.92); }
@@ -754,14 +752,14 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
 
   /* ===== ปุ่ม: โฮเวอร์สำหรับเมาส์ (คง :active ของมือถือเดิม) ===== */
   .btn:hover { filter: brightness(1.04); }
-  .btn-primary:hover { box-shadow: 0 4px 14px rgba(99,102,241,0.35); }
+  .btn-primary:hover { box-shadow: 0 4px 14px rgba(46,125,50,0.35); }
   .btn-line:hover { box-shadow: 0 4px 14px rgba(6,199,85,0.35); }
   .btn-danger:hover { box-shadow: 0 4px 14px rgba(220,38,38,0.35); }
   .btn-ghost:hover, .btn-secondary:hover { filter: none; background: var(--btn2-border); color: var(--text); }
-  .jt-iconbtn:hover { background: rgba(14,165,233,0.28); }
+  .jt-iconbtn:hover { background: rgba(25,118,210,0.28); }
   .jt-iconbtn.danger:hover { background: rgba(220,38,38,0.28); }
   .jt-add:hover { filter: brightness(0.96); transform: scale(1.01); }
-  .map-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(99,102,241,0.3); }
+  .map-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(46,125,50,0.3); }
   .map-btn-open:hover { box-shadow: var(--shadow-sm); transform: none; }
   .type-card:hover { border-color: var(--primary); }
   .pv-close:hover, .pv-nav button:hover { background: rgba(255,255,255,0.3); }
@@ -770,33 +768,29 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
 </style>
 
 <!-- ============================================================
-     v49 — MODERN UI (ยกโฉมแนวร่วมสมัย + เอฟเฟกต์หลากหลาย)
-     โทนใหม่ Modern Indigo (#6366F1 → #8B5CF6 → #D946EF)
-     หลักการเดียวกับ v48: additive ต่อยอด CSS เดิม ไม่แตะ DOM/JS
-     คงมาตรฐานเจ้าของร้าน: Kanit · ช่องล็อกโปร่งใสไม่มีกรอบ · ช่องค้นหา 38px/14px
+     v51 — MODERN FX (เอฟเฟกต์แนวร่วมสมัย จำกัดเฉพาะเดสก์ท็อป >= 1024px เท่านั้น)
+     ตามคำสั่งเจ้าของร้าน: มือถือ/แท็บเล็ต (< 1024px) = เหมือนเดิมทุกอย่าง (v47) ห้ามยุ่ง
+     เดสก์ท็อป = เก็บเลย์เอาต์ v48 + เอฟเฟกต์ไว้ครบ แต่ "สีและฟอนต์" ต้องเป็นของเดิม
+     → ทุกกฎในบล็อกนี้ครอบด้วย @media (min-width: 1024px) และย้อมสีใหม่ด้วยพาเลตเขียว Material เดิมทั้งหมด
+     → ชื่อแบรนด์เดสก์ท็อปกลับเป็นสีทึบ var(--primary) เหมือนเดิม (ยกเลิก gradient text ของ v49
+       เพราะเปลี่ยนหน้าตาตัวอักษร — ฟอนต์ต้องเหมือนเดิมด้วย)
      ============================================================ -->
 <style id="modern-style">
-/* 1) (v50 ย้ายไปแล้ว) gradient mesh เดิมยกขึ้นเป็นชั้นหลังบ้านทั้งแอป body::after แบบหายใจช้าๆ — ดูบล็อก modern-style-2 */
+@media (min-width: 1024px) {
 
-/* 2) แถบหัว glassmorphism (โปร่งแสง + เบลอพื้นหลัง) */
+/* 1) แถบหัว glassmorphism (โปร่งแสง + เบลอพื้นหลัง) — โทนขาว/พื้นมืดเดิม */
 .app-header {
   background: rgba(255,255,255,0.72);
   -webkit-backdrop-filter: blur(14px) saturate(1.5);
   backdrop-filter: blur(14px) saturate(1.5);
-  border-bottom-color: rgba(229,231,242,0.65);
+  border-bottom-color: rgba(232,234,240,0.65);
 }
-[data-theme="dark"] .app-header { background: rgba(20,24,38,0.72); border-bottom-color: rgba(38,44,64,0.65); }
+[data-theme="dark"] .app-header { background: rgba(26,29,38,0.72); border-bottom-color: rgba(45,49,72,0.65); }
 
-/* 3) ชื่อแบรนด์เป็นข้อความไล่เฉด + ไอคอนแบรนด์เรืองแสง (@supports กันเบราว์เซอร์เก่า = กลับไปสีทึบ) */
-@supports ((-webkit-background-clip: text) or (background-clip: text)) {
-  .header-brand h2 {
-    background: var(--brand-grad); -webkit-background-clip: text; background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-}
-.header-brand .brand-icon, .auth-logo .logo-icon, .user-avatar { box-shadow: 0 4px 14px rgba(99,102,241,0.4); }
+/* 2) ไอคอนแบรนด์/โลโก้/avatar เรืองแสงเขียวแบรนด์เดิม */
+.header-brand .brand-icon, .auth-logo .logo-icon, .user-avatar { box-shadow: 0 4px 14px rgba(46,125,50,0.4); }
 
-/* 4) สลับธีมสว่าง/มืดแบบนุ่ม + การ์ด/แถวรายการยกแบบสปริง */
+/* 3) สลับธีมสว่าง/มืดแบบนุ่ม + การ์ด/แถวรายการยกแบบสปริง */
 body, .card, .app-header, .mobile-nav, .modal {
   transition: background-color .25s ease, border-color .25s ease, color .25s ease, box-shadow .25s ease;
 }
@@ -804,87 +798,82 @@ body, .card, .app-header, .mobile-nav, .modal {
   transition: transform .18s cubic-bezier(.34,1.56,.64,1), background-color .25s ease, border-color .25s ease, color .25s ease, box-shadow .25s ease;
 }
 
-/* 5) ปุ่ม: กดสปริงเด้ง + ปุ่มหลักมี glow นิ่ง */
+/* 4) ปุ่ม: กดสปริงเด้ง + ปุ่มหลักมี glow นิ่ง (เขียวแบรนด์เดิม) */
 .btn {
   transition: transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .18s ease, filter .18s ease, background-color .18s ease, border-color .18s ease, color .18s ease;
 }
-.btn-primary { box-shadow: 0 2px 12px rgba(99,102,241,0.32); }
+.btn-primary { box-shadow: 0 2px 12px rgba(46,125,50,0.32); }
 .btn-primary:active { transform: scale(0.95); }
 
-/* 6) FAB: เรืองแสงหายใจ (pulse ring ทุก 2.8 วิ) */
+/* 5) FAB: เรืองแสงหายใจ (pulse ring ทุก 2.8 วิ) */
 #fab { animation: fabPulse 2.8s ease-in-out infinite; }
 @keyframes fabPulse {
-  0%, 100% { box-shadow: 0 6px 20px rgba(99,102,241,0.45), 0 0 0 0 rgba(99,102,241,0.30); }
-  55% { box-shadow: 0 6px 20px rgba(99,102,241,0.45), 0 0 0 13px rgba(99,102,241,0); }
+  0%, 100% { box-shadow: 0 6px 20px rgba(46,125,50,0.45), 0 0 0 0 rgba(46,125,50,0.30); }
+  55% { box-shadow: 0 6px 20px rgba(46,125,50,0.45), 0 0 0 13px rgba(46,125,50,0); }
 }
 
-/* 7) เมนูล่างมือถือ: แท็บที่เลือกเป็น pill ไล่เฉด + ไอคอนเด้งขึ้น */
-@media (max-width: 1023px) { .mobile-nav-item { border-radius: 14px; margin: 6px 5px; } }
-.mobile-nav-item.active { background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.13)); color: var(--primary); }
+/* 6) เมนูซ้ายเดสก์ท็อป: แท็บที่เลือกไล่เฉดเขียว + แถบตั้งด้านซ้าย + ไอคอนเด้งขึ้น */
+.mobile-nav-item.active { background: linear-gradient(90deg, rgba(46,125,50,0.16), rgba(27,94,32,0.09)); box-shadow: inset 3px 0 0 var(--primary); }
 .mobile-nav-item i { transition: transform .22s cubic-bezier(.34,1.56,.64,1); }
 .mobile-nav-item.active i { transform: translateY(-2px) scale(1.08); }
 
-/* 8) เปลี่ยนหน้า: เข้าแบบสปริงนุ่ม (แทน fadeUp เดิม) */
+/* 7) เปลี่ยนหน้า: เข้าแบบสปริงนุ่ม (มือถือยังใช้ fadeUp เดิมของ v47) */
 .page { animation: pageIn .32s cubic-bezier(.22,1,.36,1); }
 @keyframes pageIn { from { opacity: 0; transform: translateY(12px) scale(0.996); } to { opacity: 1; transform: none; } }
 
-/* 9) โมดัล: ฉากหลังเบลอเข้มขึ้น + เข้าแบบสปริง (ใช้ได้ทั้ง bottom-sheet มือถือและกลางจอเดสก์ท็อป) */
+/* 8) โมดัล: ฉากหลังเบลอเข้มขึ้น + เข้าแบบสปริง */
 .modal-overlay { background: rgba(11,13,21,0.42); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
 .modal { animation: modalIn .34s cubic-bezier(.22,1,.36,1); }
 @keyframes modalIn { from { opacity: 0; transform: translateY(26px) scale(0.985); } to { opacity: 1; transform: none; } }
 
-/* 10) toast: แก้วนุ่ม + วิ่งเข้าแบบเด้ง */
+/* 9) toast: แก้วนุ่ม + วิ่งเข้าแบบเด้ง (ธีมมืดใช้โทนพื้นมืดเดิมของ v47) */
 .toast {
   background: rgba(255,255,255,0.88);
   -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
   border-radius: 14px;
   animation: toastIn .35s cubic-bezier(.22,1,.36,1);
 }
-[data-theme="dark"] .toast { background: rgba(27,32,48,0.92); }
+[data-theme="dark"] .toast { background: rgba(35,39,58,0.92); }
 @keyframes toastIn { from { opacity: 0; transform: translateY(-14px) scale(0.96); } to { opacity: 1; transform: none; } }
 
-/* 11) ไอคอนสถิติทุกสีเป็น chip gradient เรืองแสง */
-.stat-card.green .stat-icon { background: linear-gradient(135deg, #6366F1, #8B5CF6); color: #fff; box-shadow: 0 3px 8px rgba(99,102,241,0.35); }
-.stat-card.orange .stat-icon { background: linear-gradient(135deg, #F97316, #FB923C); color: #fff; box-shadow: 0 3px 8px rgba(249,115,22,0.35); }
-.stat-card.blue .stat-icon { background: linear-gradient(135deg, #0EA5E9, #38BDF8); color: #fff; box-shadow: 0 3px 8px rgba(14,165,233,0.35); }
-.stat-card.amber .stat-icon { background: linear-gradient(135deg, #F59E0B, #FBBF24); color: #fff; box-shadow: 0 3px 8px rgba(245,158,11,0.35); }
-.stat-card.red .stat-icon { background: linear-gradient(135deg, #EF4444, #F87171); color: #fff; box-shadow: 0 3px 8px rgba(239,68,68,0.35); }
+/* 10) ไอคอนสถิติทุกสีเป็น chip gradient เรืองแสง — ย้อมด้วยพาเลตเดิม (เขียว/ส้ม/ฟ้า/เหลือง/แดงของ v47) */
+.stat-card.green .stat-icon { background: linear-gradient(135deg, #43A047, #2E7D32); color: #fff; box-shadow: 0 3px 8px rgba(46,125,50,0.35); }
+.stat-card.orange .stat-icon { background: linear-gradient(135deg, #FF7043, #FF8A65); color: #fff; box-shadow: 0 3px 8px rgba(255,112,67,0.35); }
+.stat-card.blue .stat-icon { background: linear-gradient(135deg, #1976D2, #42A5F5); color: #fff; box-shadow: 0 3px 8px rgba(25,118,210,0.35); }
+.stat-card.amber .stat-icon { background: linear-gradient(135deg, #FFA000, #FFB74D); color: #fff; box-shadow: 0 3px 8px rgba(255,160,0,0.35); }
+.stat-card.red .stat-icon { background: linear-gradient(135deg, #DC2626, #EF5350); color: #fff; box-shadow: 0 3px 8px rgba(220,38,38,0.35); }
 
-/* 12) จุดโฟกัส: ชิปเลือกประเภทงานมี ring เรืองแสง / ช่องค้นหาโฟกัสมี glow สองชั้น */
-.type-card.selected { box-shadow: 0 0 0 3px rgba(99,102,241,0.16); }
-.search-bar:focus-within { box-shadow: 0 0 0 3px rgba(99,102,241,0.14), 0 2px 10px rgba(99,102,241,0.10); }
+/* 11) จุดโฟกัส: ชิปเลือกประเภทงานมี ring เรืองแสง / ช่องค้นหาโฟกัสมี glow สองชั้น (เขียวเดิม) */
+.type-card.selected { box-shadow: 0 0 0 3px rgba(46,125,50,0.16); }
+.search-bar:focus-within { box-shadow: 0 0 0 3px rgba(46,125,50,0.14), 0 2px 10px rgba(46,125,50,0.10); }
+.search-bar:focus-within i { color: var(--primary); }
 
-/* 13) config-status.ok: เดิมพื้น primary-bg (ตอนนี้เฉดม่วง-น้ำเงิน) ให้กลับเป็นเฉดเขียวให้ตรงความหมาย "สำเร็จ" */
-.config-status.ok { background: rgba(16,185,129,0.12); }
+/* 12) สีตอนลากเลือกข้อความ = เขียวแบรนด์เดิม */
+::selection { background: rgba(46,125,50,0.25); }
 
-/* 14) สีตอนลากเลือกข้อความ = สีแบรนด์ */
-::selection { background: rgba(99,102,241,0.25); }
-
-/* 15) เดสก์ท็อป: เมนูซ้ายที่เลือก = ไล่เฉด + แถบตั้งด้านซ้าย */
-@media (min-width: 1024px) {
-  .mobile-nav-item.active { background: linear-gradient(90deg, rgba(99,102,241,0.16), rgba(139,92,246,0.09)); box-shadow: inset 3px 0 0 var(--primary); }
-}
-
-/* 16) เคารพการตั้งค่า "ลดการเคลื่อนไหว" ของผู้ใช้ */
+/* 13) เคารพการตั้งค่า "ลดการเคลื่อนไหว" ของผู้ใช้ */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
 }
 </style>
 
 <!-- ============================================================
-     v50 — MODERN FX ชุดที่ 2 (เอฟเฟกต์ขั้นสูงต่อยอด v49)
-     หลักการเดิม: additive ไม่แตะ DOM/JS ไม่แตะมาตรฐานเจ้าของร้าน
-     (reduced-motion ครอบคลุมแล้วโดยกฎ * !important ในบล็อก modern-style)
+     v51 — MODERN FX ชุด 2 (เอฟเฟกต์ขั้นสูง จำกัดเฉพาะเดสก์ท็อป >= 1024px เท่านั้น)
+     พาเลตเดิมทั้งหมด · grabber โมดัลมือถือของ v50 ถอนออกตามคำสั่ง "มือถือเหมือนเดิมทุกอย่าง"
+     reduced-motion ครอบคลุมแล้วโดยกฎ * !important ในบล็อก modern-style
      ============================================================ -->
 <style id="modern-style-2">
-/* 1) ชั้นหลังบ้านทั้งแอป: aurora gradient หายใจช้าๆ (fixed layer เหนือ canvas ใต้เนื้อหาทุกชั้น
-      → header/เมนูล่าง/โมดัลแบบ glass เบลอเห็นแสงจริง) — inset ลบกันขอบโผล่ตอน drift */
+@media (min-width: 1024px) {
+
+/* 1) ชั้นหลังบ้านทั้งแอป: aurora gradient หายใจช้าๆ (โทนเขียว/ฟ้าของพาเลตเดิม)
+      fixed layer เหนือ canvas ใต้เนื้อหาทุกชั้น → glass ของ header/เมนูซ้ายเบลอเห็นแสงจริง */
 body::after {
   content: ''; position: fixed; inset: -12%; z-index: -1; pointer-events: none;
   background:
-    radial-gradient(1100px 480px at 82% -6%, rgba(99,102,241,0.14), transparent 62%),
-    radial-gradient(900px 420px at -8% 8%, rgba(217,70,239,0.10), transparent 58%),
-    radial-gradient(760px 400px at 55% 108%, rgba(14,165,233,0.09), transparent 58%);
+    radial-gradient(1100px 480px at 82% -6%, rgba(46,125,50,0.12), transparent 62%),
+    radial-gradient(900px 420px at -8% 8%, rgba(67,160,71,0.09), transparent 58%),
+    radial-gradient(760px 400px at 55% 108%, rgba(25,118,210,0.07), transparent 58%);
   animation: auroraDrift 26s ease-in-out infinite alternate;
 }
 @keyframes auroraDrift {
@@ -894,20 +883,21 @@ body::after {
 }
 [data-theme="dark"] body::after {
   background:
-    radial-gradient(1100px 480px at 82% -6%, rgba(99,102,241,0.22), transparent 62%),
-    radial-gradient(900px 420px at -8% 8%, rgba(217,70,239,0.14), transparent 58%),
-    radial-gradient(760px 400px at 55% 108%, rgba(14,165,233,0.13), transparent 58%);
+    radial-gradient(1100px 480px at 82% -6%, rgba(46,125,50,0.18), transparent 62%),
+    radial-gradient(900px 420px at -8% 8%, rgba(67,160,71,0.12), transparent 58%),
+    radial-gradient(760px 400px at 55% 108%, rgba(25,118,210,0.11), transparent 58%);
 }
 
-/* 2) เมนูล่างมือถือ/แถบเมนูเดสก์ท็อปเป็น glass จริง (เนื้อหาไหลผ่านใต้เมนูล่าง เบลอเห็นจริง) */
+/* 2) แถบเมนูซ้ายเดสก์ท็อปเป็น glass จริง (ธีมมืดใช้โทนพื้นมืดเดิมของ v47) */
 .mobile-nav {
   background: rgba(255,255,255,0.78);
   -webkit-backdrop-filter: blur(16px) saturate(1.5);
   backdrop-filter: blur(16px) saturate(1.5);
 }
-[data-theme="dark"] .mobile-nav { background: rgba(20,24,38,0.78); }
+[data-theme="dark"] .mobile-nav { background: rgba(26,29,38,0.78); }
 
-/* 3) Ripple กดปุ่มทุกปุ่ม (CSS ล้วน ไม่ใส่ JS) — วงขาวขยายจากจุดกด */
+/* 3) Ripple กดปุ่มทุกปุ่ม (CSS ล้วน ไม่ใส่ JS) — วงขาวขยายจากจุดกด
+      (ระวัง: .btn ตอนนี้ overflow:hidden เฉพาะเดสก์ท็อป) */
 .btn { position: relative; overflow: hidden; }
 .btn::after {
   content: ''; position: absolute; left: 50%; top: 50%; width: 0; height: 0;
@@ -921,17 +911,8 @@ body::after {
 }
 .btn:disabled::after { display: none; }
 
-/* 4) โมดัลบนมือถือมีแถบจับ (grabber) ด้านบนแบบ bottom-sheet ร่วมสมัย */
-@media (max-width: 1023px) {
-  .modal { position: relative; }
-  .modal::before {
-    content: ''; position: absolute; top: 7px; left: 50%; transform: translateX(-50%);
-    width: 40px; height: 4px; border-radius: 999px; background: var(--border);
-    opacity: .95; z-index: 5; pointer-events: none;
-  }
-}
-
-/* 5) การ์ดสถิติ + การ์ดตั้งค่า เข้าทีละใบแบบ stagger (re-render เฉพาะตอนโหลด/บันทึก ไม่ใช่ตอนพิมพ์ค้นหา) */
+/* 4) การ์ดสถิติ + การ์ดตั้งค่า เข้าทีละใบแบบ stagger (re-render เฉพาะตอนโหลด/บันทึก
+      ห้ามใส่ stagger ลิสต์ลูกค้าที่ re-render ทุกคีย์ค้นหา) */
 @keyframes cardIn { from { opacity: 0; transform: translateY(14px) scale(0.98); } to { opacity: 1; transform: none; } }
 .stats-grid .stat-card { animation: cardIn .45s cubic-bezier(.22,1,.36,1) backwards; }
 .stats-grid .stat-card:nth-child(2) { animation-delay: .05s; }
@@ -946,47 +927,46 @@ body::after {
 #page-settings .card:nth-child(7) { animation-delay: .30s; }
 #page-settings .card:nth-child(8) { animation-delay: .35s; }
 
-/* 6) ป้ายแดงบนเมนู + จุดแจ้งเตือนค้างเก็บ เต้นเรียกสายตา (pulse ring แบบเงา ไม่แตะ transform เดิม) */
-@keyframes badgePulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.45); } 60% { box-shadow: 0 0 0 6px rgba(239,68,68,0); } }
+/* 5) ป้ายแดงบนเมนู + จุดแจ้งเตือนค้างเก็บ เต้นเรียกสายตา (สีแดง/เหลืองเดิมของ v47)
+      (ใช้ box-shadow เท่านั้น ห้ามแตะ transform เพราะ nav-badge มี transform จุดวางตัวในตัว) */
+@keyframes badgePulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.45); } 60% { box-shadow: 0 0 0 6px rgba(220,38,38,0); } }
 .mobile-nav-item .nav-badge { animation: badgePulse 2.2s ease-out infinite; }
-@keyframes dotPulseRed { 0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.35); } 70% { box-shadow: 0 0 0 7px rgba(239,68,68,0); } }
-@keyframes dotPulseAmber { 0%, 100% { box-shadow: 0 0 0 0 rgba(245,158,11,0.30); } 70% { box-shadow: 0 0 0 6px rgba(245,158,11,0); } }
+@keyframes dotPulseRed { 0%, 100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.35); } 70% { box-shadow: 0 0 0 7px rgba(220,38,38,0); } }
+@keyframes dotPulseAmber { 0%, 100% { box-shadow: 0 0 0 0 rgba(255,160,0,0.30); } 70% { box-shadow: 0 0 0 6px rgba(255,160,0,0); } }
 .reminder-dot.overdue { animation: dotPulseRed 1.8s ease-out infinite; }
 .reminder-dot.soon { animation: dotPulseAmber 2.2s ease-out infinite; }
 
-/* 7) กราฟรายงาน แท่งโตขึ้นจากฐานทุกครั้งที่เปลี่ยนช่วงเวลา */
+/* 6) กราฟรายงาน แท่งโตขึ้นจากฐานทุกครั้งที่เปลี่ยนช่วงเวลา */
 #report-bar-chart > div > div:nth-child(2) {
   transform-origin: bottom;
   animation: barGrow .55s cubic-bezier(.22,1,.36,1) backwards;
 }
 @keyframes barGrow { from { transform: scaleY(0); } }
 
-/* 8) แบนเนอร์ติดตั้งแอป: ไล่เฉดไหลช้าๆ ต่อเนื่อง */
+/* 7) แบนเนอร์ติดตั้งแอป: ไล่เฉดเขียวแบรนด์เดิมไหลช้าๆ ต่อเนื่อง */
 .install-banner {
-  background: linear-gradient(120deg, var(--primary), var(--primary-l), var(--purple), var(--primary));
+  background: linear-gradient(120deg, var(--primary), var(--primary-l), var(--primary-d), var(--primary));
   background-size: 300% 100%;
   animation: bannerFlow 7s linear infinite;
 }
 @keyframes bannerFlow { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
 
-/* 9) รายละเอียดเล็ก ๆ ที่ทำให้รู้สึก "ตอบสนองมือ" */
-.search-bar:focus-within i { color: var(--primary); }
+/* 8) รายละเอียดเล็ก ๆ ที่ทำให้รู้สึก "ตอบสนองมือ" */
 .toggle-slider:before { transition: transform .28s cubic-bezier(.34,1.56,.64,1), background-color .2s ease; }
 #fab i { transition: transform .3s cubic-bezier(.34,1.56,.64,1); }
 #fab:active i { transform: rotate(90deg); }
 
-/* 10) เดสก์ท็อป (เมาส์เท่านั้น): ปุ่มหลักไล่เฉดเลื่อน / การ์ดสถิติมีแสงวิ่ง / รูปถ่ายซูมเบา */
-@media (min-width: 1024px) {
-  .btn-primary { background-size: 160% 160%; background-position: 0% 50%; }
-  .btn-primary:hover { background-position: 90% 50%; }
-  .stat-card::after {
-    content: ''; position: absolute; top: 0; left: 0; width: 55%; height: 100%;
-    background: linear-gradient(115deg, transparent, rgba(255,255,255,0.38), transparent);
-    transform: translateX(-160%); transition: transform .7s ease; pointer-events: none;
-  }
-  .stat-card:hover::after { transform: translateX(300%); }
-  .photo-thumb img { transition: transform .3s ease; }
-  .photo-thumb:hover img { transform: scale(1.07); }
+/* 9) เมาส์เท่านั้น: ปุ่มหลักไล่เฉดเลื่อน / การ์ดสถิติมีแสงวิ่งเฉียง / รูปถ่ายซูมเบา */
+.btn-primary { background-size: 160% 160%; background-position: 0% 50%; }
+.btn-primary:hover { background-position: 90% 50%; }
+.stat-card::after {
+  content: ''; position: absolute; top: 0; left: 0; width: 55%; height: 100%;
+  background: linear-gradient(115deg, transparent, rgba(255,255,255,0.38), transparent);
+  transform: translateX(-160%); transition: transform .7s ease; pointer-events: none;
+}
+.stat-card:hover::after { transform: translateX(300%); }
+.photo-thumb img { transition: transform .3s ease; }
+.photo-thumb:hover img { transform: scale(1.07); }
 }
 </style>
 </head>
@@ -2836,7 +2816,7 @@ var _selfBackAt = 0;        // เวลาที่เราเรียก his
 var _exitShownAt = 0;       // เวลาที่เปิดหน้าต่างยืนยันปิดแอป
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
-var APP_VERSION = 'v50';
+var APP_VERSION = 'v51';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -3483,7 +3463,7 @@ function renderReport() {
   var maxRev = Math.max(...months.map(m => m.rev), 1);
   document.getElementById('report-bar-chart').innerHTML = months.map(m => {
     var pct = Math.round(m.rev / maxRev * 100);
-    var col = m.isCur ? 'var(--primary)' : (m.rev === maxRev && m.rev > 0 ? 'var(--primary-l)' : 'rgba(99,102,241,0.35)');
+    var col = m.isCur ? 'var(--primary)' : (m.rev === maxRev && m.rev > 0 ? 'var(--primary-l)' : 'rgba(46,125,50,0.35)');
     return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0;">' +
       '<div style="font-size:8.5px;color:var(--text2);font-weight:600;white-space:nowrap;">' + (m.rev > 0 ? rptMoney(m.rev) : '') + '</div>' +
       '<div style="width:100%;border-radius:3px 3px 0 0;height:' + pct + '%;background:' + col + ';min-height:2px;"></div>' +
@@ -3493,7 +3473,7 @@ function renderReport() {
   // ---- สถานะงานในช่วง ----
   document.getElementById('rpt-status-title').textContent = 'สถานะงาน · ' + word;
   var stOrder = ['done', 'pending', 'followup', 'unpaid'];
-  var stCols = { done: 'var(--success)', pending: 'var(--warning)', followup: 'var(--purple)', unpaid: 'var(--danger)' };
+  var stCols = { done: 'var(--success)', pending: '#FFA000', followup: '#7C3AED', unpaid: 'var(--danger)' };
   var stEl = document.getElementById('report-status-breakdown');
   if (pJobs.length === 0) {
     stEl.innerHTML = '<div style="grid-column:1/-1;color:var(--text3);text-align:center;padding:8px;font-size:12px;">ยังไม่มีงานในช่วงนี้</div>';
