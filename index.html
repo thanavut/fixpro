@@ -1075,7 +1075,17 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
         </div>
         <div class="form-group">
           <label class="form-label">💵 ค่าบริการ</label>
-          <input type="number" class="form-control" id="job-cost" placeholder="0" min="0">
+          <input type="number" class="form-control" id="job-cost" placeholder="0" min="0" oninput="updateJobTotalPreview()">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:end;">
+        <div class="form-group">
+          <label class="form-label">🚗 ค่าเดินทาง (ไปซ่อมข้างนอก)</label>
+          <input type="number" class="form-control" id="job-travel" placeholder="0" min="0" oninput="updateJobTotalPreview()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">🧮 ยอดรวมเก็บเงิน</label>
+          <div id="job-total-preview" style="min-height:38px;padding:7px 11px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--primary-bg);color:var(--primary-d);font-weight:800;font-size:15px;display:flex;align-items:center;">0 ฿</div>
         </div>
       </div>
       <div class="opt-toggle" onclick="toggleJobExtra()"><i class="fas fa-chevron-down" id="job-extra-chev"></i> รายละเอียดเพิ่มเติม (ไม่บังคับ)</div>
@@ -1500,7 +1510,7 @@ function checkAndNotify(force) {
     var overdue = urgent.filter(function(r){ return r.status === 'overdue'; }).length;
     var soon = urgent.length - overdue;
     var unpaid = DB.jobs.filter(function(j){ return j.status === 'unpaid'; });
-    var unpaidTotal = unpaid.reduce(function(s,j){ return s + (parseFloat(j.cost)||0); }, 0);
+    var unpaidTotal = unpaid.reduce(function(s,j){ return s + jobTotal(j); }, 0);
     if (!urgent.length && !unpaid.length) return;
     var parts = [];
     if (overdue) parts.push('ติดต่อลูกค้า ' + overdue + ' ราย (เกินกำหนด)');
@@ -1561,11 +1571,14 @@ async function initFirebase(cfg) {
 // ============================================================
 // DATA LOADING
 // ============================================================
+// v44: ค่าเดินทาง (ไปซ่อมข้างนอก) — ยอดเก็บเงินรวม = ค่าบริการ + ค่าเดินทาง (งานเก่าไม่มี travel = 0)
+function jobTravel(j) { return parseFloat(j && j.travel) || 0; }
+function jobTotal(j) { return (parseFloat(j && j.cost) || 0) + jobTravel(j); }
 // จัดการงานซ้ำที่ติดมากับข้อมูลเดิม (กดบันทึกซ้ำในเวอร์ชันก่อน): เนื้อหา+รูปเหมือนกันทุกอย่าง = ของซ้ำแน่นอน
 // เก็บไว้รายการเดียว (อัปเดตใหม่กว่า/รูปเยอะกว่า) และลบตัวซ้ำออกจากคลาวด์ด้วย
 function dedupeJobs(list) {
   var out = [];
-  var keyOf = function(j) { return [j.customerPhone, j.serviceDate, j.serviceType, (j.deviceInfo||''), (j.description||''), String(j.cost||'0'), (j.status||''), (j.nextDate||''), JSON.stringify(j.photos||[])].join('||'); };
+  var keyOf = function(j) { return [j.customerPhone, j.serviceDate, j.serviceType, (j.deviceInfo||''), (j.description||''), String(j.cost||'0'), String(j.travel||'0'), (j.status||''), (j.nextDate||''), JSON.stringify(j.photos||[])].join('||'); };
   var seen = {};
   for (var i = 0; i < list.length; i++) {
     var j = list[i];
@@ -1999,7 +2012,7 @@ function renderDashboard() {
   var urgentCount = overdueR.length + soonR.length;
   var pendingJobs = DB.jobs.filter(j => j.status === 'pending' || j.status === 'followup');
   var unpaidJobs = DB.jobs.filter(j => j.status === 'unpaid');
-  var unpaidTotal = unpaidJobs.reduce((s,j) => s+(parseFloat(j.cost)||0), 0);
+  var unpaidTotal = unpaidJobs.reduce((s,j) => s+jobTotal(j), 0);
   var unpaidStrip = document.getElementById('dash-unpaid');
   if (unpaidStrip) {
     unpaidStrip.style.display = unpaidJobs.length ? '' : 'none';
@@ -2014,7 +2027,7 @@ function renderDashboard() {
     var d = j.serviceDate ? new Date(j.serviceDate) : null;
     return d && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   });
-  var thisMonthRev = thisMonthJobs.reduce((s,j) => s+(parseFloat(j.cost)||0), 0);
+  var thisMonthRev = thisMonthJobs.reduce((s,j) => s+jobTotal(j), 0);
   var greeting = now.getHours() < 12 ? 'สวัสดีตอนเช้า 🌅' : now.getHours() < 17 ? 'สวัสดีตอนบ่าย ☀️' : 'สวัสดีตอนเย็น 🌆';
   document.getElementById('dash-greeting').textContent = greeting;
   document.getElementById('dash-date').textContent = dateLabel;
@@ -2072,7 +2085,7 @@ function renderDashboard() {
           return '<div class="reminder-item" onclick="showCustomerDetail(\'' + escAttr(j.customerPhone) + '\')">' +
             '<div style="flex:1;min-width:0;"><div class="reminder-name">' + esc(cust?.name||j.customerPhone) + '</div>' +
             '<div class="reminder-detail">' + formatDate(j.serviceDate) + '</div></div>' +
-            '<div style="text-align:right;flex-shrink:0;"><div style="font-weight:700;color:var(--success);">' + (j.cost?Number(j.cost).toLocaleString()+' ฿':'-') + '</div></div></div>';
+            '<div style="text-align:right;flex-shrink:0;"><div style="font-weight:700;color:var(--success);">' + (jobTotal(j)?jobTotal(j).toLocaleString()+' ฿':'-') + '</div></div></div>';
         }).join('');
   }
 }
@@ -2136,7 +2149,7 @@ function renderJobs() {
         (j.status && j.status !== 'done' ? ' <span class="badge ' + (STATUS_COLORS[j.status]||'badge-gray') + '" style="font-size:10px;">' + esc(STATUS_LABELS[j.status]||j.status) + '</span>' : '') + '</div>' +
         (j.deviceInfo ? '<div style="font-size:11px;color:var(--text3);">📦 ' + esc(j.deviceInfo) + '</div>' : '') +
         '</div>' +
-        '<div class="customer-meta"><div class="job-count" style="font-size:16px;color:var(--success);">' + (j.cost?Number(j.cost).toLocaleString():'0') + '</div><div class="job-label">บาท</div></div></div>';
+        '<div class="customer-meta"><div class="job-count" style="font-size:16px;color:var(--success);">' + (jobTotal(j)?jobTotal(j).toLocaleString():'0') + '</div><div class="job-label">บาท</div></div></div>';
     }).join('');
   }
 }
@@ -2312,7 +2325,7 @@ function renderJobCard(j) {
     (j.deviceInfo ? '<div class="timeline-device">' + esc(j.deviceInfo) + '</div>' : '') +
     (j.description ? '<div style="font-size:13px;color:var(--text);margin-top:4px;">' + esc(j.description) + '</div>' : '') +
     '<div style="display:flex;align-items:center;gap:8px;margin-top:6px;">' +
-    (j.cost ? '<span class="timeline-cost">' + Number(j.cost).toLocaleString() + ' ฿</span>' : '') +
+    (jobTotal(j) ? '<span class="timeline-cost">' + jobTotal(j).toLocaleString() + ' ฿</span>' : '') +
     '<span class="badge ' + (STATUS_COLORS[j.status] || (j.status ? 'badge-gray' : 'badge-green')) + '">' + esc(STATUS_LABELS[j.status] || (j.status ? j.status : '✅ เสร็จ')) + '</span>' +
     (isRemindType(j.serviceType) && j.nextDate ? '<span class="badge badge-amber"><i class="fas fa-bell"></i> ' + formatDate(j.nextDate) + '</span>' : '') +
     '</div>' +
@@ -2375,6 +2388,14 @@ function onFabClick() {
 // MODAL HELPERS
 // ============================================================
 // ยุบ/ขยายช่องไม่บังคับในฟอร์ม (มือถือเห็นแต่ช่องสำคัญ)
+function updateJobTotalPreview() {
+  var el = document.getElementById('job-total-preview');
+  if (!el) return;
+  var c = parseFloat(document.getElementById('job-cost').value) || 0;
+  var tEl = document.getElementById('job-travel');
+  var t = parseFloat(tEl ? tEl.value : 0) || 0;
+  el.textContent = (c + t).toLocaleString() + ' ฿';
+}
 function toggleJobExtra(force) {
   var el = document.getElementById('job-extra'); if (!el) return;
   var show = typeof force === 'boolean' ? force : el.style.display === 'none';
@@ -2629,6 +2650,7 @@ function openEditJob(jobId) {
   document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
   document.querySelector('.type-card[data-type="' + (j.serviceType||'repair') + '"]')?.classList.add('selected');
   document.getElementById('job-cost').value = j.cost || '';
+  document.getElementById('job-travel').value = (j.travel ? Number(j.travel) : '');
   document.getElementById('job-device').value = j.deviceInfo || '';
   document.getElementById('job-desc').value = j.description || '';
   document.getElementById('job-status').value = j.status || 'done';
@@ -2639,6 +2661,7 @@ function openEditJob(jobId) {
   pendingPhotos = (j.photos || []).map(url => ({ file: null, url: url, uploaded: true }));
   renderPhotoPreview();
   onJobTypeChange();
+  updateJobTotalPreview();
   openModal('modal-job');
 }
 function resetJobModal() {
@@ -2648,8 +2671,10 @@ function resetJobModal() {
   var firstType = firstEnabledTypeId();
   document.getElementById('job-type').value = firstType;
   document.getElementById('job-cost').value = '';
+  document.getElementById('job-travel').value = '';
   document.getElementById('job-device').value = '';
   document.getElementById('job-desc').value = '';
+  updateJobTotalPreview();
   document.getElementById('job-status').value = 'done';
   document.querySelectorAll('input[name="job-status-r"]').forEach(r => { r.checked = r.value === 'done'; });
   document.getElementById('job-next-date').value = '';
@@ -2713,6 +2738,7 @@ async function _doSaveJob() {
     serviceDate: date,
     serviceType: type,
     cost: document.getElementById('job-cost').value || '0',
+    travel: parseFloat(document.getElementById('job-travel').value) || 0,
     deviceInfo: document.getElementById('job-device').value.trim(),
     description: document.getElementById('job-desc').value.trim(),
     status: document.getElementById('job-status').value,
@@ -2725,7 +2751,7 @@ async function _doSaveJob() {
     var dup = DB.jobs.find(function(x) {
       return x.customerPhone === phone && x.serviceDate === date && x.serviceType === type &&
         (x.deviceInfo||'') === job.deviceInfo && (x.description||'') === job.description &&
-        String(x.cost||'0') === String(job.cost) && x.updatedAt &&
+        String(x.cost||'0') === String(job.cost) && String(x.travel||'0') === String(job.travel) && x.updatedAt &&
         (Date.now() - new Date(x.updatedAt).getTime()) < 30000;
     });
     if (dup) {
@@ -2875,6 +2901,10 @@ function buildLineReceiptText(job) {
   if (job.description) lines.push('📝 รายละเอียด: ' + job.description);
   lines.push(sep);
   lines.push('💵 ค่าบริการ: ' + Number(job.cost||0).toLocaleString() + ' บาท');
+  if (jobTravel(job) > 0) {
+    lines.push('🚗 ค่าเดินทาง: ' + jobTravel(job).toLocaleString() + ' บาท');
+    lines.push('💰 ยอดรวมเก็บเงิน: ' + jobTotal(job).toLocaleString() + ' บาท');
+  }
   if (job.nextDate) lines.push('🔔 นัดหมายถัดไป: ' + formatDate(job.nextDate));
   lines.push(sep);
   lines.push(footer);
@@ -2898,7 +2928,9 @@ function openReceipt(jobId) {
     (j.description ? '<div class="receipt-row"><span style="color:var(--text3);">รายละเอียด</span><span>' + esc(j.description) + '</span></div>' : '') +
     (j.nextDate ? '<div class="receipt-row"><span style="color:var(--text3);">นัดหมายถัดไป</span><span style="color:var(--warning);font-weight:600;">' + formatDate(j.nextDate) + '</span></div>' : '') +
     '<hr style="border:1px dashed var(--border);margin:8px 0;">' +
-    '<div class="receipt-row total"><span>ค่าบริการรวม</span><span style="color:var(--success);font-size:18px;">' + Number(j.cost||0).toLocaleString() + ' ฿</span></div>' +
+    (jobTravel(j) > 0 ? '<div class="receipt-row"><span style="color:var(--text3);">ค่าบริการ</span><span>' + Number(j.cost||0).toLocaleString() + ' ฿</span></div>' +
+    '<div class="receipt-row"><span style="color:var(--text3);">🚗 ค่าเดินทาง</span><span>' + jobTravel(j).toLocaleString() + ' ฿</span></div>' : '') +
+    '<div class="receipt-row total"><span>' + (jobTravel(j) > 0 ? 'ยอดรวมเก็บเงิน' : 'ค่าบริการรวม') + '</span><span style="color:var(--success);font-size:18px;">' + jobTotal(j).toLocaleString() + ' ฿</span></div>' +
     '<div class="receipt-footer">' + esc(loadConfig().receiptFooter || 'ขอบคุณที่ใช้บริการครับ 🙏') + '</div></div>';
   document.getElementById('receipt-content').innerHTML = html;
   openModal('modal-receipt');
@@ -2924,7 +2956,7 @@ function showJobCompletePopup(jobId) {
   if (!j) return;
   currentReceiptJobId = jobId;
   var cust = DB.customers.find(c => c.phone === j.customerPhone);
-  document.getElementById('complete-job-detail').innerHTML = esc(typeLabel(j.serviceType)) + ' · คุณ' + esc(cust?.name||j.customerPhone) + '<br><strong style="color:var(--success);font-size:16px;">' + Number(j.cost||0).toLocaleString() + ' บาท</strong>';
+  document.getElementById('complete-job-detail').innerHTML = esc(typeLabel(j.serviceType)) + ' · คุณ' + esc(cust?.name||j.customerPhone) + '<br><strong style="color:var(--success);font-size:16px;">' + jobTotal(j).toLocaleString() + ' บาท</strong>';
   document.getElementById('job-complete-overlay').classList.add('show');
 }
 function dismissJobComplete() {
@@ -3028,11 +3060,11 @@ function renderReport() {
   var isDone = j => (j.status || 'done') === 'done';
 
   // ---- การ์ดสรุป 4 ใบ ----
-  var revDone = pJobs.filter(isDone).reduce((s, j) => s + (parseFloat(j.cost) || 0), 0);
+  var revDone = pJobs.filter(isDone).reduce((s, j) => s + jobTotal(j), 0);
   var doneCnt = pJobs.filter(isDone).length;
   var avg = doneCnt ? Math.round(revDone / doneCnt) : 0;
   var unpaidAll = DB.jobs.filter(j => (j.status || '') === 'unpaid');
-  var unpaidSum = unpaidAll.reduce((s, j) => s + (parseFloat(j.cost) || 0), 0);
+  var unpaidSum = unpaidAll.reduce((s, j) => s + jobTotal(j), 0);
   var stuck = pJobs.filter(j => j.status === 'pending' || j.status === 'followup').length;
 
   var revLabel = RPT_PERIOD === 'all' ? 'รายได้รวม' : 'รายได้' + word;
@@ -3040,7 +3072,7 @@ function renderReport() {
   if (RPT_PERIOD !== 'all') {
     var pr = rptPrevRange(range);
     if (pr) {
-      var prevRev = rptJobsIn(pr).filter(isDone).reduce((s, j) => s + (parseFloat(j.cost) || 0), 0);
+      var prevRev = rptJobsIn(pr).filter(isDone).reduce((s, j) => s + jobTotal(j), 0);
       if (prevRev > 0) {
         if (revDone === 0) { revSub = 'ยังไม่มีรายได้ในช่วงนี้'; }
         else {
@@ -3063,7 +3095,7 @@ function renderReport() {
   for (var i = 11; i >= 0; i--) {
     var d = new Date(nowD.getFullYear(), nowD.getMonth() - i, 1);
     var key = d.getFullYear() + '-' + _pad2(d.getMonth() + 1);
-    var rev = DB.jobs.filter(j => isDone(j) && j.serviceDate && j.serviceDate.indexOf(key) === 0).reduce((s, j) => s + (parseFloat(j.cost) || 0), 0);
+    var rev = DB.jobs.filter(j => isDone(j) && j.serviceDate && j.serviceDate.indexOf(key) === 0).reduce((s, j) => s + jobTotal(j), 0);
     months.push({ label: mnNames[d.getMonth()], rev: rev, isCur: i === 0 });
   }
   var maxRev = Math.max(...months.map(m => m.rev), 1);
@@ -3086,7 +3118,7 @@ function renderReport() {
   } else {
     stEl.innerHTML = stOrder.map(s => {
       var list = pJobs.filter(j => (j.status || 'done') === s);
-      var sum = list.reduce((a, j) => a + (parseFloat(j.cost) || 0), 0);
+      var sum = list.reduce((a, j) => a + jobTotal(j), 0);
       return '<div class="rpt-statusbox" style="border-left:3px solid ' + stCols[s] + ';">' +
         '<div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:11.5px;color:var(--text2);">' + RPT_STATUS_TEXT[s] + '</span><span style="font-size:14px;font-weight:800;color:' + stCols[s] + ';">' + list.length + '</span></div>' +
         (sum > 0 ? '<div style="font-size:11px;color:var(--text2);margin-top:1px;">' + rptMoney(sum) + ' ฿</div>' : '') + '</div>';
@@ -3108,7 +3140,7 @@ function renderReport() {
       return '<div class="rpt-row" style="cursor:pointer;" onclick="showCustomerDetail(\'' + escAttr(j.customerPhone) + '\')">' +
         '<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;">' + esc(c ? (c.name || j.customerPhone) : j.customerPhone) + '</div>' +
         '<div style="font-size:11px;color:var(--text3);">' + esc(typeLabel(j.serviceType)) + ' · ' + formatDate(j.serviceDate) + '</div></div>' +
-        '<div style="text-align:right;flex-shrink:0;"><div style="font-weight:700;color:var(--danger);font-size:13.5px;">' + (parseFloat(j.cost) || 0).toLocaleString() + ' ฿</div>' +
+        '<div style="text-align:right;flex-shrink:0;"><div style="font-weight:700;color:var(--danger);font-size:13.5px;">' + jobTotal(j).toLocaleString() + ' ฿</div>' +
         (j.deviceInfo ? '<div style="font-size:10px;color:var(--text3);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(j.deviceInfo) + '</div>' : '') + '</div></div>';
     }).join('') +
       '<div class="rpt-row" style="border-top:1.5px solid var(--border);padding-top:8px;"><span style="flex:1;font-size:12.5px;font-weight:600;">รวมทั้งหมด</span><span style="font-weight:800;color:var(--danger);font-size:14px;">' + Math.round(unpaidSum).toLocaleString() + ' ฿</span></div>';
@@ -3122,8 +3154,8 @@ function renderReport() {
     return {
       label: t.label, id: t.id,
       cnt: list.length,
-      rev: list.filter(isDone).reduce((s, j) => s + (parseFloat(j.cost) || 0), 0),
-      owe: list.filter(j => (j.status || '') === 'unpaid').reduce((s, j) => s + (parseFloat(j.cost) || 0), 0)
+      rev: list.filter(isDone).reduce((s, j) => s + jobTotal(j), 0),
+      owe: list.filter(j => (j.status || '') === 'unpaid').reduce((s, j) => s + jobTotal(j), 0)
     };
   }).filter(d => d.cnt > 0);
   // งานที่ประเภทถูกลบ/ไม่มีในระบบแล้ว รวมเป็นหมวด "ไม่ระบุประเภท" ไม่ให้หายจากรายงาน
@@ -3131,8 +3163,8 @@ function renderReport() {
   if (_unknownJobs.length) typeData.push({
     label: 'ไม่ระบุประเภท', id: '_none',
     cnt: _unknownJobs.length,
-    rev: _unknownJobs.filter(isDone).reduce((s, j) => s + (parseFloat(j.cost) || 0), 0),
-    owe: _unknownJobs.filter(j => (j.status || '') === 'unpaid').reduce((s, j) => s + (parseFloat(j.cost) || 0), 0)
+    rev: _unknownJobs.filter(isDone).reduce((s, j) => s + jobTotal(j), 0),
+    owe: _unknownJobs.filter(j => (j.status || '') === 'unpaid').reduce((s, j) => s + jobTotal(j), 0)
   });
   typeData.sort((a, b) => b.rev - a.rev);
   var typEl = document.getElementById('report-type-breakdown');
@@ -3156,7 +3188,7 @@ function renderReport() {
   for (var j2 of pJobs) {
     if (!custMap[j2.customerPhone]) custMap[j2.customerPhone] = { cnt: 0, rev: 0, last: '' };
     custMap[j2.customerPhone].cnt++;
-    custMap[j2.customerPhone].rev += parseFloat(j2.cost) || 0;
+    custMap[j2.customerPhone].rev += jobTotal(j2);
     if (j2.serviceDate > custMap[j2.customerPhone].last) custMap[j2.customerPhone].last = j2.serviceDate;
   }
   var topList = Object.entries(custMap).sort((a, b) => b[1].rev - a[1].rev).slice(0, 10);
@@ -3203,9 +3235,9 @@ function shareReportLine() {
   var word = RPT_PERIOD_WORD[RPT_PERIOD] || '';
   var pJobs = rptJobsIn(range);
   var isDone = j => (j.status || 'done') === 'done';
-  var revDone = pJobs.filter(isDone).reduce((s, j) => s + (parseFloat(j.cost) || 0), 0);
+  var revDone = pJobs.filter(isDone).reduce((s, j) => s + jobTotal(j), 0);
   var unpaidAll = DB.jobs.filter(j => (j.status || '') === 'unpaid');
-  var unpaidSum = unpaidAll.reduce((s, j) => s + (parseFloat(j.cost) || 0), 0);
+  var unpaidSum = unpaidAll.reduce((s, j) => s + jobTotal(j), 0);
   var stuck = pJobs.filter(j => j.status === 'pending' || j.status === 'followup').length;
   var sep = '─'.repeat(24);
   var lines = [];
@@ -3229,13 +3261,13 @@ function shareReportLine() {
 function exportExcel() {
   if (typeof XLSX === 'undefined') { toast('กำลังโหลด SheetJS...', 'warning'); return; }
   var wb = XLSX.utils.book_new();
-  var jobRows = [['วันที่','ลูกค้า','เบอร์โทร','ประเภทงาน','อุปกรณ์','รายละเอียด','ค่าบริการ','สถานะ','นัดหมายถัดไป']];
+  var jobRows = [['วันที่','ลูกค้า','เบอร์โทร','ประเภทงาน','อุปกรณ์','รายละเอียด','ค่าบริการ','ค่าเดินทาง','ยอดรวม','สถานะ','นัดหมายถัดไป']];
   for (var j of DB.jobs) {
     var c = DB.customers.find(c => c.phone === j.customerPhone);
-    jobRows.push([xlsxSafe(j.serviceDate||''), xlsxSafe(c?.name||''), xlsxSafe(j.customerPhone||''), xlsxSafe(typeLabel(j.serviceType)), xlsxSafe(j.deviceInfo||''), xlsxSafe(j.description||''), parseFloat(j.cost)||0, STATUS_LABELS[j.status]||'เสร็จ', xlsxSafe(j.nextDate||'')]);
+    jobRows.push([xlsxSafe(j.serviceDate||''), xlsxSafe(c?.name||''), xlsxSafe(j.customerPhone||''), xlsxSafe(typeLabel(j.serviceType)), xlsxSafe(j.deviceInfo||''), xlsxSafe(j.description||''), parseFloat(j.cost)||0, jobTravel(j), jobTotal(j), STATUS_LABELS[j.status]||'เสร็จ', xlsxSafe(j.nextDate||'')]);
   }
   var wsJobs = XLSX.utils.aoa_to_sheet(jobRows);
-  wsJobs['!cols'] = [10,18,12,16,20,24,10,10,12].map(w => ({wch:w}));
+  wsJobs['!cols'] = [10,18,12,16,20,24,10,10,10,10,12].map(w => ({wch:w}));
   XLSX.utils.book_append_sheet(wb, wsJobs, 'งานซ่อม');
   var custRows = [['ชื่อ','เบอร์โทร','ที่อยู่','Line ID','หมายเหตุ','จำนวนงาน']];
   for (var c of DB.customers) {
@@ -3301,7 +3333,7 @@ async function exportPDFReport() {
   doc.setFontSize(10); doc.setFont(F,'normal');
   doc.text('รายงานงานซ่อมและรายได้', 14, 20);
   doc.text('วันที่พิมพ์: '+new Date().toLocaleDateString('th-TH'), 196, 20, {align:'right'});
-  var totalRev = DB.jobs.reduce((s,j) => s+(parseFloat(j.cost)||0), 0);
+  var totalRev = DB.jobs.reduce((s,j) => s+jobTotal(j), 0);
   var summaries = [
     ['ลูกค้า', DB.customers.length+' ราย'],
     ['งานทั้งหมด', DB.jobs.length],
@@ -3320,7 +3352,7 @@ async function exportPDFReport() {
   doc.text('ประวัติงาน', 14, 62);
   var jobData = DB.jobs.slice(0,60).map(function(j) {
     var c = DB.customers.find(c => c.phone === j.customerPhone);
-    return [j.serviceDate||'', c?.name||'-', j.customerPhone||'', typeLabel(j.serviceType), (j.cost?Number(j.cost).toLocaleString():'-')+' ฿', STATUS_LABELS[j.status]||'-'];
+    return [j.serviceDate||'', c?.name||'-', j.customerPhone||'', typeLabel(j.serviceType), (jobTotal(j)?jobTotal(j).toLocaleString():'-')+' ฿', STATUS_LABELS[j.status]||'-'];
   });
   doc.autoTable({
     startY:65, head:[['วันที่','ลูกค้า','เบอร์โทร','ประเภท','ค่าใช้จ่าย','สถานะ']], body:jobData,
