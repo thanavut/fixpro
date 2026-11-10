@@ -1,5 +1,5 @@
 /* FixPro Service Worker — แคชไฟล์แอปไว้ใช้งานตอนออฟไลน์ */
-var CACHE = 'fixpro-v51';
+var CACHE = 'fixpro-v52';
 var CORE = [
   './',
   './index.html',
@@ -19,13 +19,24 @@ var CORE = [
   './assets/fontawesome/webfonts/fa-brands-400.woff2',
   './assets/fontawesome/webfonts/fa-brands-400.ttf',
   './assets/fontawesome/webfonts/fa-v4compatibility.woff2',
-  './assets/fontawesome/webfonts/fa-v4compatibility.ttf'
+  './assets/fontawesome/webfonts/fa-v4compatibility.ttf',
+  // v52: ฟอนต์ Kanit เก็บในแอปเอง — เจ้าของร้านสั่ง "ฟอนต์ต้องเป็น Kanit เท่านั้น"
+  // แคชไว้ล่วงหน้า = ออฟไลน์/เน็ตกระตุกก็แสดง Kanit 100% ไม่มีทางโหลดไม่ได้
+  './assets/fonts/kanit/kanit-400-latin.woff2',
+  './assets/fonts/kanit/kanit-400-thai.woff2',
+  './assets/fonts/kanit/kanit-500-latin.woff2',
+  './assets/fonts/kanit/kanit-500-thai.woff2',
+  './assets/fonts/kanit/kanit-600-latin.woff2',
+  './assets/fonts/kanit/kanit-600-thai.woff2',
+  './assets/fonts/kanit/kanit-700-latin.woff2',
+  './assets/fonts/kanit/kanit-700-thai.woff2',
+  './assets/fonts/kanit/kanit-800-latin.woff2',
+  './assets/fonts/kanit/kanit-800-thai.woff2',
 ];
 var CDN = [
   'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js',
-  'https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400&display=swap'
 ];
 
 self.addEventListener('install', function (e) {
@@ -86,8 +97,6 @@ self.addEventListener('fetch', function (e) {
   var cacheable =
     url.origin === location.origin ||
     url.hostname.indexOf('cdnjs.cloudflare.com') !== -1 ||
-    url.hostname.indexOf('fonts.googleapis.com') !== -1 ||
-    url.hostname.indexOf('fonts.gstatic.com') !== -1 ||
     url.hostname.indexOf('cdn.jsdelivr.net') !== -1 ||
     (url.hostname === 'www.gstatic.com' && url.pathname.indexOf('/firebasejs/') === 0);
   if (!cacheable) return;

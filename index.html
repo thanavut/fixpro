@@ -13,8 +13,28 @@
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro — ระบบจัดการงานช่าง</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400&display=swap" rel="stylesheet">
+<!-- v52: ฟอนต์ Kanit SELF-HOSTED — เจ้าของร้านสั่ง "ฟอนต์ต้องเป็น Kanit เท่านั้น"
+     ถอด Google Fonts CDN เพราะถ้าเน็ตกระตุก/โหลดไม่ทัน ตัวอักษรจะกลายเป็นฟอนต์ระบบทันที
+     ตอนนี้ไฟล์ woff2 อยู่ในแอปเอง (assets/fonts/kanit/) + SW แคชไว้ล่วงหน้า
+     → เปิดแอปเมื่อไหร่ก็เป็น Kanit 100% ออนไลน์/ออฟไลน์เท่ากัน หน้าตาไม่เปลี่ยนแม้แต่พิกเซลเดียว -->
+<style id="kanit-fonts">
+/* ===== v52: Kanit SELF-HOSTED — ฝังฟอนต์ไว้ในแอปเอง ไม่พึ่ง fonts.googleapis.com
+     เจ้าของร้านสั่ง: "ฟอนต์ต้องเป็น Kanit เท่านั้น" → แม้เน็ตกระตุก/ออฟไลน์ก็เป็น Kanit 100%
+     ไฟล์ woff2 มาจาก Google Fonts (OFL license) โหลดครั้งเดียวตอนพัฒนา แล้วเก็บใน repo
+     SW แคชทุกไฟล์ไว้ล่วงหน้า (ดู sw.js CORE) — unicode-range คงเดิมตามที่ Google แจก
+     weights 400-800 = น้ำหนักที่แอปใช้จริงทั้งหมด (grep font-weight แล้ว) · ไม่มี italic
+     ============================================================ */
+@font-face { font-family: 'Kanit'; font-style: normal; font-weight: 400; font-display: swap; src: url('./assets/fonts/kanit/kanit-400-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Kanit'; font-style: normal; font-weight: 400; font-display: swap; src: url('./assets/fonts/kanit/kanit-400-thai.woff2') format('woff2'); unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC; }
+@font-face { font-family: 'Kanit'; font-style: normal; font-weight: 500; font-display: swap; src: url('./assets/fonts/kanit/kanit-500-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Kanit'; font-style: normal; font-weight: 500; font-display: swap; src: url('./assets/fonts/kanit/kanit-500-thai.woff2') format('woff2'); unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC; }
+@font-face { font-family: 'Kanit'; font-style: normal; font-weight: 600; font-display: swap; src: url('./assets/fonts/kanit/kanit-600-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Kanit'; font-style: normal; font-weight: 600; font-display: swap; src: url('./assets/fonts/kanit/kanit-600-thai.woff2') format('woff2'); unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC; }
+@font-face { font-family: 'Kanit'; font-style: normal; font-weight: 700; font-display: swap; src: url('./assets/fonts/kanit/kanit-700-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Kanit'; font-style: normal; font-weight: 700; font-display: swap; src: url('./assets/fonts/kanit/kanit-700-thai.woff2') format('woff2'); unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC; }
+@font-face { font-family: 'Kanit'; font-style: normal; font-weight: 800; font-display: swap; src: url('./assets/fonts/kanit/kanit-800-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Kanit'; font-style: normal; font-weight: 800; font-display: swap; src: url('./assets/fonts/kanit/kanit-800-thai.woff2') format('woff2'); unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC; }
+</style>
 <link rel="stylesheet" href="assets/fontawesome/css/all.min.css">
 <!-- ระบบล็อกอิน (Firebase SDK) ต้องโหลดก่อนใครเสมอ — เก็บไฟล์ไว้ในแอปเอง (โฟลเดอร์ /firebase) ไม่พึ่งเซิร์ฟเวอร์ภายนอก
      สาเหตุที่แก้: เดิม SDK มาจาก gstatic และถูกวางหลังไลบรารี Excel/PDF (~1.4MB) ทำให้ script แบบ defer รอ execute ตามคิว
@@ -2816,7 +2836,7 @@ var _selfBackAt = 0;        // เวลาที่เราเรียก his
 var _exitShownAt = 0;       // เวลาที่เปิดหน้าต่างยืนยันปิดแอป
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
-var APP_VERSION = 'v51';
+var APP_VERSION = 'v52';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
