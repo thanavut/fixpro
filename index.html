@@ -623,6 +623,149 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
   .form-control { font-size: 14px; padding: 7px 11px; min-height: 38px; }
 }
 </style>
+
+<!-- ============================================================
+     v48 — DESKTOP VERSION (จอ >= 1024px เท่านั้น)
+     หลักการที่เจ้าของร้านกำหนด: ห้ามยุ่งมือถือเด็ดขาด — ทุกกฎอยู่ใน
+     @media (min-width: 1024px) เท่านั้น มือถือ/แท็บเล็ตเรนเดอร์จาก CSS เดิม 100%
+     ใช้ DOM + JS เดิมทุกตัว (แถบเมนูซ้าย = nav เดิมจัดใหม่ด้วย CSS ล้วน
+     showPage/active/badge ทำงานเหมือนเดิมทุกอย่าง)
+     คงมาตรฐาน UI: Kanit ทั้งแอป · ช่องค้นหา 38px/ฟอนต์ 14px · ช่องล็อกไม่มีกรอบ
+     ============================================================ -->
+<style id="desktop-style">
+@media (min-width: 1024px) {
+  :root { --header-h: 60px; }
+
+  /* สกอลบาร์เดสก์ท็อปจับง่ายขึ้น */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: #C9CDD9; border-radius: 6px; border: 2.5px solid transparent; background-clip: padding-box; }
+  ::-webkit-scrollbar-thumb:hover { background: #ADB2C1; background-clip: padding-box; }
+  [data-theme="dark"] ::-webkit-scrollbar-thumb { background: #343A52; background-clip: padding-box; }
+
+  /* ===== โครงหน้า: แถบบนเต็มความกว้าง + แถบเมนูซ้าย + เนื้อหา ===== */
+  #app-screen.active { display: grid; grid-template-columns: 238px minmax(0, 1fr); grid-template-rows: var(--header-h) minmax(0, 1fr); grid-template-areas: "header header" "sidebar body"; }
+  .app-header { grid-area: header; padding: 0 22px; gap: 14px; }
+  .header-brand { gap: 10px; }
+  .header-brand .brand-icon { width: 38px; height: 38px; font-size: 18px; border-radius: 10px; }
+  .header-brand h2 { font-size: 19px; }
+  .header-btn:hover { background: var(--bg); color: var(--text); }
+  .app-body { grid-area: body; min-height: 0; }
+
+  /* ===== แถบเมนูซ้าย (DOM เดิม จัดใหม่ด้วย CSS ล้วน) ===== */
+  .mobile-nav { grid-area: sidebar; position: static; width: auto; height: auto; border-top: none; border-right: 1px solid var(--border); padding: 14px 12px; background: var(--surface); overflow-y: auto; }
+  .mobile-nav-items { flex-direction: column; justify-content: flex-start; align-items: stretch; height: auto; gap: 4px; }
+  .mobile-nav-items::before { content: "เมนูหลัก"; font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; color: var(--text3); padding: 0 14px 6px; }
+  .mobile-nav-item { flex-direction: row; align-items: center; justify-content: flex-start; gap: 12px; padding: 11px 14px; flex: none; min-width: 0; font-size: 13.5px; border-radius: 10px; }
+  .mobile-nav-item i { font-size: 16px; width: 20px; text-align: center; }
+  .mobile-nav-item:hover { background: var(--surface2); color: var(--text); }
+  .mobile-nav-item.active { background: var(--primary-bg); color: var(--primary); font-weight: 700; }
+  .mobile-nav-item .nav-badge { position: static; transform: none; margin-left: auto; }
+
+  /* ===== เนื้อหา: คอลัมน์กลางสูงสุด 1280px ===== */
+  .main-content { padding: 22px 30px 46px; }
+  #main-content { max-width: 1280px; margin: 0 auto; width: 100%; }
+
+  /* หัวเรื่องของแต่ละหน้าใหญ่ขึ้น */
+  #dash-greeting { font-size: 22px !important; }
+  #dash-date { font-size: 13px !important; }
+  #page-customers > div:first-child div, #page-jobs > div:first-child div,
+  #page-reminders > div:first-child div, #page-reports > div:first-child div,
+  #page-settings > div:first-child div { font-size: 21px !important; }
+
+  /* การ์ด */
+  .card { border-radius: 14px; }
+  .card-header { padding: 13px 18px; }
+  .card-body { padding: 14px 18px; }
+  .card-title { font-size: 14.5px; }
+
+  /* ===== หน้าแรก: สถิติ 4 การ์ดใหญ่ + (ต้องติดต่อ | งานล่าสุด) คู่กัน ===== */
+  #page-dashboard.active { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  #page-dashboard > div:first-child { margin-bottom: 0 !important; }
+  #install-banner, #dash-unpaid, #page-dashboard .stats-grid { grid-column: 1 / -1; margin-bottom: 0; }
+  #page-dashboard .card { margin-bottom: 0; }
+  .stats-grid { gap: 12px; }
+  .stat-card { padding: 14px 16px; border-radius: 14px; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+  .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+  .stat-icon { width: 34px; height: 34px; font-size: 14px; border-radius: 9px; margin-bottom: 8px; }
+  .stat-value { font-size: 26px; }
+  .stat-label { font-size: 12px; }
+
+  /* แถวรายการ (แจ้งเตือน/งานล่าสุด) เพิ่มโฮเวอร์สำหรับเมาส์ */
+  .reminder-item { padding: 11px 14px; min-height: 52px; }
+  .reminder-item:hover { background: var(--surface2); }
+
+  /* ===== ลูกค้า + งาน: รายการ 2 คอลัมน์ + โฮเวอร์ ===== */
+  .customer-list, #jobs-mobile-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .customer-card { margin-bottom: 0; min-height: 84px; padding: 14px 18px; }
+  .customer-card:hover { border-color: var(--primary); box-shadow: var(--shadow); transform: translateY(-1px); }
+  .filter-bar { flex-wrap: wrap; overflow: visible; padding-bottom: 0; }
+  .filter-bar .search-input { flex: 1 1 300px; }
+  .form-select { cursor: pointer; }
+  .form-select:hover { border-color: var(--primary); }
+
+  /* ===== รายละเอียดลูกค้า: ข้อมูล | แผนที่ คู่กัน + ประวัติงานเต็มความกว้าง =====
+     (DOM เดิม: การ์ด "ประวัติงาน" กับ .timeline เป็นพี่น้องแยกกันมาแต่เดิม — บนเดสก์ท็อปจึง
+      จัดการ์ดหัวข้อยืดเต็มแถว แล้ววาด .timeline ต่อท้ายให้ดูเป็นเนื้อเดียวกันด้วย CSS ล้วน
+      ไม่แตะ JS render เดิม = มือถือเหมือนเดิมทุกอย่าง) */
+  #customer-detail-content { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start; }
+  #customer-detail-content .card { margin-bottom: 0; }
+  #customer-detail-content > .card:nth-last-child(2) { grid-column: 1 / -1; border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+  #customer-detail-content > .card:nth-last-child(2) > .card-body:empty { padding: 0; }
+  #customer-detail-content > .card:nth-last-child(2):has(+ .empty-state) { border-radius: 14px; }
+  #customer-detail-content > .timeline { grid-column: 1 / -1; background: var(--surface); border: 1px solid var(--border); border-top: 0; border-radius: 0 0 14px 14px; box-shadow: var(--shadow-sm); margin-top: -14px; padding: 16px 16px 8px 18px; }
+  .map-embed { height: 280px; }
+  .timeline-card { transition: box-shadow 0.15s ease; }
+  .timeline-card:hover { box-shadow: var(--shadow); }
+
+  /* ===== รายงาน: (กราฟ | สถานะ) คู่กัน + (ท็อปลูกค้า | ลูกค้าใหม่) คู่กัน ===== */
+  #rpane-overview.active, #rpane-customers.active { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start; }
+  #rpane-overview .stats-grid { grid-column: 1 / -1; margin-bottom: 0; }
+  #rpt-unpaid-card { grid-column: 1 / -1; }
+  #rpane-overview .card, #rpane-types .card, #rpane-customers .card { margin-bottom: 0; }
+  #report-bar-chart { height: 190px !important; }
+  .report-tabs { max-width: 620px; }
+  .rpt-tab { padding: 10px 4px; font-size: 13px; }
+  .rpt-periods { flex-wrap: wrap; overflow: visible; }
+  .rpt-chip:hover { background: var(--btn2-border); }
+  .rpt-row { padding: 10px 0; }
+
+  /* ===== ตั้งค่า: การ์ด 2 คอลัมน์เรียงสวย ===== */
+  #page-settings.active { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start; }
+  #page-settings .card { margin-bottom: 0; }
+  #page-settings > div:first-child { margin-bottom: 0 !important; grid-column: 1 / -1; }
+  #page-settings > div:last-child { grid-column: 1 / -1; margin-top: 4px; }
+
+  /* ===== โมดัล: ย้ายจาก bottom-sheet มากลางจอ ===== */
+  .modal-overlay { align-items: center; }
+  .modal { border-radius: var(--radius-lg); max-height: 88vh; }
+  #modal-job .modal { max-width: 660px; }
+  .modal-header { padding: 15px 22px; }
+  .modal-body { padding: 18px 22px; }
+  .modal-footer { padding: 14px 22px; }
+
+  /* popup งานเสร็จ กลางจอ */
+  #job-complete-overlay { align-items: center; justify-content: center; }
+  .job-complete-sheet { border-radius: 24px; max-width: 460px; }
+
+  /* toast ใต้แถบหัวพอดี */
+  #toast-container { top: 70px; max-width: 460px; }
+
+  /* ===== ปุ่ม: โฮเวอร์สำหรับเมาส์ (คง :active ของมือถือเดิม) ===== */
+  .btn:hover { filter: brightness(1.04); }
+  .btn-primary:hover { box-shadow: 0 4px 14px rgba(46,125,50,0.35); }
+  .btn-line:hover { box-shadow: 0 4px 14px rgba(6,199,85,0.35); }
+  .btn-danger:hover { box-shadow: 0 4px 14px rgba(220,38,38,0.35); }
+  .btn-ghost:hover, .btn-secondary:hover { filter: none; background: var(--btn2-border); color: var(--text); }
+  .jt-iconbtn:hover { background: rgba(25,118,210,0.28); }
+  .jt-iconbtn.danger:hover { background: rgba(220,38,38,0.28); }
+  .jt-add:hover { filter: brightness(0.96); transform: scale(1.01); }
+  .map-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(46,125,50,0.3); }
+  .map-btn-open:hover { box-shadow: var(--shadow-sm); transform: none; }
+  .type-card:hover { border-color: var(--primary); }
+  .pv-close:hover, .pv-nav button:hover { background: rgba(255,255,255,0.3); }
+  .empty-state { padding: 40px 16px; }
+}
+</style>
 </head>
 <body>
 
@@ -2470,7 +2613,7 @@ var _selfBackAt = 0;        // เวลาที่เราเรียก his
 var _exitShownAt = 0;       // เวลาที่เปิดหน้าต่างยืนยันปิดแอป
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
-var APP_VERSION = 'v47';
+var APP_VERSION = 'v48';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
