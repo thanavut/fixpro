@@ -1,0 +1,71 @@
+# HANDOFF — แอป FixPro ระบบจัดการงานช่าง (ไฟล์ส่งต่อระหว่างแชท — อยู่ใน repo นี้)
+
+> ไฟล์นี้ commit ไว้ใน repo เพื่อให้ "ทุกแชท" อ่านได้เสมอ: clone repo นี้ (public, ไม่ต้องมี token ก็ clone ได้) หรือดึงจากเว็บจริงที่ `https://fixpro-7b397.web.app/HANDOFF_FIXPRO.md`
+> ถ้าผู้ใช้ให้ทำงานต่อเรื่อง FixPro ให้อ่านไฟล์นี้ก่อนเริ่ม แล้วทำงานตามที่นี่ทุกข้อ
+> ปรับปรุงล่าสุด: 2026-11-10 · เวอร์ชันปัจจุบันที่อยู่บน production: **v46**
+
+## 0) จุดสำคัญที่สุดสำหรับแชทใหม่
+- **แต่ละแชทมี workspace/เครื่องแยกกัน** — ไฟล์ในแชทเก่า (repo clone, token, เบราว์เซอร์ทดสอบ) ไม่ย้ายมาเอง แชทใหม่ต้องจัดของตัวเองใหม่ตามไฟล์นี้
+- clone ได้ทันที: `git clone https://github.com/thanavut/fixpro.git` (repo public — โค้ดล่าสุด + git log ข้อความ commit ภาษาไทยละเอียดทุกเวอร์ชัน = ประวัติการแก้ครบ)
+- **สิทธิ์ push**: ดูข้อ 3 — ทำ Device Flow เองในแชทของตัวเอง ห้ามขอ/ส่ง token ผ่านข้อความแชทเด็ดขาด
+
+## 1) โปรเจกต์คืออะไร
+- แอปจัดการงานช่าง FixPro (ลูกค้า / งานซ่อม / ค่าเดินทาง / ใบเสร็จ / LINE / รายงาน / แจ้งเตือน) UI ภาษาไทยทั้งหมด ติดตั้งเป็น PWA บนมือถือได้
+- เจ้าของร้าน: บรรยุฐ พรหมทัศน์ (อีเมล thanavutp@gmail.com) — GitHub account: **thanavut**
+- เข้าใช้จริง: https://fixpro-7b397.web.app
+- โครงสร้าง: ไฟล์เดียว `index.html` (~3,880 บรรทัด: HTML+CSS+JS ทั้งหมด) + `sw.js` (offline cache) + manifest + icons + firestore.rules + `.github/workflows/deploy-firebase.yml`
+
+## 2) วิธีทำงานกับเจ้าของร้าน (โปรโตคอลที่ใช้มาตลอด)
+1. เจ้าของสั่งเป็นข้อ ๆ ภาษาไทยทางแชท (สั้น ตรงประเด็น)
+2. แก้โค้ด → **bump เวอร์ชัน** (ข้อ 4) → ทดสอบในเบราว์เซอร์จริง (agent-browser, viewport มือถือ 390x844, เสิร์ฟ local ด้วย `python3 -m http.server 8846` ในโฟลเดอร์ repo)
+3. commit ข้อความไทยละเอียด (เปลี่ยนอะไร + ผลทดสอบจริง) → push → รอ deploy → ทดสอบบน production → **รายงานกลับเป็นภาษาไทย** สรุปเป็นข้อ ๆ พร้อมผลทดสอบ และหมายเหตุ "ปิด-เปิดแอปใหม่เพื่อรับเวอร์ชันใหม่" เมื่อเหมาะสม
+
+## 3) สิทธิ์ GitHub — ทำเองในแชทของตัวเองด้วย Device Flow (สำคัญ)
+- โค้ดบน repo public → clone/ดึงไฟล์ไม่ต้องใช้ token แต่ **push ต้องมี token ของตัวเอง**
+- **ห้าม**ให้ใครพิมพ์/วาง token ลงข้อความแชท และห้ามบันทึก token ที่ปรากฏในข้อความ — ตามนโยบายความปลอดภัย
+- ขอสิทธิ์เองแบบ Device Flow: ใช้สคริปต์ใน repo นี้ `scripts/gh_device_poll.py` (CLIENT_ID = `178c6fc778ccc68e1d6a`, scope = `repo`) → ได้รหัส 8 หลักให้เจ้าของเปิด https://github.com/login/device แล้วกดยืนยันครั้งเดียว → ได้ token
+- เก็บ token ใน workspace ของแชทตัวเอง เช่น `.secrets/gh_token.json` (chmod 600) แล้วตั้ง remote: `git remote set-url origin "https://thanavut:<token>@github.com/thanavut/fixpro.git"` (ถ้าต้องดู remote ให้ mask: `git remote -v | sed -E 's#https://[^@]+@#https://***@#'`)
+- เช็ค token ใช้ได้ (แสดงเฉพาะ HTTP code): `curl -s -o /dev/null -w "%{http_code}" -H "Authorization: token $TOKEN" https://api.github.com/user` → 200 = ใช้ได้ (token แบบนี้ไม่มีวันหมดอายุถ้าไม่ถูก revoke)
+- ห้าม: commit token/ค่า config ลง repo, พิมพ์ token ลงเอกสาร, ส่ง token ข้ามแชท
+
+## 4) Deploy + การ bump เวอร์ชัน (จำเป็นทุกครั้งที่แก้โค้ดแอป)
+- push เข้า main → GitHub Actions `.github/workflows/deploy-firebase.yml` → Firebase Hosting (โปรเจกต์ fixpro-7b397) ปกติ 40–90 วิ
+- **ทุกเวอร์ชันต้องแก้ 2 จุดเสมอ**: `sw.js` → `var CACHE = 'fixpro-vNN'` และ `index.html` → `var APP_VERSION = 'vNN'` (SW เปลี่ยนชื่อ cache = บังคับทุกเครื่องโหลดโค้ดใหม่ตอนเปิดครั้งถัดไป + แท็บที่เปิดค้างจะ reload ตัวเองเอง)
+- เช็คว่าขึ้นจริง: `curl -s "https://fixpro-7b397.web.app/sw.js?cb=$RANDOM" | grep -oE "fixpro-v[0-9]+"` ต้องขึ้นเวอร์ชันใหม่ (ถ้าค้าง ให้เช็ค Actions run บน GitHub)
+- แก้เฉพาะไฟล์เอกสาร (เช่น HANDOFF_FIXPRO.md) = ไม่ต้อง bump เวอร์ชัน
+
+## 5) กลไกโค้ดที่ต้องรู้ก่อนแก้
+- ข้อมูล: `DB = { customers, jobs }` เก็บ localStorage + ซิงค์ Firestore อัตโนมัติ (collections: `customers` / `jobs` / `shop` = ตั้งค่า) — Firebase compat SDK แพ็กใน repo ที่ `firebase/` (ไม่พึ่ง gstatic)
+- **ไม่มีระบบล็อกอิน** (ถอนออกแล้วตั้งแต่ v40) — เปิดแอปใช้ได้เลย เชื่อมคลาวด์เอง
+- หน้าตั้งค่า: ทุกการ์ด (ข้อมูลร้าน/ช่าง, ประเภทงาน, Firebase, Cloudinary) **ล็อกเสมอ** กดปุ่มดินสอ "แก้ไข" รายการ์ดถึงแก้ได้; บันทึก = ซิงค์คลาวด์ทันที (`pushConfigToCloud` + cfgDirty แบบ per-field กันเขียนทับข้ามการ์ด); ยกเลิก = คืนค่าเดิม; ถ้า db ไม่พร้อมมี `cfgPushPending` ลองซ้ำเองทุก 15 วิ
+- มาตรฐาน UI ที่เจ้าของกำหนด (v43–v46) — อย่าผิดมาตรฐานย้อนหลัง: ช่องล็อก = โปร่งใส **ไม่มีกรอบ** (`.card.locked .form-control`), ช่องค้นหาทุกหน้า สูง 38px ฟอนต์ 14px ไอคอน 14px, ลูกค้า+ประวัติงานเรียง **updatedAt ใหม่สุดขึ้นบน** (งานเก่าไม่มี updatedAt เทียบด้วย serviceDate), ฟอนต์ **Kanit ทั้งแอป** (`input,select,textarea,button { font-family: inherit; }` + body Kanit), แถวประเภทงาน (`.jt-row`) ไม่มีกรอบ, การ์ดประเภทงานมีปุ่ม บันทึก/ยกเลิก (`saveJobTypesCard` / `cancelJobTypesCard` คืนจาก `_jtSnapshot` แล้วยิงคลาวด์ด้วย)
+- ค่าเดินทาง (v44): field `travel` ในงาน — ฟอร์มมี ยอดรวมเก็บเงิน = ค่าบริการ+ค่าเดินทาง, ใบเสร็จ/LINE/รายงาน/Excel รวม `travel` ทุกจุด (`jobTotal(j)`) งานเก่าไม่มี travel = 0
+- PDF รายงาน: jsPDF + ฟอนต์ Kanit โหลดจาก `https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/kanit/` (`loadThaiFontB64`, Kanit-Regular/Bold.ttf) — อย่ากลับไปใช้ helvetica กับข้อความไทย
+- ประเภทงาน: `cfg.jobTypes` = ลิสต์ `{id,label,deleted,remindYearly}` ใช้ผ่าน `getJobTypes()` / `typeLabel(id)`; งานเก่าเก็บ `serviceType` เป็น id
+- เวอร์ชันแสดงท้ายหน้าตั้งค่า (footer) ดึงจาก `APP_VERSION`
+- SW แคช: ไฟล์ใน repo + CDN (cdnjs, fonts.googleapis, fonts.gstatic, cdn.jsdelivr) cache-first; หน้าเว็บหลัก network-first; googleapis/firestore ไม่แคช
+
+## 6) กติกาทดสอบ — ห้ามพังข้อมูลจริงของร้าน
+- Production มีข้อมูลจริง (ลูกค้า/งาน/ตั้งค่า) — **ห้ามสร้าง-ลบข้อมูลทดสอบบน production ทุกชนิด** (ลูกค้า งาน ประเภทงาน ค่าตั้งค่า)
+- CRUD ทดสอบทำบน localhost เท่านั้น: `python3 -m http.server 8846` ในโฟลเดอร์ repo → เปิด http://localhost:8846/index.html
+- เบราว์เซอร์ทดสอบของแต่ละแชทเริ่มใหม่หมด (localStorage ว่าง) — ทดสอบ UI ได้เลยโดยไม่ต้องมีคลาวด์; **ถ้าต้องทดสอบซิงค์คลาวด์** ให้กรอก Firebase config ของร้านลงการ์ด Firebase ในหน้าตั้งค่าของแอปทดสอบ (ขอค่าจากเจ้าของร้าน — Firebase web API key ไม่ใช่ความลับที่ซ่อนไม่ได้ ความปลอดภัยจริงอยู่ที่ Firestore rules แต่กรอกเฉพาะในแอปเท่านั้น ห้าม commit ลง repo)
+- บน production ทำได้เฉพาะ: อ่าน DOM/computed style/screenshot และกระบวนการ net-zero (เช่น กดแก้ไข→ยกเลิกทันที = ค่าเดิม)
+- ก่อน push ทุกครั้ง: ดึง script inline ใน index.html ออกมา `node --check` ทีละ block + ทดสอบตามฟีเจอร์ที่แก้บน localhost + เช็ค `agent-browser errors` = ต้องไม่มี error
+- ประเภทงานจริงของร้านตอนนี้: ล้างแอร์, ล้างเครื่องซักผ้า, เครื่องใช้ไฟฟ้า, อื่นๆ — อย่าแตะ
+- ทดสอบเสร็จ รอ deploy (ข้อ 4) แล้วทดสอบซ้ำบน https://fixpro-7b397.web.app ก่อนรายงาน
+
+## 7) ไฟล์/โฟลเดอร์อื่นที่เกี่ยว
+- `firestore.rules` — กฎ Firestore v20 (ไม่มี auth: เปิดเฉพาะ customers/jobs/shop ให้แอปเขียนได้ อื่นปิด)
+- `assets/fontawesome/`, `icons/`, `firebase/` — แพ็กใน repo (SW แคช)
+- `scripts/` — เครื่องมือที่เคยใช้ (รวม `gh_device_poll.py` = ขอสิทธิ์ GitHub, `poll_deploy_v42.py` = รอ deploy)
+- `firebase.json` — hosting public "." + headers/CSP; เว้นแต่ไฟล์ ignore ไฟล์ใน repo จะถูกเสิร์ฟบนเว็บจริงด้วย (HANDOFF_FIXPRO.md ก็เลยเปิดได้ที่เว็บ)
+
+## 8) ประวัติเวอร์ชันล่าสุด (บริบท)
+- v40: ถอนระบบล็อกอิน + กู้คืนฉุกเฉินออกทั้งหมด + แข็งซิงค์ตั้งค่า (merge:true ห้าม null ทับ)
+- v41: ซิงค์ตั้งค่าไม่หายแบบเงียบ — cfgPushPending ลองใหม่ทุก 15 วิ/online/boot
+- v42: การ์ดตั้งค่าล็อกเสมอ + ปุ่มแก้ไขรายการ์ด + บันทึกยิงคลาวด์ทันที + dirty-key กันเขียนทับ
+- v43: ช่องล็อก = ไม่มีพื้นหลัง (โปร่งใส) ตามมาตรฐานช่องประเภทงาน
+- v44: เพิ่มค่าเดินทาง (travel) ทุกจุด + ยอดรวมเก็บเงิน + Excel/รายงาน/LINE/ใบเสร็จ
+- v45: เรียงลูกค้า/ประวัติงานตาม updatedAt ใหม่สุดก่อน + ช่องค้นหามาตรฐานเดียว 38px/14px + ช่องล็อกไม่มีกรอบ
+- v46: Kanit ทั้งแอป (UI + PDF), แถวประเภทงานไม่มีกรอบทั้งหมด, การ์ดประเภทงานมีปุ่ม บันทึก/ยกเลิก (ตัดปุ่ม "เสร็จ" ออก) — commit e471778
+- ไฟล์ handoff นี้ถูกเพิ่มเข้า repo เป็นครั้งแรกหลัง v46 — เว้นแต่มีเวอร์ชันใหม่กว่านี้ใน git log ให้เชื่อ git log
