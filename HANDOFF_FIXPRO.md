@@ -2,7 +2,7 @@
 
 > ไฟล์นี้ commit ไว้ใน repo เพื่อให้ "ทุกแชท" อ่านได้เสมอ: clone repo นี้ (public, ไม่ต้องมี token ก็ clone ได้) หรือดึงจากเว็บจริงที่ `https://fixpro-7b397.web.app/HANDOFF_FIXPRO.md`
 > ถ้าผู้ใช้ให้ทำงานต่อเรื่อง FixPro ให้อ่านไฟล์นี้ก่อนเริ่ม แล้วทำงานตามที่นี่ทุกข้อ
-> ปรับปรุงล่าสุด: 2026-11-10 · เวอร์ชันปัจจุบันที่อยู่บน production: **v48**
+> ปรับปรุงล่าสุด: 2026-11-10 · เวอร์ชันปัจจุบันที่อยู่บน production: **v49**
 
 ## 0) จุดสำคัญที่สุดสำหรับแชทใหม่
 - **แต่ละแชทมี workspace/เครื่องแยกกัน** — ไฟล์ในแชทเก่า (repo clone, token, เบราว์เซอร์ทดสอบ) ไม่ย้ายมาเอง แชทใหม่ต้องจัดของตัวเองใหม่ตามไฟล์นี้
@@ -42,6 +42,8 @@
 - ค่าเดินทาง (v44): field `travel` ในงาน — ฟอร์มมี ยอดรวมเก็บเงิน = ค่าบริการ+ค่าเดินทาง, ใบเสร็จ/LINE/รายงาน/Excel รวม `travel` ทุกจุด (`jobTotal(j)`) งานเก่าไม่มี travel = 0
 - PDF รายงาน: jsPDF + ฟอนต์ Kanit โหลดจาก `https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/kanit/` (`loadThaiFontB64`, Kanit-Regular/Bold.ttf) — อย่ากลับไปใช้ helvetica กับข้อความไทย
 - **Desktop version (v48)**: ทุกกฎเดสก์ท็อปอยู่ใน `<style id="desktop-style">` บล็อกแยกก่อน `</head>` ภายใน `@media (min-width: 1024px)` เท่านั้น — **จอ < 1024px เรนเดอร์จาก CSS เดิม 100% ห้ามยุ่งมือถือเด็ดขาด** โครงเดสก์ท็อป: CSS Grid บน `#app-screen.active` (header เต็มความกว้าง + เมนูซ้าย 238px ซึ่งใช้ nav เดิม DOM เดิมจัดใหม่ด้วย CSS ล้วน) + เนื้อหา max-width 1280px · หน้าแรก/รายงาน/ตั้งค่า/รายละเอียดลูกค้า ใช้ grid 2 คอลัมน์ · ลูกค้า/งาน รายการ 2 คอลัมน์ · โมดัลกลางจอ · ห้ามใส่กฎเดสก์ท็อปในบล็อก CSS เดิม และห้ามแตะ JS เดิมเพื่อเดสก์ท็อป
+- **Modern UI (v49)**: โทนสีใหม่ทั้งแอป "Modern Indigo" — `--primary #6366F1 / --primary-l #818CF8 / --primary-d #4338CA / --primary-bg #EEF2FF` · accent ส้ม #F97316 · success เขียวมรกต #10B981 · info ฟ้า sky #0EA5E9 · danger #EF4444 · มุมโค้งใหญ่ขึ้น (14/10/22px) · ธีมมืดพื้นน้ำเงินดำ #0B0D15/#141826 + `--primary-bg #1F2340` · ตัวแปร `--brand-grad` แยกธีมสว่าง/มืด ใช้ทำ gradient ไอคอนแบรนด์/ชื่อแบรนด์ — เปลี่ยนสีร้านในอนาคตแก้ที่ `:root` กับ `[data-theme="dark"]` จุดเดียว + ล้าง rgba เขียว/นาวีเก่าให้หมด (glow ใหม่ = rgba(99,102,241,…))
+- **Modern effects (v49)**: เอฟเฟกต์รวมอยู่ใน `<style id="modern-style">` บล็อกแยกหลัง desktop-style (additive เหมือนกัน) 16 กลุ่ม: พื้นหลัง gradient mesh เฉพาะ `.main-content` · header glass backdrop-filter · ชื่อแบรนด์ gradient text (@supports กันเบราว์เซอร์เก่า) · สลับธีมนุ่ม .25s · ปุ่มกดสปริง cubic-bezier(.34,1.56,.64,1) · FAB pulse ring · เมนูล่าง active pill ไล่เฉด+ไอคอนเด้ง · เปลี่ยนหน้า pageIn · โมดัล modalIn+overlay เบลอ · toast แก้ว · ไอคอนสถิติ chip gradient · type-card selected ring · config-status.ok พื้นเขียว (กันชน primary-bg เฉดม่วง) · ::selection สีแบรนด์ · เดสก์ท็อปเมนูซ้าย active มีแถบตั้งซ้าย · prefers-reduced-motion — เอฟเฟกต์ใหม่ให้ใส่ในบล็อกนี้เท่านั้น
 - ประเภทงาน: `cfg.jobTypes` = ลิสต์ `{id,label,deleted,remindYearly}` ใช้ผ่าน `getJobTypes()` / `typeLabel(id)`; งานเก่าเก็บ `serviceType` เป็น id
 - เวอร์ชันแสดงท้ายหน้าตั้งค่า (footer) ดึงจาก `APP_VERSION`
 - SW แคช: ไฟล์ใน repo + CDN (cdnjs, fonts.googleapis, fonts.gstatic, cdn.jsdelivr) cache-first; หน้าเว็บหลัก network-first; googleapis/firestore ไม่แคช
@@ -71,4 +73,5 @@
 - v46: Kanit ทั้งแอป (UI + PDF), แถวประเภทงานไม่มีกรอบทั้งหมด, การ์ดประเภทงานมีปุ่ม บันทึก/ยกเลิก (ตัดปุ่ม "เสร็จ" ออก) — commit e471778
 - v47: ปุ่ม "+ เพิ่มประเภทงาน" ย่อขนาดเท่าปุ่มอื่น (สูง 34px ฟอนต์ 12.5px แบบ btn-sm) และย้ายจากใต้รายการมาอยู่แถวเดียวกับปุ่ม บันทึก/ยกเลิก (card-actions; ยังซ่อนเมื่อการ์ดล็อกเหมือนเดิม) — commit 866d1af
 - v48: Desktop version จอ ≥1024px — เมนูซ้าย + เนื้อหา 2 คอลัมน์ทุกหน้า + โมดัลกลางจอ + hover เมาส์ (ทำแบบ additive ใน style block ใหม่เท่านั้น มือถือ <1024px เหมือนเดิม 100%)
+- v49: ยกโฉม UI ทั้งแอปแนวร่วมสมัย "Modern Indigo" ตามคำสั่งเจ้าของร้าน (โทนเดิมเขียวเปลี่ยนได้) — เปลี่ยนพาเลต :root/dark + ล้างสี hardcoded เขียว/นาวีทุกจุด (auth, brand icon, avatar, glow ปุ่ม/FAB/กราฟ, jt-iconbtn, meta theme-color, manifest) + เพิ่มบล็อกเอฟเฟกต์ modern-style 16 กลุ่ม (glass/gradient mesh/spring/pulse/pill/toast/modal/chips) — LINE ยังเขียวแบรนด์เดิม, มาตรฐาน v43-v48 ไม่ถูกแตะ
 - ไฟล์ handoff นี้ถูกเพิ่มเข้า repo เป็นครั้งแรกหลัง v46 — เว้นแต่มีเวอร์ชันใหม่กว่านี้ใน git log ให้เชื่อ git log
