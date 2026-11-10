@@ -776,19 +776,7 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
      คงมาตรฐานเจ้าของร้าน: Kanit · ช่องล็อกโปร่งใสไม่มีกรอบ · ช่องค้นหา 38px/14px
      ============================================================ -->
 <style id="modern-style">
-/* 1) พื้นหลัง gradient mesh (aura เบาๆ) เฉพาะพื้นที่เนื้อหา — header/nav ไม่ถูกกระทบ */
-.main-content {
-  background:
-    radial-gradient(1100px 480px at 88% -8%, rgba(99,102,241,0.10), transparent 60%),
-    radial-gradient(900px 420px at -8% 6%, rgba(217,70,239,0.07), transparent 55%),
-    radial-gradient(760px 400px at 50% 112%, rgba(14,165,233,0.06), transparent 55%);
-}
-[data-theme="dark"] .main-content {
-  background:
-    radial-gradient(1100px 480px at 88% -8%, rgba(99,102,241,0.14), transparent 60%),
-    radial-gradient(900px 420px at -8% 6%, rgba(217,70,239,0.09), transparent 55%),
-    radial-gradient(760px 400px at 50% 112%, rgba(14,165,233,0.08), transparent 55%);
-}
+/* 1) (v50 ย้ายไปแล้ว) gradient mesh เดิมยกขึ้นเป็นชั้นหลังบ้านทั้งแอป body::after แบบหายใจช้าๆ — ดูบล็อก modern-style-2 */
 
 /* 2) แถบหัว glassmorphism (โปร่งแสง + เบลอพื้นหลัง) */
 .app-header {
@@ -880,6 +868,125 @@ body, .card, .app-header, .mobile-nav, .modal {
 /* 16) เคารพการตั้งค่า "ลดการเคลื่อนไหว" ของผู้ใช้ */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+</style>
+
+<!-- ============================================================
+     v50 — MODERN FX ชุดที่ 2 (เอฟเฟกต์ขั้นสูงต่อยอด v49)
+     หลักการเดิม: additive ไม่แตะ DOM/JS ไม่แตะมาตรฐานเจ้าของร้าน
+     (reduced-motion ครอบคลุมแล้วโดยกฎ * !important ในบล็อก modern-style)
+     ============================================================ -->
+<style id="modern-style-2">
+/* 1) ชั้นหลังบ้านทั้งแอป: aurora gradient หายใจช้าๆ (fixed layer เหนือ canvas ใต้เนื้อหาทุกชั้น
+      → header/เมนูล่าง/โมดัลแบบ glass เบลอเห็นแสงจริง) — inset ลบกันขอบโผล่ตอน drift */
+body::after {
+  content: ''; position: fixed; inset: -12%; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(1100px 480px at 82% -6%, rgba(99,102,241,0.14), transparent 62%),
+    radial-gradient(900px 420px at -8% 8%, rgba(217,70,239,0.10), transparent 58%),
+    radial-gradient(760px 400px at 55% 108%, rgba(14,165,233,0.09), transparent 58%);
+  animation: auroraDrift 26s ease-in-out infinite alternate;
+}
+@keyframes auroraDrift {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  50%  { transform: translate3d(-1.6%, 1.6%, 0) scale(1.06); }
+  100% { transform: translate3d(1.6%, -1.2%, 0) scale(1.02); }
+}
+[data-theme="dark"] body::after {
+  background:
+    radial-gradient(1100px 480px at 82% -6%, rgba(99,102,241,0.22), transparent 62%),
+    radial-gradient(900px 420px at -8% 8%, rgba(217,70,239,0.14), transparent 58%),
+    radial-gradient(760px 400px at 55% 108%, rgba(14,165,233,0.13), transparent 58%);
+}
+
+/* 2) เมนูล่างมือถือ/แถบเมนูเดสก์ท็อปเป็น glass จริง (เนื้อหาไหลผ่านใต้เมนูล่าง เบลอเห็นจริง) */
+.mobile-nav {
+  background: rgba(255,255,255,0.78);
+  -webkit-backdrop-filter: blur(16px) saturate(1.5);
+  backdrop-filter: blur(16px) saturate(1.5);
+}
+[data-theme="dark"] .mobile-nav { background: rgba(20,24,38,0.78); }
+
+/* 3) Ripple กดปุ่มทุกปุ่ม (CSS ล้วน ไม่ใส่ JS) — วงขาวขยายจากจุดกด */
+.btn { position: relative; overflow: hidden; }
+.btn::after {
+  content: ''; position: absolute; left: 50%; top: 50%; width: 0; height: 0;
+  border-radius: 50%; background: rgba(255,255,255,0.35);
+  transform: translate(-50%, -50%); opacity: 0; pointer-events: none;
+  transition: opacity .4s ease;
+}
+.btn:active::after {
+  width: 220%; height: 420%; opacity: 1;
+  transition: width .5s ease-out, height .5s ease-out, opacity .45s ease;
+}
+.btn:disabled::after { display: none; }
+
+/* 4) โมดัลบนมือถือมีแถบจับ (grabber) ด้านบนแบบ bottom-sheet ร่วมสมัย */
+@media (max-width: 1023px) {
+  .modal { position: relative; }
+  .modal::before {
+    content: ''; position: absolute; top: 7px; left: 50%; transform: translateX(-50%);
+    width: 40px; height: 4px; border-radius: 999px; background: var(--border);
+    opacity: .95; z-index: 5; pointer-events: none;
+  }
+}
+
+/* 5) การ์ดสถิติ + การ์ดตั้งค่า เข้าทีละใบแบบ stagger (re-render เฉพาะตอนโหลด/บันทึก ไม่ใช่ตอนพิมพ์ค้นหา) */
+@keyframes cardIn { from { opacity: 0; transform: translateY(14px) scale(0.98); } to { opacity: 1; transform: none; } }
+.stats-grid .stat-card { animation: cardIn .45s cubic-bezier(.22,1,.36,1) backwards; }
+.stats-grid .stat-card:nth-child(2) { animation-delay: .05s; }
+.stats-grid .stat-card:nth-child(3) { animation-delay: .10s; }
+.stats-grid .stat-card:nth-child(4) { animation-delay: .15s; }
+#page-settings .card { animation: cardIn .45s cubic-bezier(.22,1,.36,1) backwards; }
+#page-settings .card:nth-child(2) { animation-delay: .05s; }
+#page-settings .card:nth-child(3) { animation-delay: .10s; }
+#page-settings .card:nth-child(4) { animation-delay: .15s; }
+#page-settings .card:nth-child(5) { animation-delay: .20s; }
+#page-settings .card:nth-child(6) { animation-delay: .25s; }
+#page-settings .card:nth-child(7) { animation-delay: .30s; }
+#page-settings .card:nth-child(8) { animation-delay: .35s; }
+
+/* 6) ป้ายแดงบนเมนู + จุดแจ้งเตือนค้างเก็บ เต้นเรียกสายตา (pulse ring แบบเงา ไม่แตะ transform เดิม) */
+@keyframes badgePulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.45); } 60% { box-shadow: 0 0 0 6px rgba(239,68,68,0); } }
+.mobile-nav-item .nav-badge { animation: badgePulse 2.2s ease-out infinite; }
+@keyframes dotPulseRed { 0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.35); } 70% { box-shadow: 0 0 0 7px rgba(239,68,68,0); } }
+@keyframes dotPulseAmber { 0%, 100% { box-shadow: 0 0 0 0 rgba(245,158,11,0.30); } 70% { box-shadow: 0 0 0 6px rgba(245,158,11,0); } }
+.reminder-dot.overdue { animation: dotPulseRed 1.8s ease-out infinite; }
+.reminder-dot.soon { animation: dotPulseAmber 2.2s ease-out infinite; }
+
+/* 7) กราฟรายงาน แท่งโตขึ้นจากฐานทุกครั้งที่เปลี่ยนช่วงเวลา */
+#report-bar-chart > div > div:nth-child(2) {
+  transform-origin: bottom;
+  animation: barGrow .55s cubic-bezier(.22,1,.36,1) backwards;
+}
+@keyframes barGrow { from { transform: scaleY(0); } }
+
+/* 8) แบนเนอร์ติดตั้งแอป: ไล่เฉดไหลช้าๆ ต่อเนื่อง */
+.install-banner {
+  background: linear-gradient(120deg, var(--primary), var(--primary-l), var(--purple), var(--primary));
+  background-size: 300% 100%;
+  animation: bannerFlow 7s linear infinite;
+}
+@keyframes bannerFlow { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+
+/* 9) รายละเอียดเล็ก ๆ ที่ทำให้รู้สึก "ตอบสนองมือ" */
+.search-bar:focus-within i { color: var(--primary); }
+.toggle-slider:before { transition: transform .28s cubic-bezier(.34,1.56,.64,1), background-color .2s ease; }
+#fab i { transition: transform .3s cubic-bezier(.34,1.56,.64,1); }
+#fab:active i { transform: rotate(90deg); }
+
+/* 10) เดสก์ท็อป (เมาส์เท่านั้น): ปุ่มหลักไล่เฉดเลื่อน / การ์ดสถิติมีแสงวิ่ง / รูปถ่ายซูมเบา */
+@media (min-width: 1024px) {
+  .btn-primary { background-size: 160% 160%; background-position: 0% 50%; }
+  .btn-primary:hover { background-position: 90% 50%; }
+  .stat-card::after {
+    content: ''; position: absolute; top: 0; left: 0; width: 55%; height: 100%;
+    background: linear-gradient(115deg, transparent, rgba(255,255,255,0.38), transparent);
+    transform: translateX(-160%); transition: transform .7s ease; pointer-events: none;
+  }
+  .stat-card:hover::after { transform: translateX(300%); }
+  .photo-thumb img { transition: transform .3s ease; }
+  .photo-thumb:hover img { transform: scale(1.07); }
 }
 </style>
 </head>
@@ -2729,7 +2836,7 @@ var _selfBackAt = 0;        // เวลาที่เราเรียก his
 var _exitShownAt = 0;       // เวลาที่เปิดหน้าต่างยืนยันปิดแอป
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
-var APP_VERSION = 'v49';
+var APP_VERSION = 'v50';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
