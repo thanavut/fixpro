@@ -75,6 +75,8 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; overflow: hidden; }
 body { font-family: 'Kanit', sans-serif; background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.5; font-weight: 400; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+/* v46: Kanit ทั้งแอป — input/select/textarea/button เบราว์เซอร์ไม่ยอมรับฟอนต์จาก body เอง ต้องบังคับ inherit */
+input, select, textarea, button { font-family: inherit; }
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
@@ -112,7 +114,7 @@ body { font-family: 'Kanit', sans-serif; background: var(--bg); color: var(--tex
 .form-control {
   width: 100%; padding: 7px 11px; border: 1.5px solid var(--border);
   border-radius: var(--radius-sm); background: var(--bg); color: var(--text);
-  font-size: 14px; transition: var(--transition); outline: none; min-height: 38px;
+  font-size: 14px; transition: var(--transition); outline: none; min-height: 38px; font-family: inherit;
 }
 .form-control:focus { border-color: var(--primary); background: var(--surface); box-shadow: 0 0 0 3px rgba(46,125,50,0.12); }
 textarea.form-control { resize: vertical; min-height: 80px; }
@@ -355,10 +357,10 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 .type-card .type-label { font-size: 12px; font-weight: 600; line-height: 1; }
 
 /* ===== JOB TYPE EDITOR (หน้าตั้งค่า) ===== */
-/* แถวกระชับ ไม่มีพื้นหลัง ปุ่มไอคอนเล็กโปร่งแบบเดียวกับหน้างาน (btn-ghost) */
+/* v46: แถวโปร่ง ไม่มีกรอบไม่มีพื้นหลังตามที่เจ้าของร้านสั่ง (เอากรอบออกทั้งหมด) ปุ่มไอคอนเล็กโปร่งแบบเดียวกับหน้างาน */
 .jt-row {
   display: flex; align-items: center; gap: 6px; padding: 4px;
-  border: 1px solid var(--border); border-radius: 10px; margin-bottom: 6px; transition: border-color var(--transition);
+  margin-bottom: 6px;
 }
 .jt-name {
   flex: 1; min-width: 0; font-weight: 600; font-size: 13.5px; color: var(--text);
@@ -413,7 +415,7 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 }
 .filter-bar .search-input input:focus { border-color: var(--primary); }
 .filter-bar .search-input i { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 14px; }
-select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); outline: none; font-size: 13px; cursor: pointer; min-height: 38px; }
+select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); outline: none; font-size: 13px; cursor: pointer; min-height: 38px; font-family: inherit; }
 
 /* ===== MODAL ===== */
 .modal-overlay {
@@ -866,11 +868,14 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
           <div class="settings-section-header">
             <span class="sh-title"><i class="fas fa-list-check" style="color:var(--primary);"></i> ประเภทงาน</span>
             <button type="button" class="btn-card-edit" onclick="setCardEditing('jobtypes', true)"><i class="fas fa-pen"></i> แก้ไข</button>
-            <button type="button" class="btn-card-done" onclick="finishCardEdit('jobtypes')"><i class="fas fa-check"></i> เสร็จ</button>
           </div>
           <div class="card-body" style="padding-top:4px;">
-            <div style="font-size:11px;color:var(--text3);margin-bottom:10px;">งานเก่าจะยังแสดงชื่อประเภทเดิม · กด “แก้ไข” เพื่อเปลี่ยนชื่อ (ดินสอ) ลบ (ถังขยะ) เพิ่มประเภทใหม่ แล้วกด “เสร็จ”</div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:10px;">งานเก่าจะยังแสดงชื่อประเภทเดิม · กด “แก้ไข” เพื่อเปลี่ยนชื่อ (ดินสอ) ลบ (ถังขยะ) เพิ่มประเภทใหม่ แล้วกด “บันทึก”</div>
             <div id="jobtypes-rows"></div>
+            <div class="card-actions">
+              <button class="btn btn-primary btn-sm js-save" onclick="saveJobTypesCard()"><i class="fas fa-save"></i> บันทึก</button>
+              <button type="button" class="btn btn-secondary btn-sm js-cancel" onclick="cancelJobTypesCard()"><i class="fas fa-xmark"></i> ยกเลิก</button>
+            </div>
           </div>
         </div>
 
@@ -2464,7 +2469,7 @@ var _selfBackAt = 0;        // เวลาที่เราเรียก his
 var _exitShownAt = 0;       // เวลาที่เปิดหน้าต่างยืนยันปิดแอป
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
-var APP_VERSION = 'v41';
+var APP_VERSION = 'v46';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -3298,14 +3303,14 @@ function exportExcel() {
   toast('Export Excel สำเร็จ', 'success');
 }
 
-// โหลดฟอนต์ไทย Sarabun (OFL license) สำหรับ jsPDF — แคชไว้ในตัวแปร
+// v46: โหลดฟอนต์ไทย Kanit (OFL license) สำหรับ jsPDF — ใช้ฟอนต์เดียวกันทั้งแอปตามที่เจ้าของร้านสั่ง — แคชไว้ในตัวแปร
 var _thaiFontPromise = null;
 function loadThaiFontB64() {
   if (_thaiFontPromise) return _thaiFontPromise;
   _thaiFontPromise = (async function() {
-    var base = 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/sarabun/';
+    var base = 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/kanit/';
     var out = {};
-    for (var f of ['Sarabun-Regular.ttf', 'Sarabun-Bold.ttf']) {
+    for (var f of ['Kanit-Regular.ttf', 'Kanit-Bold.ttf']) {
       var res = await fetch(base + f);
       if (!res.ok) throw new Error('fetch font failed: ' + f);
       var buf = new Uint8Array(await res.arrayBuffer());
@@ -3328,11 +3333,11 @@ async function exportPDFReport() {
   var F = 'helvetica';
   try {
     var fonts = await loadThaiFontB64();
-    doc.addFileToVFS('Sarabun-Regular.ttf', fonts['Sarabun-Regular.ttf']);
-    doc.addFont('Sarabun-Regular.ttf', 'Sarabun', 'normal');
-    doc.addFileToVFS('Sarabun-Bold.ttf', fonts['Sarabun-Bold.ttf']);
-    doc.addFont('Sarabun-Bold.ttf', 'Sarabun', 'bold');
-    F = 'Sarabun';
+    doc.addFileToVFS('Kanit-Regular.ttf', fonts['Kanit-Regular.ttf']);
+    doc.addFont('Kanit-Regular.ttf', 'Kanit', 'normal');
+    doc.addFileToVFS('Kanit-Bold.ttf', fonts['Kanit-Bold.ttf']);
+    doc.addFont('Kanit-Bold.ttf', 'Kanit', 'bold');
+    F = 'Kanit';
   } catch (e) {
     console.warn('โหลดฟอนต์ไทยไม่สำเร็จ:', e);
     toast('โหลดฟอนต์ไทยไม่สำเร็จ — PDF อาจแสดงภาษาไทยผิด', 'warning');
@@ -3498,7 +3503,11 @@ function setCardEditing(name, on) {
   card.classList.toggle('editing', !!on);
   card.querySelectorAll('.form-control').forEach(function(el) { try { el.readOnly = !on; } catch(e) {} });
   if (!on) { var a = document.activeElement; if (a && card.contains(a) && a.blur) a.blur(); }
-  if (name === 'jobtypes') renderJobTypeSettings(); // ปุ่มดินสอ/ถังขยะ/เพิ่ม โผล่เฉพาะตอนแก้ไข
+  if (name === 'jobtypes') {
+    // v46: เริ่มแก้ไข = เก็บสำเนารายการไว้ (กดยกเลิกจะได้คืนทั้งชุด) + ปุ่มดินสอ/ถังขยะ/เพิ่ม โผล่เฉพาะตอนแก้ไข
+    if (on) _jtSnapshot = getJobTypes(true).map(function(t) { return Object.assign({}, t); });
+    renderJobTypeSettings();
+  }
   if (!on && !anyCardEditing() && _cfgPullDeferred) {
     _cfgPullDeferred = false;
     syncConfigFromCloud(); // แก้เสร็จแล้ว ค่อยรับค่ารอบที่เลื่อนไว้จากคลาวด์
@@ -3512,11 +3521,21 @@ function cancelCardEdit(name) {
   setCardEditing(name, false);
   toast('ยกเลิกการแก้ไข — ค่าเดิมไม่เปลี่ยน', 'info');
 }
-function finishCardEdit(name) {
-  // ใช้กับการ์ด "ประเภทงาน" (บันทึกทีละรายการอยู่แล้ว) — กด "เสร็จ" = ล็อกกลับ + ยืนยันซิงค์สิ่งที่แก้ค้าง
-  setCardEditing(name, false);
-  var l = loadConfig();
-  if (Array.isArray(l.cfgDirty) && l.cfgDirty.length) pushConfigToCloud();
+// v46: การ์ด "ประเภทงาน" มีปุ่ม บันทึก/ยกเลิก เหมือนการ์ดอื่น (เดิมมีแต่ปุ่ม "เสร็จ" — ตามที่เจ้าของร้านแจ้งว่าไม่มีปุ่ม ยกเลิก กับ บันทึก)
+var _jtSnapshot = null; // สำเนารายการประเภทงานตอนกด "แก้ไข" — ใช้คืนค่าตอนกด "ยกเลิก"
+async function saveJobTypesCard() {
+  // แต่ละรายการ (เพิ่ม/เปลี่ยนชื่อ/ลบ) บันทึกทันทีที่ทำแล้ว — ที่นี่ = ยืนยันซิงค์คลาวด์แล้วล็อกกลับเหมือนการ์ดอื่น
+  var ok = await pushConfigToCloud();
+  setCardEditing('jobtypes', false);
+  _jtSnapshot = null;
+  toast(ok ? '✅ บันทึกและซิงค์คลาวด์แล้ว' : 'บันทึกในเครื่องแล้ว — ระบบจะซิงค์คลาวด์ให้เองเมื่อพร้อม', ok ? 'success' : 'warning');
+}
+function cancelJobTypesCard() {
+  // ยกเลิก = คืนรายการทั้งชุดตอนก่อนกด "แก้ไข" + ยิงคลาวด์ด้วย เพื่อไม่ให้ค่าที่ยกเลิกกลับมาจากคลาวด์ภายหลัง
+  if (_jtSnapshot) saveJobTypesList(_jtSnapshot.map(function(t) { return Object.assign({}, t); }));
+  _jtSnapshot = null;
+  setCardEditing('jobtypes', false);
+  toast('ยกเลิกการแก้ไข — ค่าเดิมไม่เปลี่ยน', 'info');
 }
 async function saveShopConfig() {
   // v42: บันทึกการ์ด "ข้อมูลร้าน/ช่าง" — เขียนเครื่องนี้ทันที + ยิงคลาวด์ทันทีเฉพาะฟิลด์ของการ์ดนี้ แล้วล็อกกลับ
