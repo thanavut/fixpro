@@ -1,9 +1,10 @@
 /* FixPro Service Worker — แคชไฟล์แอปไว้ใช้งานตอนออฟไลน์ */
-var CACHE = 'fixpro-v55';
+var CACHE = 'fixpro-v56';
 var CORE = [
   './',
   './index.html',
   './manifest.webmanifest',
+  './manifest.webmanifest?v=56', // v56: URL ใหม่บังคับ Chrome อ่าน manifest ใหม่ = เคลียร์สแปลชสีม่วงตกค้างจากยุค v49
   './icons/icon-192.png',
   './icons/icon-180.png',
   './icons/icon-512.png',

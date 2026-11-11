@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest">
+<link rel="manifest" href="manifest.webmanifest?v=56">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro — ระบบจัดการงานช่าง</title>
@@ -457,6 +457,10 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
 .modal-close:active { background: var(--bg); }
 .modal-body { padding: 16px 18px; overflow-y: auto; flex: 1; min-height: 0; -webkit-overflow-scrolling: touch; }
 .modal-footer { padding: 12px 18px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; background: var(--surface2); flex-shrink: 0; flex-wrap: wrap; }
+/* v56: กันแป้นพิมพ์บังปุ่ม ยกเลิก/บันทึก — ยกชีทโมดัลขึ้นเหนือคีย์บอร์ดเสมอ (มือถือ; --kb-h = 0 ตอนไม่มีคีย์บอร์ด จึงไม่มีผลอื่น) */
+@media (max-width: 1023px) {
+  .modal-overlay.open .modal { margin-bottom: var(--kb-h, 0px); transition: margin-bottom 0.18s ease; }
+}
 
 /* ===== TOAST ===== */
 #toast-container {
@@ -1408,12 +1412,8 @@ body::after {
         <label class="form-label">เบอร์โทร <span class="req">*</span></label>
         <input type="tel" class="form-control" id="cust-phone" placeholder="08x-xxx-xxxx" maxlength="10">
       </div>
-      <div class="opt-toggle" onclick="toggleCustExtra()"><i class="fas fa-chevron-down" id="cust-extra-chev"></i> ที่อยู่ / LINE / หมายเหตุ (ไม่บังคับ)</div>
+      <div class="opt-toggle" onclick="toggleCustExtra()"><i class="fas fa-chevron-down" id="cust-extra-chev"></i> แผนที่ปักหมุด / LINE / หมายเหตุ (ไม่บังคับ)</div>
       <div id="cust-extra" style="display:none;">
-      <div class="form-group">
-        <label class="form-label">ที่อยู่</label>
-        <input type="text" class="form-control" id="cust-address" placeholder="บ้านเลขที่ ถนน ตำบล อำเภอ จังหวัด">
-      </div>
       <div class="form-group">
         <label class="form-label"><i class="fas fa-map-location-dot" style="color:var(--primary);"></i> ลิงก์ Google Maps / พิกัดบ้าน</label>
         <input type="text" class="form-control" id="cust-mapurl" placeholder="วางลิงก์ที่แชร์จาก Google Maps เช่น https://maps.app.goo.gl/...">
@@ -1991,15 +1991,19 @@ function dedupeJobs(list) {
 async function loadAllData() {
   if (db) {
     try {
-      var cSnap = await db.collection('customers').get();
-      var cloudC = cSnap.docs.map(function(d){ return Object.assign({}, d.data(), {phone: d.id}); });
-      var jSnap = await db.collection('jobs').orderBy('serviceDate', 'desc').get();
-      var cloudJ = jSnap.docs.map(function(d){ return Object.assign({}, d.data(), {id: d.id}); });
+      // v56: ดึงลูกค้า + งาน + รายการเบอร์ที่ลบ "พร้อมกัน" (เดิมรอทีละรายการ = ช้าเมื่อเน็ตช้า)
+      var snaps = await Promise.all([
+        db.collection('customers').get(),
+        db.collection('jobs').orderBy('serviceDate', 'desc').get(),
+        db.collection('shop').doc('deleted_phones').get().catch(function() { return null; })
+      ]);
+      var cloudC = snaps[0].docs.map(function(d){ return Object.assign({}, d.data(), {phone: d.id}); });
+      var cloudJ = snaps[1].docs.map(function(d){ return Object.assign({}, d.data(), {id: d.id}); });
       // v38: รวมรายการเบอร์ที่ผู้ใช้ลบเองแล้ว (tombstone) จากคลาวด์+เครื่อง กันกู้คืนสิ่งที่ลบโดยตั้งใจ
       var tomb = getTombstones();
       try {
-        var tDoc = await db.collection('shop').doc('deleted_phones').get();
-        var cloudTomb = (tDoc.exists && tDoc.data()) ? (tDoc.data().phones || []) : [];
+        var tDoc = snaps[2];
+        var cloudTomb = (tDoc && tDoc.exists && tDoc.data()) ? (tDoc.data().phones || []) : [];
         if (Array.isArray(cloudTomb)) {
           cloudTomb.forEach(function(p){ if (tomb.indexOf(p) < 0) tomb.push(p); });
           localStorage.setItem(LS_TOMB, JSON.stringify(tomb));
@@ -2043,6 +2047,7 @@ async function loadAllData() {
         console.info('FixPro กู้คืนข้อมูลค้างซิงค์: ลูกค้า ' + rescuedC.length + ' รายการ งาน ' + rescuedJ.length + ' งาน');
         toast('🔄 พบข้อมูลที่ยังไม่ทันซิงค์ — กู้คืนกลับมาแล้ว: ลูกค้า ' + rescuedC.length + ' รายการ, งาน ' + rescuedJ.length + ' งาน', 'success');
       }
+      refreshAll(); // v56: โชว์ข้อมูลจากคลาวด์ทันทีที่ได้ ไม่ต้องรอตั้งค่า (รอบสองอยู่ท้ายฟังก์ชัน)
     } catch(e) {
       console.warn('Firestore error, using local cache:', e);
       DB.customers = lsGetCustomers();
@@ -2640,7 +2645,7 @@ function mapNavBtn(cust, coords, addr) {
   return '<button class="map-btn map-btn-go" onclick="window.open(\'' + escAttr(url) + '\',\'_blank\')"><i class="fas fa-diamond-turn-right"></i> นำทาง</button>';
 }
 
-// ใช้พิกัด GPS ปัจจุบันในฟอร์มลูกค้า — ได้ทั้งพิกัดและลองค้นหาที่อยู่อัตโนมัติ
+// ใช้พิกัด GPS ปัจจุบันในฟอร์มลูกค้า (v56: ปักหมุดอย่างเดียว — ถอนการค้นหาที่อยู่อัตโนมัติออก ตามที่เจ้าของร้านสั่งใช้แค่ปักหมุดพอ)
 function useCurrentLocation(btn) {
   if (!navigator.geolocation) { toast('อุปกรณ์นี้ไม่รองรับ GPS', 'error'); return; }
   var oldHtml = btn ? btn.innerHTML : '';
@@ -2650,17 +2655,8 @@ function useCurrentLocation(btn) {
     var lat = pos.coords.latitude.toFixed(6), lng = pos.coords.longitude.toFixed(6);
     var mu = document.getElementById('cust-mapurl');
     if (mu) mu.value = lat + ',' + lng;
-    try {
-      var r = await fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng + '&accept-language=th&zoom=18&addressdetails=1', { headers: { 'Accept': 'application/json' } });
-      var j = await r.json();
-      if (j && j.display_name) {
-        var ad = document.getElementById('cust-address');
-        if (ad && !ad.value.trim()) ad.value = j.display_name;
-        toast('ได้พิกัดและที่อยู่จาก GPS แล้ว', 'success');
-      } else {
-        toast('ได้พิกัด: ' + lat + ', ' + lng, 'success');
-      }
-    } catch(e) { toast('ได้พิกัด: ' + lat + ', ' + lng + ' (ออฟไลน์)', 'success'); }
+    // v56: ปักหมุดอย่างเดียว — ไม่เรียก reverse geocode หาที่อยู่แล้ว (เร็วขึ้น ออฟไลน์ก็ปักได้)
+    toast('ปักหมุดเรียบร้อย — พิกัด ' + lat + ', ' + lng, 'success');
     done();
   }, function(err) {
     done();
@@ -2700,8 +2696,8 @@ function renderCustomerDetail(phone) {
       mapNavBtn(cust, coords, addr) +
       '<button class="map-btn map-btn-open" onclick="window.open(\'' + escAttr(pin || ('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(addr))) + '\',\'_blank\')"><i class="fas fa-map"></i> เปิดแผนที่</button></div>';
   } else {
-    mapCard += '<div class="empty-state" style="padding:16px 10px;"><i class="fas fa-map-location-dot"></i><p>ยังไม่มีข้อมูลแผนที่ — ใส่ที่อยู่หรือวางลิงก์ Google Maps</p>' +
-      '<button class="map-btn map-btn-go" style="max-width:220px;margin:0 auto;" onclick="openEditCustomer(\'' + escAttr(phone) + '\')"><i class="fas fa-pen"></i> ใส่ที่อยู่ / พิกัด</button></div>';
+    mapCard += '<div class="empty-state" style="padding:16px 10px;"><i class="fas fa-map-location-dot"></i><p>ยังไม่มีข้อมูลแผนที่ — ปักหมุด GPS หรือวางลิงก์ Google Maps</p>' +
+      '<button class="map-btn map-btn-go" style="max-width:220px;margin:0 auto;" onclick="openEditCustomer(\'' + escAttr(phone) + '\')"><i class="fas fa-location-crosshairs"></i> ปักหมุด / ใส่พิกัด</button></div>';
   }
   mapCard += '</div></div>';
   el.innerHTML += mapCard;
@@ -2931,7 +2927,7 @@ var _selfBackAt = 0;        // เวลาที่เราเรียก his
 var _exitShownAt = 0;       // เวลาที่เปิดหน้าต่างยืนยันปิดแอป
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
-var APP_VERSION = 'v55';
+var APP_VERSION = 'v56';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -3032,7 +3028,7 @@ function _onBackSignal() {
 // ============================================================
 function openAddCustomer() {
   document.getElementById('modal-customer-title').textContent = 'เพิ่มลูกค้าใหม่';
-  ['cust-name','cust-phone','cust-address','cust-mapurl','cust-line','cust-note','cust-edit-phone'].forEach(id => { var el = document.getElementById(id); if(el) el.value = ''; });
+  ['cust-name','cust-phone','cust-mapurl','cust-line','cust-note','cust-edit-phone'].forEach(id => { var el = document.getElementById(id); if(el) el.value = ''; });
   document.getElementById('cust-phone').removeAttribute('readonly');
   toggleCustExtra(false);
   openModal('modal-customer');
@@ -3044,7 +3040,6 @@ function openEditCustomer(phone) {
   document.getElementById('cust-name').value = c.name || '';
   document.getElementById('cust-phone').value = c.phone || '';
   document.getElementById('cust-phone').setAttribute('readonly', true);
-  document.getElementById('cust-address').value = c.address || '';
   document.getElementById('cust-mapurl').value = custMapPin(c);
   document.getElementById('cust-line').value = c.line || '';
   document.getElementById('cust-note').value = c.note || '';
@@ -3066,7 +3061,7 @@ async function saveCustomer() {
   var oldRec = DB.customers.find(c => c.phone === (editPhone || phone));
   var customer = Object.assign({}, oldRec || {}, {
     name, phone,
-    address: document.getElementById('cust-address').value.trim(),
+    // v56: ช่องที่อยู่ถูกถอนออก (ใช้ปักหมุดพิกัดแทน) — ลูกค้าเก่าที่เคยกรอกที่อยู่ไว้ยังคงอยู่ผ่าน oldRec ไม่หาย
     mapUrl: document.getElementById('cust-mapurl')?.value.trim() || '',
     line: document.getElementById('cust-line').value.trim(),
     note: document.getElementById('cust-note').value.trim(),
@@ -4117,8 +4112,7 @@ function enterApp() {
   if (authEl) authEl.classList.remove('active');
   document.getElementById('app-screen').classList.add('active');
   updateOfflineBar();
-  loadAllData();
-  showPage('dashboard');
+  showPage('dashboard'); // v56: แสดงข้อมูลในเครื่องทันที — ซิงค์คลาวด์เบื้องหลังแล้วเด้งใหม่เอง (เรียกจาก boot แล้ว)
 }
 // ============================================================
 // TOAST
@@ -4231,9 +4225,16 @@ async function purgeDemoData() {
 // INIT
 // ============================================================
 document.addEventListener('DOMContentLoaded', function() {
-  // v37: ต่อ Firebase ให้เสร็จเป็นอย่างแรก แล้วค่อยแต่งหน้าจอ —
-  // เดิมถ้าโค้ดแต่งหน้าจอด้านบนพัง (ธีม/viewport) จะลากให้ข้ามการ initializeApp ทั้งหมด
-  // ผู้ใช้เห็นหน้าล็อกอินปกติแต่กดแล้วเจอ "No Firebase App '[DEFAULT]'"
+  // v56: เข้าแอป "ทันที" ด้วยข้อมูลที่เคยเซฟไว้ในเครื่อง (localStorage) — ไม่รอคลาวด์อีกต่อไป
+  // เดิมต้องรอดึงลูกค้า+งานจากคลาวด์ครบก่อนถึงแสดงผล = เน็ตช้าหน้าจอว่างนาน
+  // ตอนนี้: โชว์ข้อมูลในเครื่องทันที → ต่อคลาวด์เบื้องหลัง → ข้อมูลใหม่เด้งทับเองเมื่อซิงค์เสร็จ
+  try {
+    DB.customers = lsGetCustomers();
+    DB.jobs = dedupeJobs(lsGetJobs());
+  } catch (eLocal) { console.warn('อ่านข้อมูลในเครื่องไม่สำเร็จ:', eLocal); }
+  try { enterApp(); } catch (eApp) { console.error('แสดงหน้าจอเริ่มต้นพลาด:', eApp); }
+  // v37: ต่อ Firebase ให้เสร็จ แล้วซิงค์ข้อมูลเบื้องหลัง —
+  // ผู้ใช้เห็นข้อมูลในเครื่องแล้ว ระบบเชื่อมคลาวด์เพื่ออัปเดตข้อมูลล่าสุดทับอัตโนมัติ
   try {
     // v40: ถอนระบบล็อกอินออกทั้งหมด — เปิดแอปแล้วเข้าใช้งานได้เลย ระบบเชื่อมคลาวด์ให้เอง (ไม่มีหน้าเข้าสู่ระบบอีกต่อไป)
     var cfg = loadConfig();
@@ -4244,20 +4245,31 @@ document.addEventListener('DOMContentLoaded', function() {
     boot.then(function(ok) {
       if (!ok) console.warn('⚠️ เชื่อมคลาวด์ตอนเปิดแอปไม่สำเร็จ — ใช้ข้อมูลในเครื่องก่อน ระบบจะลองซิงค์ใหม่เองเมื่อออนไลน์');
       else if (loadConfig().cfgPushPending) { pushConfigToCloud(); } // v41: ของที่บันทึกค้างไว้ตอนออฟไลน์ ส่งขึ้นคลาวด์ทันทีที่เชื่อมได้
-      enterApp();
+      loadAllData(); // v56: ซิงค์คลาวด์เบื้องหลัง (แอปเข้าใช้แล้ว ไม่ต้องรอ)
     }).catch(function(eBoot) {
       console.warn('เปิดแอปขัดข้องเล็กน้อย ลองเข้าแอปตรง ๆ:', eBoot);
-      try { enterApp(); } catch (e2) {}
+      try { loadAllData(); } catch (e2) {}
     });
   } catch (eInit) {
     console.error('เปิดแอปเริ่มต้นพลาด:', eInit);
-    try { enterApp(); } catch (e2) {}
+    try { loadAllData(); } catch (e2) {}
   }
   // ความสูง viewport จริง (ตัดแถบ URL ของเบราว์เซอร์ออก) — แก้เมนูล่างบังท้ายรายการบน Edge/Chrome Android
+  // v56: คำนวณความสูง "คีย์บอร์ด" (--kb-h) ด้วย — ยกโมดัลขึ้นเหนือแป้นพิมพ์ ปุ่มยกเลิก/บันทึกไม่โดนบังทุกหน้า
   try {
     var vv = window.visualViewport;
     if (vv) {
-      var setAppVH = function() { if (vv.scale <= 1.05) document.documentElement.style.setProperty('--app-vh', Math.round(vv.height) + 'px'); };
+      var setAppVH = function() {
+        if (vv.scale <= 1.05) document.documentElement.style.setProperty('--app-vh', Math.round(vv.height) + 'px');
+        // v56: ความสูงที่โดนแป้นพิมพ์บัง = layout viewport (innerHeight) - ช่องมองจริง (vv.height) - ตำแหน่งเลื่อน (offsetTop)
+        var kb = Math.round(Math.max(0, window.innerHeight - vv.height - vv.offsetTop));
+        document.documentElement.style.setProperty('--kb-h', (kb > 60 ? kb : 0) + 'px'); // กันค่าเผลอจากแถบ URL/ซูม
+        try {
+          var ae = document.activeElement;
+          if (kb > 60 && ae && ae.closest && ae.closest('.modal-body')) ae.scrollIntoView({ block: 'nearest' });
+        } catch (eKb) {}
+      };
+      window.__updateViewportVars = setAppVH; // v56: ให้เรียกทดสอบ/เรียกซ้ำจากที่อื่นได้
       setAppVH();
       vv.addEventListener('resize', setAppVH);
     }
