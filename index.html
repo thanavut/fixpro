@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=57">
+<link rel="manifest" href="manifest.webmanifest?v=58">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro — ระบบจัดการงานช่าง</title>
@@ -104,28 +104,7 @@ input, select, textarea, button { font-family: inherit; }
 .screen { display: none; }
 .screen.active { display: flex; flex-direction: column; height: 100vh; height: var(--app-vh, 100dvh); overflow: hidden; }
 
-/* ===== AUTH ===== */
-#auth-screen {
-  align-items: center; justify-content: center;
-  background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 40%, #388E3C 70%, #4CAF50 100%);
-  position: relative; overflow: hidden; padding: 16px;
-}
-.auth-card {
-  background: var(--surface); border-radius: 24px; padding: 32px 24px;
-  width: 100%; max-width: 400px; box-shadow: var(--shadow-lg);
-  animation: fadeUp 0.5s ease;
-}
-.auth-logo { text-align: center; margin-bottom: 24px; }
-.auth-logo .logo-icon {
-  width: 56px; height: 56px; background: linear-gradient(135deg, #1a2744, #243461);
-  border-radius: 16px; display: inline-flex; align-items: center; justify-content: center;
-  font-size: 24px; color: white; margin-bottom: 8px; box-shadow: 0 4px 16px rgba(46,125,50,0.4);
-}
-.auth-logo h1 { font-size: 24px; font-weight: 700; color: var(--primary); }
-.auth-logo p { color: var(--text2); font-size: 13px; }
-.auth-tabs { display: flex; background: var(--bg); border-radius: var(--radius-sm); padding: 4px; margin-bottom: 20px; }
-.auth-tab { flex: 1; padding: 10px; text-align: center; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; transition: var(--transition); color: var(--text2); }
-.auth-tab.active { background: var(--surface); color: var(--primary); box-shadow: var(--shadow-sm); }
+/* v58 audit: CSS ยุคล็อกอิน (#auth-screen, .auth-*) ถูกลบทั้งชุด — หน้าล็อกอินถอนไปตั้งแต่ v40 element ไม่มีแล้ว */
 
 /* ===== FORM ELEMENTS ===== */
 .form-group { margin-bottom: 12px; }
@@ -138,14 +117,7 @@ input, select, textarea, button { font-family: inherit; }
 }
 .form-control:focus { border-color: var(--primary); background: var(--surface); box-shadow: 0 0 0 3px rgba(46,125,50,0.12); }
 textarea.form-control { resize: vertical; min-height: 80px; }
-.input-icon { position: relative; }
-.input-icon .form-control { padding-left: 44px; padding-right: 44px; }
-.input-icon i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 16px; }
-.input-icon i.toggle-pass { left: auto; right: 14px; width: auto; cursor: pointer; }
-.form-error { color: var(--danger); font-size: 13px; margin-top: 4px; display: none; }
-.form-error.show { display: block; }
-.form-check { display: flex; align-items: center; gap: 10px; }
-.form-check input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--primary); cursor: pointer; }
+/* v58 audit: .input-icon/.toggle-pass/.form-error/.form-check ถูกลบ — ไม่มี element ไหนใช้ (เหลือจากยุคล็อกอิน) */
 
 /* ===== BUTTONS ===== */
 .btn {
@@ -169,7 +141,9 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 .btn-sm { padding: 5px 12px; font-size: 12.5px; min-height: 34px; }
 .btn-full { width: 100%; }
 .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
-.btn-icon { width: 40px; height: 40px; padding: 0; border-radius: 10px; }
+/* v58 แก้ชื่อคลาสคลาดเคลื่อน: JS เรียก .btn-icon-sm (ปุ่มไอคอนใน timeline) แต่ CSS เขียน .btn-icon ไว้แต่เดิม — ปุ่มจึงไม่เคยมีสไตล์สี่เหลี่ยมจัตุรัส
+   ใช้ .btn.btn-icon-sm (เฉพาะกว่า .btn ใน media query ที่ประกาศทีหลัง) ล้ำ min-width/min-height 42px ของ .btn มือถือ */
+.btn.btn-icon-sm { width: 34px; height: 34px; min-width: 34px; min-height: 34px; padding: 0; }
 .btn-ghost { background: var(--btn2-bg); color: var(--text2); }
 .btn-ghost:active { background: var(--btn2-border); color: var(--text); }
 
@@ -202,12 +176,8 @@ textarea.form-control { resize: vertical; min-height: 80px; }
   width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
   color: var(--text2); cursor: pointer; transition: var(--transition); position: relative;
 }
+/* v58 audit: .user-avatar ถูกลบ (ยุคล็อกอิน) */
 .header-btn:active { background: var(--bg); }
-.user-avatar {
-  width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg, #1a2744, var(--accent));
-  display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 14px;
-  cursor: pointer;
-}
 
 /* ===== MAIN CONTENT ===== */
 .app-body { display: flex; flex: 1; min-height: 0; overflow: hidden; }
@@ -225,7 +195,6 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 .card-header { padding: 12px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .card-title { font-size: 14px; font-weight: 700; }
 .card-body { padding: 12px 14px; }
-.card-footer { padding: 10px 14px; border-top: 1px solid var(--border); background: var(--surface2); border-radius: 0 0 var(--radius) var(--radius); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
 
 /* ===== STATS ===== */
 .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 8px; }
@@ -243,9 +212,6 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 .stat-card.red .stat-icon { background: #FEE2E2; color: var(--danger); }
 .stat-value { font-size: 15px; font-weight: 800; color: var(--text); margin-bottom: 1px; }
 .stat-label { font-size: 9.5px; color: var(--text2); line-height: 1.25; }
-.stat-change { font-size: 10px; margin-top: 4px; font-weight: 600; }
-.stat-change.up { color: var(--success); }
-.stat-change.down { color: var(--danger); }
 
 /* ===== BADGES ===== */
 .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; white-space: nowrap; }
@@ -503,7 +469,6 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
   border-radius: 8px; font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center;
   padding: 0 4px; border: 2px solid var(--surface);
 }
-.mobile-nav-item.logout { color: var(--danger); }
 
 /* ===== FAB ===== */
 #fab {
@@ -587,7 +552,7 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
 [data-theme="dark"] .ji-del:active { background: #3A2020; }
 
 /* ===== SETTINGS (EBED Style) ===== */
-.settings-section { margin-bottom: 16px; }
+/* v58 audit: .settings-section ถูกลบ — การ์ดหน้าตั้งค่าใช้ class card ทั้งหมด */
 .opt-toggle { display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--primary);cursor:pointer;padding:4px 0;user-select:none; }
 .opt-toggle i { font-size:11px; }
 
@@ -615,13 +580,9 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
 .card.locked .form-control { pointer-events: none; background: transparent; border-color: transparent; }
 .card.locked .card-body label { pointer-events: none; cursor: default; }
 .card.locked .jt-iconbtn, .card.locked .jt-add { display: none; }
-.settings-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
-.settings-row:last-child { border-bottom: none; }
-.settings-label { font-size: 13px; font-weight: 500; }
-.settings-sub { font-size: 12px; color: var(--text3); }
+/* v58 audit: .settings-row/.settings-label/.settings-sub/.config-status.err ถูกลบ — updateConfigStatus ใช้แค่ ok/warn และไม่มี element ใช้ settings-row กลุ่มนี้ */
 .config-status { padding: 8px 12px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 500; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
 .config-status.ok { background: var(--primary-bg); color: var(--success); }
-.config-status.err { background: #FEE2E2; color: var(--danger); }
 .config-status.warn { background: #FEF3C7; color: #92400E; }
 
 .toggle-switch {
@@ -641,12 +602,11 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
 
 /* ===== RESPONSIVE ===== */
 @media (min-width: 769px) {
-  .mobile-only { display: none !important; }
   #fab { display: none !important; }
   .stats-grid { grid-template-columns: repeat(4, 1fr); }
 }
+/* v58 audit: .mobile-only/.desktop-only ถูกลบ — ไม่มี element ไหนใช้ทั้งไฟล์ */
 @media (max-width: 768px) {
-  .desktop-only { display: none !important; }
   .app-body { padding-bottom: 0; }
   .main-content { padding: 8px 10px calc(var(--nav-h) + env(safe-area-inset-bottom) + 20px); }
   .card-header { padding: 8px 12px; }
@@ -834,8 +794,8 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
 }
 [data-theme="dark"] .app-header { background: rgba(26,29,38,0.72); border-bottom-color: rgba(45,49,72,0.65); }
 
-/* 2) ไอคอนแบรนด์/โลโก้/avatar เรืองแสงเขียวแบรนด์เดิม */
-.header-brand .brand-icon, .auth-logo .logo-icon, .user-avatar { box-shadow: 0 4px 14px rgba(46,125,50,0.4); }
+/* 2) ไอคอนแบรนด์เรืองแสงเขียวแบรนด์เดิม (v58 audit: ตัด selector .auth-logo/.user-avatar ที่ถูกลบไปแล้วออก) */
+.header-brand .brand-icon { box-shadow: 0 4px 14px rgba(46,125,50,0.4); }
 
 /* 3) สลับธีมสว่าง/มืดแบบนุ่ม + การ์ด/แถวรายการยกแบบสปริง */
 body, .card, .app-header, .mobile-nav, .modal {
@@ -1766,6 +1726,8 @@ function markCfgPushPending() {
 }
 function clearCfgPushPending() {
   _cfgPushPending = false;
+  // v58: เคลียร์ timer ด้วย — เดิม interval 15 วิวิ่งต่อทั้งอายุแอปทั้งที่ไม่มีของค้างแล้ว (หมดทั้งแบตเปล่าๆ)
+  if (_cfgPushRetryTimer) { clearInterval(_cfgPushRetryTimer); _cfgPushRetryTimer = null; }
   try { var l = loadConfig(); delete l.cfgPushPending; localStorage.setItem(CFG_KEY, JSON.stringify(l)); } catch (e) {}
 }
 window.addEventListener('online', function() { if (_cfgPushPending && db) pushConfigToCloud(); });
@@ -2127,9 +2089,42 @@ async function deleteJobData(jobId) {
 // ============================================================
 // CLOUDINARY
 // ============================================================
+// v58: บีบอัดรูปก่อนอัป — กล้องมือถือไฟล์ 3-5MB อัปตรง ๆ ช้ามากบนเน็ตร้าน
+// จำกัดด้านยาวสุด 1600px + JPEG คุณภาพ 0.85 = เหลือราว 200-400KB คมพอสำหรับรูปงานซ่อม
+// บีบไม่สำเร็จ/ฟอร์แมตไม่รองรับ = คืนไฟล์เดิม ไม่มีทางหาย (แค่ไม่ได้ย่อ)
+function compressImage(file) {
+  return new Promise(function(resolve) {
+    try {
+      if (!file || !/^image\//.test(file.type) || file.type === 'image/gif') { resolve(file); return; } // GIF ข้าม (กลายเป็นภาพนิ่งถ้าวาด canvas)
+      var img = new Image();
+      var objUrl = URL.createObjectURL(file);
+      var cleanup = function(out) { try { URL.revokeObjectURL(objUrl); } catch (e) {} resolve(out || file); };
+      img.onload = function() {
+        try {
+          var MAX = 1600;
+          var w = img.naturalWidth, h = img.naturalHeight;
+          if (w <= MAX && h <= MAX && file.size < 600 * 1024) { cleanup(file); return; } // เล็กอยู่แล้ว ไม่ต้องยุ่ง
+          var scale = Math.min(1, MAX / Math.max(w, h));
+          var canvas = document.createElement('canvas');
+          canvas.width = Math.max(1, Math.round(w * scale));
+          canvas.height = Math.max(1, Math.round(h * scale));
+          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+          canvas.toBlob(function(blob) {
+            if (blob && blob.size > 0 && blob.size < file.size) {
+              cleanup(new File([blob], (file.name || 'photo.jpg').replace(/\.\w+$/, '') + '.jpg', { type: 'image/jpeg' }));
+            } else cleanup(file); // บีบแล้วใหญ่กว่าเดิม (รูปเล็กมาก) = ใช้ของเดิม
+          }, 'image/jpeg', 0.85);
+        } catch (e) { cleanup(file); }
+      };
+      img.onerror = function() { cleanup(file); };
+      img.src = objUrl;
+    } catch (e) { resolve(file); }
+  });
+}
 async function uploadToCloudinary(file) {
   var cfg = loadConfig();
   if (!cfg.cloudName || !cfg.uploadPreset) return null;
+  file = await compressImage(file); // v58: ย่อก่อนอัป (ล้มเหลว = ใช้ไฟล์เดิม)
   var fd = new FormData();
   fd.append('file', file);
   fd.append('upload_preset', cfg.uploadPreset);
@@ -2195,9 +2190,12 @@ function jobTypesFromConfig() {
 function saveJobTypesList(list) {
   var cfg = loadConfig();
   cfg.jobTypes = list;
-  saveConfig(cfg, ['jobTypes']);
+  saveConfig(cfg, ['jobTypes']); // markCfgDirty + ตั้ง queue 1.5 วิ
   applyJobTypes();
-  pushConfigToCloud(); // v42: เพิ่ม/เปลี่ยนชื่อ/ลบประเภทงาน → ซิงค์คลาวด์ทันที
+  // v58 audit: เดิมยิงคลาวด์ 2 รอบ (ทันที + queue อีก 1.5 วิ) = เขียนซ้ำ updatedAt เด้ง 2 ครั้ง
+  // แก้: ยิงครั้งเดียวทันทีและยกเลิก queue ที่ saveConfig ตั้งไว้ — ปิดแอปเมื่อไหร่ก็ส่งถึงคลาวด์แล้วเสมอ
+  clearTimeout(_cfgPushTimer);
+  pushConfigToCloud();
 }
 function getJobTypes(includeDeleted) {
   var list = jobTypesFromConfig();
@@ -2324,16 +2322,8 @@ function formatDate(d) {
   var dt = d.toDate ? d.toDate() : new Date(d);
   return dt.toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: 'numeric' });
 }
-function dateStr(d) {
-  if (!d) return '';
-  // สตริงรูปแบบ YYYY-MM-DD ใช้ตามเดิม — เลี่ยงบั๊ก timezone ของ toISOString()
-  if (typeof d === 'string' && _parseYMD(d)) return d.slice(0, 10);
-  var dt = d.toDate ? d.toDate() : new Date(d);
-  if (isNaN(dt.getTime())) return '';
-  return _toLocalYMD(dt);
-}
 function _pad2(n) { return (n < 10 ? '0' : '') + n; }
-function _toLocalYMD(dt) { return dt.getFullYear() + '-' + _pad2(dt.getMonth() + 1) + '-' + _pad2(dt.getDate()); }
+// v58 audit: dateStr/_toLocalYMD ถูกลบ — ไม่มีทางไหนเรียก (addYear/daysDiff ใช้ _parseYMD ตรง ๆ)
 function _parseYMD(s) {
   var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(s));
   if (!m) return null;
@@ -2523,15 +2513,24 @@ function renderCustomers(filter) {
     return;
   }
   var urgentPhones = new Set(getUpcomingReminders('all').filter(r => r.status === 'overdue' || r.status === 'soon').map(r => r.cust?.phone));
+  // v58: จำนวนงาน+ป้ายประเภท 2 อันล่าสุดต่อลูกค้า คำนวณครั้งเดียว — เดิม filter ทั้ง DB.jobs ต่อลูกค้าทุกคน = O(n×m)
+  // (DB.jobs เรียงใหม่อยู่ต้นสุดอยู่แล้ว = 2 อันแรกของแต่ละเบอร์ = งานล่าสุด 2 งาน เหมือนเดิมทุกอย่าง รวมป้ายซ้ำ)
+  var jobCount = {}, types2 = {};
+  DB.jobs.forEach(function(j) {
+    jobCount[j.customerPhone] = (jobCount[j.customerPhone] || 0) + 1;
+    if (!types2[j.customerPhone]) types2[j.customerPhone] = [];
+    if (types2[j.customerPhone].length < 2) types2[j.customerPhone].push(j.serviceType);
+  });
   container.innerHTML = list.map(c => {
-    var jobs = DB.jobs.filter(j => j.customerPhone === c.phone);
+    var jobsN = jobCount[c.phone] || 0;
+    var badgeTypes = types2[c.phone] || [];
     var hasReminder = urgentPhones.has(c.phone);
   return '<div class="customer-card" onclick="showCustomerDetail(\'' + escAttr(c.phone) + '\')">' +
     '<div class="customer-info"><div class="customer-name">' + esc(c.name || '-') + (hasReminder ? ' <span style="color:var(--danger);font-size:12px;">●</span>' : '') + '</div>' +
       '<div class="customer-phone"><i class="fas fa-phone" style="font-size:11px;"></i> ' + esc(c.phone) + '</div>' +
       (c.address ? '<div style="font-size:11px;color:var(--text3);"><i class="fas fa-location-dot"></i> ' + esc(c.address) + '</div>' : '') +
-      '<div class="customer-tags">' + jobs.slice(0,2).map(j => '<span class="badge ' + (SERVICE_COLORS[j.serviceType]||'badge-gray') + '" style="font-size:10px;">' + esc(typeLabel(j.serviceType)) + '</span>').join('') + '</div></div>' +
-      '<div class="customer-meta"><div class="job-count">' + jobs.length + '</div><div class="job-label">งาน</div></div></div>';
+      '<div class="customer-tags">' + badgeTypes.map(st => '<span class="badge ' + (SERVICE_COLORS[st]||'badge-gray') + '" style="font-size:10px;">' + esc(typeLabel(st)) + '</span>').join('') + '</div></div>' +
+      '<div class="customer-meta"><div class="job-count">' + jobsN + '</div><div class="job-label">งาน</div></div></div>';
   }).join('');
 }
 function filterCustomers() { renderCustomers(document.getElementById('customer-search')?.value || ''); }
@@ -2543,8 +2542,11 @@ function renderJobs() {
   var ft = (document.getElementById('job-search')?.value || '').toLowerCase();
   var typeFilter = document.getElementById('job-filter-type')?.value || '';
   var statusFilter = document.getElementById('job-filter-status')?.value || '';
+  // v58: แผนที่ phone→ลูกค้า คำนวณครั้งเดียว — เดิม find ใน DB.customers ทุกงาน 2 รอบ (filter+map) = O(n×m)
+  var custMap = {};
+  DB.customers.forEach(function(c) { custMap[c.phone] = c; });
   var list = sortByLatest(DB.jobs.filter(j => {
-    var cust = DB.customers.find(c => c.phone === j.customerPhone);
+    var cust = custMap[j.customerPhone];
     var matchText = !ft || (cust?.name || '').toLowerCase().includes(ft) || (j.customerPhone || '').includes(ft) || (j.description || '').toLowerCase().includes(ft) || (j.deviceInfo || '').toLowerCase().includes(ft) || jobItemsText(j).toLowerCase().includes(ft); // v53: ค้นชื่อรายการซ่อมย่อยด้วย
     var matchType = !typeFilter || j.serviceType === typeFilter;
     var matchStatus = !statusFilter || (j.status || 'done') === statusFilter;
@@ -2560,7 +2562,7 @@ function renderJobs() {
   if (empty) empty.style.display = 'none';
   if (container) {
     container.innerHTML = list.map(j => {
-      var cust = DB.customers.find(c => c.phone === j.customerPhone);
+      var cust = custMap[j.customerPhone];
       return '<div class="customer-card" onclick="showCustomerDetail(\'' + escAttr(j.customerPhone) + '\')">' +
         '<div class="customer-info"><div class="customer-name">' + esc(cust?.name||j.customerPhone) + '</div>' +
         '<div class="customer-phone">' + formatDate(j.serviceDate) + ' · <span class="badge ' + (SERVICE_COLORS[j.serviceType]||'badge-gray') + '" style="font-size:10px;">' + esc(typeName(j.serviceType)) + '</span>' +
@@ -2579,12 +2581,7 @@ function showJobsWithStatus(st) {
   if (s) { s.value = st; if (s.value !== st) s.value = ''; }
   renderJobs();
 }
-function clearJobsFilter() {
-  document.getElementById('job-search').value = '';
-  document.getElementById('job-filter-type').value = '';
-  var st = document.getElementById('job-filter-status'); if (st) st.value = '';
-  renderJobs();
-}
+// v58 audit: clearJobsFilter ถูกลบ — ไม่มีทางไหนเรียก (ตรวจ onclick/JS ทั้งไฟล์ด้วยสคริปต์ จริง)
 
 // ============================================================
 // REMINDERS
@@ -2680,7 +2677,8 @@ function renderCustomerDetail(phone) {
   var jobs = DB.jobs.filter(j => j.customerPhone === phone).sort((a,b) => (b.serviceDate||'') > (a.serviceDate||'') ? 1 : -1);
   var hasReminder = getUpcomingReminders('all').some(r => r.cust?.phone === phone && (r.status==='overdue'||r.status==='soon'));
   var el = document.getElementById('customer-detail-content');
-  el.innerHTML = '<div class="card">' +
+  // v58: ประกอบทั้งหน้าเป็นสตริงเดียวแล้วค่อย innerHTML ครั้งเดียว — เดิม el.innerHTML += 4 ครั้ง = เบราว์เซอร์ parse ซ้ำทั้งหน้าทุกรอบ
+  var html = '<div class="card">' +
     '<div class="card-body">' +
     '<div><div style="font-size:17px;font-weight:700;">' + esc(cust.name||'-') + (hasReminder ? ' <span class="badge badge-red" style="font-size:11px;">มีแจ้งเตือน</span>' : '') + '</div>' +
     '<div style="font-size:14px;"><i class="fas fa-phone"></i> <a href="tel:' + escAttr(cust.phone) + '" style="color:var(--primary);">' + esc(cust.phone) + '</a></div>' +
@@ -2710,15 +2708,17 @@ function renderCustomerDetail(phone) {
       '<button class="map-btn map-btn-go" style="max-width:220px;margin:0 auto;" onclick="openEditCustomer(\'' + escAttr(phone) + '\')"><i class="fas fa-location-crosshairs"></i> ปักหมุด / ใส่พิกัด</button></div>';
   }
   mapCard += '</div></div>';
-  el.innerHTML += mapCard;
+  html += mapCard;
 
-  el.innerHTML += '<div class="card"><div class="card-header"><span class="card-title">ประวัติงาน (' + jobs.length + ')</span></div><div class="card-body">';
+  // ประวัติงาน: การ์ดหัวข้อ = การ์ดที่ 3, .timeline = พี่น้องนอกการ์ด (โครงเดิมตามที่ v48 desktop CSS อ้าง:
+  // #customer-detail-content > .card:nth-last-child(2) และ > .timeline — ต้องคงโครงพี่น้องนี้ให้เป๊ะ)
+  html += '<div class="card"><div class="card-header"><span class="card-title">ประวัติงาน (' + jobs.length + ')</span></div><div class="card-body"></div></div>';
   if (jobs.length === 0) {
-    el.innerHTML += '<div class="empty-state"><i class="fas fa-folder-open"></i><p>ยังไม่มีประวัติงาน</p></div>';
+    html += '<div class="empty-state"><i class="fas fa-folder-open"></i><p>ยังไม่มีประวัติงาน</p></div>';
   } else {
-    el.innerHTML += '<div class="timeline">' + jobs.map(j => renderJobCard(j)).join('') + '</div>';
+    html += '<div class="timeline">' + jobs.map(j => renderJobCard(j)).join('') + '</div>';
   }
-  el.innerHTML += '</div></div>';
+  el.innerHTML = html;
 }
 
 function renderJobCard(j) {
@@ -2937,7 +2937,7 @@ var _selfBackAt = 0;        // เวลาที่เราเรียก his
 var _exitShownAt = 0;       // เวลาที่เปิดหน้าต่างยืนยันปิดแอป
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
-var APP_VERSION = 'v57';
+var APP_VERSION = 'v58';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -3214,14 +3214,20 @@ async function _doSaveJob() {
   }
   var uploadedPhotos = [];
   var droppedPhotos = 0;
-  for (var i = 0; i < pendingPhotos.length; i++) {
-    var p = pendingPhotos[i];
-    var url = p.uploaded ? p.url : await uploadToCloudinary(p.file);
+  // v58: อัปพร้อมกันทุกรูป (Promise.all) — เดิมรอทีละรูป 3 รูป = ช้า 3 เท่า
+  var uploadResults = await Promise.all(pendingPhotos.map(function(p) {
+    if (p.uploaded) return Promise.resolve(p.url); // รูปเดิมที่เคยอัปแล้ว = ใช้ลิงก์เดิม
+    return uploadToCloudinary(p.file).then(function(url) {
+      // อัปสำเร็จ = คืนหน่วยความจำ blob: preview (ล้มเหลว = คงไว้ ผู้ใช้ยังเห็นรูปในเครื่อง)
+      if (url && p.url && p.url.indexOf('blob:') === 0) { try { URL.revokeObjectURL(p.url); } catch (e) {} }
+      return url || '';
+    });
+  }));
+  uploadResults.forEach(function(url) {
     // เก็บเฉพาะลิงก์จริง http(s) — ลิงก์ blob: ใช้ต่อไม่ได้หลังปิดหน้าเว็บ
-    if (url && /^https?:\/\//i.test(url)) { uploadedPhotos.push(url); continue; }
-    if (p.uploaded && p.url && /^https?:\/\//i.test(p.url)) { uploadedPhotos.push(p.url); continue; }
-    droppedPhotos++;
-  }
+    if (url && /^https?:\/\//i.test(url)) uploadedPhotos.push(url);
+    else droppedPhotos++;
+  });
   var editId = document.getElementById('job-edit-id').value;
   var job = {
     id: editId || ('job_' + Date.now() + '_' + Math.random().toString(36).slice(2,7)),
@@ -3335,7 +3341,13 @@ function renderPhotoPreview() {
     return '<div class="photo-thumb"><img src="' + escAttr(p.url) + '" alt="" onclick="openPhotoViewer(\'' + escAttr(p.url) + '\')"><div class="del-photo" onclick="event.stopPropagation();removePhoto(' + i + ')"><i class="fas fa-xmark"></i></div></div>';
   }).join('');
 }
-function removePhoto(i) { pendingPhotos.splice(i, 1); renderPhotoPreview(); }
+function removePhoto(i) {
+  // v58: คืนหน่วยความจำ blob: URL ที่สร้างไว้ตอนเลือกรูป — เดิมค้างทั้งอายุแอป (เปิดค้างนาน = แรมบวม)
+  var p = pendingPhotos[i];
+  if (p && p.url && p.url.indexOf('blob:') === 0) { try { URL.revokeObjectURL(p.url); } catch (e) {} }
+  pendingPhotos.splice(i, 1);
+  renderPhotoPreview();
+}
 
 // ============================================================
 // PHOTO VIEWER — เปิดรูปเต็มจอในแอป (มีปุ่มปิด)
@@ -4118,8 +4130,7 @@ async function testCloudinary(btn) {
 // ============================================================
 function enterApp() {
   hideLoadingOverlay();
-  var authEl = document.getElementById('auth-screen');
-  if (authEl) authEl.classList.remove('active');
+  // v58 audit: ตัดคำสั่ง auth-screen ที่ค้างจากยุคล็อกอิน (v40 ถอนหน้าล็อกอินแล้ว — element ไม่มีใน HTML แล้ว)
   document.getElementById('app-screen').classList.add('active');
   updateOfflineBar();
   showPage('dashboard'); // v56: แสดงข้อมูลในเครื่องทันที — ซิงค์คลาวด์เบื้องหลังแล้วเด้งใหม่เอง (เรียกจาก boot แล้ว)
@@ -4133,7 +4144,9 @@ function toast(msg, type) {
   var el = document.createElement('div');
   el.className = 'toast ' + type;
   var icons = { success:'fa-check-circle', error:'fa-times-circle', warning:'fa-exclamation-triangle', info:'fa-info-circle' };
-  el.innerHTML = '<i class="fas ' + (icons[type]||icons.info) + '"></i><span>' + msg + '</span>';
+  el.innerHTML = '<i class="fas ' + (icons[type]||icons.info) + '"></i><span></span>';
+  // v58: ใช้ textContent ไม่ใช่ innerHTML — ข้อความที่มีตัวแปรจากผู้ใช้ (ชื่อประเภทงาน ฯลฯ) จะไม่ถูกตีความเป็น HTML อีกต่อไป
+  el.querySelector('span').textContent = msg;
   container.appendChild(el);
   setTimeout(function() { el.remove(); }, 3000);
 }
@@ -4197,6 +4210,10 @@ function isDemoJob(j) {
   });
 }
 async function purgeDemoData() {
+  // v58: เช็คครั้งเดียวพอ — เดิมทุกครั้งที่เปิดแอป/ซิงค์ อ่านคลาวด์ 3 เอกสาร + 3 คิวรี (v33 ตอนนั้นต้องไล่ลบของเดิมทั้งระบบ
+  // แต่ตอนนี้เคลียร์สำเร็จมาหลายปีแล้ว) หลังรอบแรกที่ตรวจแล้ว เก็บ flag ไว้ = ซิงค์ครั้งต่อไปไม่ต้องเสีย cloud read 6+ ครั้ง
+  var cfg = loadConfig();
+  if (cfg.demoPurged) return;
   var changed = false;
   // เครื่องนี้ (localStorage + หน่วยความจำ)
   var demoC = DB.customers.filter(isDemoCustomer);
@@ -4207,10 +4224,10 @@ async function purgeDemoData() {
     changed = true;
     console.info('ลบข้อมูลทดสอบ (ชุดตัวอย่างเดิม) ออกจากเครื่องแล้ว: ' + demoC.length + ' ลูกค้า');
   }
-  // คลาวด์ (เมื่อล็อกอิน) — ตรวจชื่อในเอกสารจริงก่อนลบทุกฉบับ ไม่ตรง = ไม่แตะ
+  // คลาวด์ — ตรวจชื่อในเอกสารจริงก่อนลบทุกฉบับ ไม่ตรง = ไม่แตะ
   if (db) {
-    for (var d of DEMO_CUSTOMERS) {
-      try {
+    try {
+      for (var d of DEMO_CUSTOMERS) {
         var ref = db.collection('customers').doc(d.phone);
         var snap = await ref.get();
         if (snap.exists && String((snap.data()||{}).name||'') === d.name) {
@@ -4225,9 +4242,12 @@ async function purgeDemoData() {
           });
           if (hit) { await jd.ref.delete(); changed = true; }
         }
-      } catch(e) { /* ยังไม่ล็อกอิน/ออฟไลน์ → ข้าม ไม่กระทบอะไร */ }
-    }
+      }
+      // ถึงจุดนี้ = ตรวจคลาวด์ครบทุกเอกสารโดยไม่มีข้อผิดพลาด → ล็อคไม่ต้องตรวจซ้ำอีก
+      var l2 = loadConfig(); l2.demoPurged = new Date().toISOString(); saveConfig(l2);
+    } catch(e) { /* ออฟไลน์/อ่านไม่ได้ → ยังไม่เซ็ต flag รอบหน้าลองใหม่เอง */ }
   }
+  // ไม่มี db (ออฟไลน์แท้) = ไม่เซ็ต flag รอบหน้าที่ต่อคลาวด์ได้ค่อยตรวจชุดคลาวด์
   if (changed) refreshAll();
 }
 
@@ -4301,8 +4321,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
-  var now = new Date();
-  document.getElementById('dash-date').textContent = now.toLocaleDateString('th-TH', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  // v58 audit: ตัดการตั้ง dash-date 2 บรรทัดที่ถูกทับทันที — enterApp → showPage('dashboard') → renderDashboard เขียนค่านี้เสมอ
   updateFabVisibility();
   applyJobTypes();
   collapseAdvancedSettings();
