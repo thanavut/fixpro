@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=58">
+<link rel="manifest" href="manifest.webmanifest?v=59">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro — ระบบจัดการงานช่าง</title>
@@ -1442,9 +1442,13 @@ body::after {
           <input type="number" class="form-control" id="job-travel" placeholder="0" min="0" oninput="updateJobTotalPreview()">
         </div>
         <div class="form-group">
-          <label class="form-label">🧮 ยอดรวมเก็บเงิน</label>
-          <div id="job-total-preview" style="min-height:38px;padding:7px 11px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--primary-bg);color:var(--primary-d);font-weight:800;font-size:15px;display:flex;align-items:center;">0 ฿</div>
+          <label class="form-label">🎁 ส่วนลด (จำนวนเงิน)</label>
+          <input type="number" class="form-control" id="job-discount" placeholder="0" min="0" inputmode="decimal" oninput="updateJobTotalPreview()">
         </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">🧮 ยอดรวมเก็บเงิน</label>
+        <div id="job-total-preview" style="min-height:38px;padding:7px 11px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--primary-bg);color:var(--primary-d);font-weight:800;font-size:15px;display:flex;align-items:center;">0 ฿</div>
       </div>
       <div class="opt-toggle" onclick="toggleJobExtra()"><i class="fas fa-chevron-down" id="job-extra-chev"></i> รายละเอียดเพิ่มเติม (ไม่บังคับ)</div>
       <div id="job-extra" style="display:none;">
@@ -1933,7 +1937,9 @@ async function initFirebase(cfg) {
 // ============================================================
 // v44: ค่าเดินทาง (ไปซ่อมข้างนอก) — ยอดเก็บเงินรวม = ค่าบริการ + ค่าเดินทาง (งานเก่าไม่มี travel = 0)
 function jobTravel(j) { return parseFloat(j && j.travel) || 0; }
-function jobTotal(j) { return (parseFloat(j && j.cost) || 0) + jobTravel(j); }
+// v59: ส่วนลด (จำนวนเงิน บาท) ของแต่ละงาน — ยอดเก็บเงินรวม = ค่าบริการ + ค่าเดินทาง − ส่วนลด (งานเก่าไม่มี discount = 0)
+function jobDiscount(j) { return parseFloat(j && j.discount) || 0; }
+function jobTotal(j) { return (parseFloat(j && j.cost) || 0) + jobTravel(j) - jobDiscount(j); }
 // v53: งานหนึ่งงานมีได้หลายรายการซ่อม — items = [{name, price}] บันทึกคู่กับ cost (= ผลรวมรายการ ไม่รวมค่าเดินทาง)
 // งานเก่าไม่มี items = jobItems() คืน null ทุกจุดแสดงเหมือนเดิม ไม่มีการแปลงข้อมูลเดิม
 function jobItems(j) { return (j && Array.isArray(j.items) && j.items.length > 0) ? j.items : null; }
@@ -2733,10 +2739,11 @@ function renderJobCard(j) {
     '<button class="btn btn-ghost btn-icon-sm" onclick="event.stopPropagation();openEditJob(\'' + escAttr(j.id) + '\')"><i class="fas fa-edit"></i></button>' +
     '<button class="btn btn-ghost btn-icon-sm" style="color:var(--danger)" onclick="event.stopPropagation();confirmDeleteJob(\'' + escAttr(j.id) + '\')"><i class="fas fa-trash"></i></button></div>' +
     (j.deviceInfo ? '<div class="timeline-device">' + esc(j.deviceInfo) + '</div>' : '') +
-    (j.description ? '<div style="font-size:13px;color:var(--text);margin-top:4px;">' + esc(j.description) + '</div>' : '') +
+    (j.description ? '<div style="font-size:13px;color:var(--text);margin-top:4px;white-space:pre-line;">' + esc(j.description) + '</div>' : '') + // v59: โชว์ตัวขึ้นบรรทัดตามที่พิมพ์จริง
     (jobItems(j) ? '<div style="margin-top:6px;padding-top:6px;border-top:1px dashed var(--border);">' + // v53: เห็นรายการซ่อมทุกบรรทัด + ค่าเดินทางในหน้ารายละเอียดลูกค้า
       jobItems(j).map(it => '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12.5px;color:var(--text2);margin-top:3px;"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">🧾 ' + esc(it.name) + '</span><span style="flex-shrink:0;font-weight:700;color:var(--text);">' + (parseFloat(it.price)||0).toLocaleString() + ' ฿</span></div>').join('') +
       (jobTravel(j) > 0 ? '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12.5px;color:var(--text2);margin-top:3px;"><span>🚗 ค่าเดินทาง</span><span style="flex-shrink:0;font-weight:700;color:var(--text);">' + jobTravel(j).toLocaleString() + ' ฿</span></div>' : '') +
+      (jobDiscount(j) > 0 ? '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12.5px;color:var(--text2);margin-top:3px;"><span>🎁 ส่วนลด</span><span style="flex-shrink:0;font-weight:700;color:var(--danger);">-' + jobDiscount(j).toLocaleString() + ' ฿</span></div>' : '') + // v59: ส่วนลดแต่ละงาน
       '</div>' : '') +
     '<div style="display:flex;align-items:center;gap:8px;margin-top:6px;">' +
     (jobTotal(j) ? '<span class="timeline-cost">' + jobTotal(j).toLocaleString() + ' ฿</span>' : '') +
@@ -2815,8 +2822,10 @@ function updateJobTotalPreview() {
   var el = document.getElementById('job-total-preview');
   if (!el) return;
   var tEl = document.getElementById('job-travel');
+  var dEl = document.getElementById('job-discount');
   var t = parseFloat(tEl ? tEl.value : 0) || 0;
-  el.textContent = (sum + t).toLocaleString() + ' ฿';
+  var d = parseFloat(dEl ? dEl.value : 0) || 0; // v59: ส่วนลดหักออกจากยอดเก็บเงิน
+  el.textContent = (sum + t - d).toLocaleString() + ' ฿';
 }
 // ---------- v53: กล่องรายการซ่อมในโมดัลบันทึกงาน (1 แถว = ชื่อ + ราคา) — v54: ถอนปุ่มชื่อด่วนจากประเภทงานออก (ซ้ำซ้อนกับประเภทด้านบน พิมพ์ชื่อเองได้) ----------
 function jobItemRowHtml(name, price) {
@@ -2937,7 +2946,7 @@ var _selfBackAt = 0;        // เวลาที่เราเรียก his
 var _exitShownAt = 0;       // เวลาที่เปิดหน้าต่างยืนยันปิดแอป
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
-var APP_VERSION = 'v58';
+var APP_VERSION = 'v59';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -3136,6 +3145,7 @@ function openEditJob(jobId) {
   else if ((parseFloat(j.cost) || 0) > 0) renderJobItemRows([{ name: 'ค่าซ่อม', price: Number(j.cost) }]); // v53: งานเก่าแสดงเป็นรายการเดียวชื่อ ค่าซ่อม (ไม่เขียนกลับข้อมูลจริง เปลี่ยนจริงเมื่อกดบันทึก)
   else renderJobItemRows(null); // งานเก่าไม่มีราคา = แถวว่าง 1 แถว
   document.getElementById('job-travel').value = (j.travel ? Number(j.travel) : '');
+  document.getElementById('job-discount').value = (jobDiscount(j) ? jobDiscount(j) : ''); // v59: ส่วนลดเดิมตอนแก้ไขงาน
   document.getElementById('job-device').value = j.deviceInfo || '';
   document.getElementById('job-desc').value = j.description || '';
   document.getElementById('job-status').value = j.status || 'done';
@@ -3157,6 +3167,7 @@ function resetJobModal() {
   document.getElementById('job-type').value = firstType;
   renderJobItemRows(null);
   document.getElementById('job-travel').value = '';
+  document.getElementById('job-discount').value = ''; // v59: ล้างส่วนลดเมื่อเปิดงานใหม่
   document.getElementById('job-device').value = '';
   document.getElementById('job-desc').value = '';
   updateJobTotalPreview();
@@ -3237,6 +3248,7 @@ async function _doSaveJob() {
     cost: String(col.items.length ? jobItemsSum(col.items) : 0), // v53: cost = ผลรวมรายการซ่อมอัตโนมัติ (ไม่รวมค่าเดินทาง)
     items: col.items.length ? col.items : null,
     travel: parseFloat(document.getElementById('job-travel').value) || 0,
+    discount: parseFloat(document.getElementById('job-discount').value) || 0, // v59: ส่วนลด (จำนวนเงิน บาท) — หักจากยอดเก็บเงินรวม
     deviceInfo: document.getElementById('job-device').value.trim(),
     description: document.getElementById('job-desc').value.trim(),
     status: document.getElementById('job-status').value,
@@ -3250,6 +3262,7 @@ async function _doSaveJob() {
       return x.customerPhone === phone && x.serviceDate === date && x.serviceType === type &&
         (x.deviceInfo||'') === job.deviceInfo && (x.description||'') === job.description &&
         String(x.cost||'0') === String(job.cost) && String(x.travel||'0') === String(job.travel) &&
+        (parseFloat(x.discount) || 0) === job.discount && // v59: ส่วนลดต่างกัน = ไม่ใช่งานซ้ำ
         JSON.stringify(x.items||[]) === JSON.stringify(job.items||[]) && x.updatedAt &&
         (Date.now() - new Date(x.updatedAt).getTime()) < 30000;
     });
@@ -3419,13 +3432,13 @@ function buildLineReceiptText(job) {
     lines.push('🧾 รายการซ่อม:');
     _its.forEach(function(it) { lines.push('• ' + (it.name||'') + ': ' + (parseFloat(it.price)||0).toLocaleString() + ' บาท'); });
     if (jobTravel(job) > 0) lines.push('🚗 ค่าเดินทาง: ' + jobTravel(job).toLocaleString() + ' บาท');
+    if (jobDiscount(job) > 0) lines.push('🎁 ส่วนลด: -' + jobDiscount(job).toLocaleString() + ' บาท'); // v59: ส่วนลดแต่ละงาน
     lines.push('💰 ยอดเก็บรวม: ' + jobTotal(job).toLocaleString() + ' บาท');
   } else {
     lines.push('💵 ค่าบริการ: ' + Number(job.cost||0).toLocaleString() + ' บาท');
-    if (jobTravel(job) > 0) {
-      lines.push('🚗 ค่าเดินทาง: ' + jobTravel(job).toLocaleString() + ' บาท');
-      lines.push('💰 ยอดรวมเก็บเงิน: ' + jobTotal(job).toLocaleString() + ' บาท');
-    }
+    if (jobTravel(job) > 0) lines.push('🚗 ค่าเดินทาง: ' + jobTravel(job).toLocaleString() + ' บาท');
+    if (jobDiscount(job) > 0) lines.push('🎁 ส่วนลด: -' + jobDiscount(job).toLocaleString() + ' บาท'); // v59: ส่วนลดแต่ละงาน
+    if (jobTravel(job) > 0 || jobDiscount(job) > 0) lines.push('💰 ยอดรวมเก็บเงิน: ' + jobTotal(job).toLocaleString() + ' บาท');
   }
   if (job.nextDate) lines.push('🔔 นัดหมายถัดไป: ' + formatDate(job.nextDate));
   lines.push(sep);
@@ -3447,11 +3460,12 @@ function openReceipt(jobId) {
     '<div class="receipt-row"><span style="color:var(--text3);">ประเภท</span><span>' + esc(typeLabel(j.serviceType)) + '</span></div>' +
     '<div class="receipt-row"><span style="color:var(--text3);">วันที่</span><span>' + formatDate(j.serviceDate) + '</span></div>' +
     (j.deviceInfo ? '<div class="receipt-row"><span style="color:var(--text3);">อุปกรณ์</span><span>' + esc(j.deviceInfo) + '</span></div>' : '') +
-    (j.description ? '<div class="receipt-row"><span style="color:var(--text3);">รายละเอียด</span><span>' + esc(j.description) + '</span></div>' : '') +
+    (j.description ? '<div class="receipt-row" style="align-items:flex-start;"><span style="color:var(--text3);flex-shrink:0;">รายละเอียด</span><span style="white-space:pre-line;text-align:right;">' + esc(j.description) + '</span></div>' : '') + // v59: โชว์ตัวขึ้นบรรทัดตามที่พิมพ์จริง
     (j.nextDate ? '<div class="receipt-row"><span style="color:var(--text3);">นัดหมายถัดไป</span><span style="color:var(--warning);font-weight:600;">' + formatDate(j.nextDate) + '</span></div>' : '') +
     '<hr style="border:1px dashed var(--border);margin:8px 0;">' +
     (jobItems(j) ? jobItems(j).map(function(it) { return '<div class="receipt-row"><span style="color:var(--text3);">🧾 ' + esc(it.name) + '</span><span>' + (parseFloat(it.price)||0).toLocaleString() + ' ฿</span></div>'; }).join('') : '<div class="receipt-row"><span style="color:var(--text3);">ค่าบริการ</span><span>' + Number(j.cost||0).toLocaleString() + ' ฿</span></div>') +
     (jobTravel(j) > 0 ? '<div class="receipt-row"><span style="color:var(--text3);">🚗 ค่าเดินทาง</span><span>' + jobTravel(j).toLocaleString() + ' ฿</span></div>' : '') +
+    (jobDiscount(j) > 0 ? '<div class="receipt-row"><span style="color:var(--text3);">🎁 ส่วนลด</span><span style="color:var(--danger);">-' + jobDiscount(j).toLocaleString() + ' ฿</span></div>' : '') + // v59: ส่วนลดแต่ละงาน
     '<div class="receipt-row total"><span>' + (jobItems(j) ? (jobTravel(j) > 0 ? 'ยอดรวมเก็บเงิน' : 'ยอดรวม') : (jobTravel(j) > 0 ? 'ยอดรวมเก็บเงิน' : 'ค่าบริการรวม')) + '</span><span style="color:var(--success);font-size:18px;">' + jobTotal(j).toLocaleString() + ' ฿</span></div>' +
     '<div class="receipt-footer">' + esc(loadConfig().receiptFooter || 'ขอบคุณที่ใช้บริการครับ 🙏') + '</div></div>';
   document.getElementById('receipt-content').innerHTML = html;
@@ -3783,13 +3797,13 @@ function shareReportLine() {
 function exportExcel() {
   if (typeof XLSX === 'undefined') { toast('กำลังโหลด SheetJS...', 'warning'); return; }
   var wb = XLSX.utils.book_new();
-  var jobRows = [['วันที่','ลูกค้า','เบอร์โทร','ประเภทงาน','อุปกรณ์','รายละเอียด','รายการซ่อม','ค่าบริการ','ค่าเดินทาง','ยอดรวม','สถานะ','นัดหมายถัดไป']]; // v53: เพิ่มคอลัมน์รายการซ่อม (1 งาน = 1 แถว เท่าเดิม)
+  var jobRows = [['วันที่','ลูกค้า','เบอร์โทร','ประเภทงาน','อุปกรณ์','รายละเอียด','รายการซ่อม','ค่าบริการ','ค่าเดินทาง','ส่วนลด','ยอดรวม','สถานะ','นัดหมายถัดไป']]; // v53: เพิ่มคอลัมน์รายการซ่อม (1 งาน = 1 แถว เท่าเดิม) · v59: เพิ่มคอลัมน์ส่วนลด
   for (var j of DB.jobs) {
     var c = DB.customers.find(c => c.phone === j.customerPhone);
-    jobRows.push([xlsxSafe(j.serviceDate||''), xlsxSafe(c?.name||''), xlsxSafe(j.customerPhone||''), xlsxSafe(typeLabel(j.serviceType)), xlsxSafe(j.deviceInfo||''), xlsxSafe(j.description||''), xlsxSafe(jobItemsSummary(j)), parseFloat(j.cost)||0, jobTravel(j), jobTotal(j), STATUS_LABELS[j.status]||'เสร็จ', xlsxSafe(j.nextDate||'')]);
+    jobRows.push([xlsxSafe(j.serviceDate||''), xlsxSafe(c?.name||''), xlsxSafe(j.customerPhone||''), xlsxSafe(typeLabel(j.serviceType)), xlsxSafe(j.deviceInfo||''), xlsxSafe(j.description||''), xlsxSafe(jobItemsSummary(j)), parseFloat(j.cost)||0, jobTravel(j), jobDiscount(j), jobTotal(j), STATUS_LABELS[j.status]||'เสร็จ', xlsxSafe(j.nextDate||'')]);
   }
   var wsJobs = XLSX.utils.aoa_to_sheet(jobRows);
-  wsJobs['!cols'] = [10,18,12,16,20,24,26,10,10,10,10,12].map(w => ({wch:w}));
+  wsJobs['!cols'] = [10,18,12,16,20,24,26,10,10,10,10,10,12].map(w => ({wch:w}));
   XLSX.utils.book_append_sheet(wb, wsJobs, 'งานซ่อม');
   var custRows = [['ชื่อ','เบอร์โทร','ที่อยู่','Line ID','หมายเหตุ','จำนวนงาน']];
   for (var c of DB.customers) {
