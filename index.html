@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=70">
+<link rel="manifest" href="manifest.webmanifest?v=71">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -17,6 +17,16 @@
      ถอด Google Fonts CDN เพราะถ้าเน็ตกระตุก/โหลดไม่ทัน ตัวอักษรจะกลายเป็นฟอนต์ระบบทันที
      ตอนนี้ไฟล์ woff2 อยู่ในแอปเอง (assets/fonts/kanit/) + SW แคชไว้ล่วงหน้า
      → เปิดแอปเมื่อไหร่ก็เป็น Kanit 100% ออนไลน์/ออฟไลน์เท่ากัน หน้าตาไม่เปลี่ยนแม้แต่พิกเซลเดียว -->
+<script>/* v71 แก้ "เปิดแอปกระพริบหนึ่งครั้ง" ต้นเหตุที่ 3: เดิมธีมถูกตั้งตอน DOMContentLoaded ผู้ใช้ธีมมืดจะเห็นจอขาวแวบก่อนเปลี่ยนมืด — ตั้งจาก localStorage ที่นี่ ก่อนจอแสดงผลครั้งแรก */try{var __fpTheme=localStorage.getItem('fixpro_theme');if(__fpTheme)document.documentElement.setAttribute('data-theme',__fpTheme);}catch(e){}</script>
+<!-- v71 แก้กระพริบต้นเหตุที่ 1+2: preload ฟอนต์ไอคอน FA (เดิม font-display:block โหลดช้ากว่าหน้าจอ = ไอคอนว่างช่วงแรก ปุ่มแก้ไข "โผล่มาทีหลัง") และ Kanit น้ำหนักที่หน้าแรกใช้ (กันตัวอักษรสลับฟอนต์แวบ) -->
+<link rel="preload" as="font" type="font/woff2" crossorigin href="assets/fontawesome/webfonts/fa-solid-900.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="assets/fontawesome/webfonts/fa-regular-400.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="assets/fonts/kanit/kanit-400-thai.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="assets/fonts/kanit/kanit-400-latin.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="assets/fonts/kanit/kanit-500-thai.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="assets/fonts/kanit/kanit-600-thai.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="assets/fonts/kanit/kanit-700-thai.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="assets/fonts/kanit/kanit-700-latin.woff2">
 <style id="kanit-fonts">
 /* ===== v52: Kanit SELF-HOSTED — ฝังฟอนต์ไว้ในแอปเอง ไม่พึ่ง fonts.googleapis.com
      เจ้าของร้านสั่ง: "ฟอนต์ต้องเป็น Kanit เท่านั้น" → แม้เน็ตกระตุก/ออฟไลน์ก็เป็น Kanit 100%
@@ -664,7 +674,7 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
   .mobile-nav-item .nav-badge { position: static; transform: none; margin-left: auto; }
 
   /* ===== เนื้อหา: คอลัมน์กลางสูงสุด 1280px ===== */
-  .main-content { padding: 6px 10px 40px; }
+  .main-content { padding: 6px 10px 10px; } /* v71: ล่าง 40px→10px — FAB/แถบมือถือซ่อนอยู่แล้ว และหน้าตารางตรึงหัวต้องพอดีจอเป๊ะ */
   #main-content { max-width: none; margin: 0; width: 100%; }
 
   /* หัวเรื่องของแต่ละหน้าใหญ่ขึ้น */
@@ -847,15 +857,29 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
   .rem-when { font-weight: 700; font-size: 13px; }
   .jt-amt { font-weight: 700; font-size: 14px; color: var(--success); text-align: right; white-space: nowrap; }
 
-  /* v70: หน้ารายชื่อลูกค้า desktop = ตารางจริงแบบหน้าทะเบียนประวัติ EBED (#persons-table-wrap เป๊ะ):
-     td 4px 14px nowrap + ตาราง min-width max-content + หัว sticky เลื่อนในกรอบ (เหมือน EBED)
-     + ปุ่ม ghost btn-icon-sm 28px + ช่องค้นหากระชับ 12px + แถวนับรายการท้ายกรอบ */
+  /* v70+v71: ตารางจริงแบบหน้าทะเบียนประวัติ EBED ใช้ร่วม 3 หน้า (รายชื่อลูกค้า/ประวัติงาน/แจ้งเตือน):
+     td 4px 14px nowrap = ความสูงแถวเท่ากันทุกหน้า (37px เท่าสเกล #persons-table-wrap)
+     + ตาราง min-width max-content + หัว sticky เลื่อนในกรอบ */
   .table-wrap-scrollable { display: block; overflow-y: auto; overflow-x: auto; }
   .table-wrap-scrollable thead th { position: sticky; top: 0; z-index: 2; }
-  #customers-table-wrap { max-height: calc(100vh - 214px); }
-  #customers-table-wrap tbody td { padding: 4px 14px; }
-  #customers-table-wrap td { white-space: nowrap; }
-  #customers-table-wrap table { min-width: max-content; }
+  #customers-table-wrap tbody td, #jobs-table-wrap tbody td, #reminders-table-wrap tbody td { padding: 4px 14px; }
+  #customers-table-wrap td, #jobs-table-wrap td, #reminders-table-wrap td { white-space: nowrap; }
+  #customers-table-wrap table, #jobs-table-wrap table, #reminders-table-wrap table { min-width: max-content; }
+  /* v71: ป้ายประเภทงานไม่ล้นคอลัมน์ — ชื่อยาวตัดจบด้วย ... (ชี้เห็นชื่อเต็มจาก title) */
+  .tb-badge { display: inline-block; max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
+  /* v71: ตรึงส่วนหัวทุกหน้า desktop แบบ EBED — หน้าตาราง: หัวเรื่อง+การ์ดสรุป+ช่องค้นหา/ตัวกรองคงอยู่ตลอด เลื่อนได้แค่ตารางในกรอบ */
+  #page-customers.active, #page-jobs.active, #page-reminders.active { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+  #page-customers.active > #customer-list-container,
+  #page-jobs.active > #jobs-mobile-list,
+  #page-reminders.active > #reminders-container { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+  #page-customers.active .cust-stats, #page-jobs.active .cust-stats, #page-reminders.active .cust-stats { flex-shrink: 0; }
+  .cust-table { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+  .cust-table > .table-wrap-scrollable { flex: 1; min-height: 0; }
+  #reminders-container { padding: 0; border: none; background: transparent; box-shadow: none; }
+  /* v71: หน้าอื่น (หน้าหลัก/รายงาน/ตั้งค่า) — แถวหัวเรื่องติดอยู่ด้านบนตอนเลื่อน (sticky) เหมือนหัวหน้าของ EBED */
+  #page-dashboard.active > div:first-child,
+  #page-reports.active > div:first-child,
+  #page-settings.active > div:first-child { position: sticky; top: -6px; z-index: 20; background: var(--bg); padding: 6px 10px 6px 0; margin: -6px -10px 8px 0; }
   .cust-foot { padding: 5px 14px; border-top: 1px solid var(--border); background: var(--surface2); border-radius: 0 0 var(--radius) var(--radius); font-size: 11px; color: var(--text2); }
   .btn-ghost { background: transparent; color: var(--text2); }
   /* ใช้ selector คู่ .btn.btn-icon-sm ชนะ min 34px ของมือถือ (บรรทัด 146) ด้วยลำดับที่อยู่ทีหลัง — EBED จริง = 28px */
@@ -2617,7 +2641,7 @@ function renderCustomers(filter) {
   DB.jobs.forEach(function(j) {
     jobCount[j.customerPhone] = (jobCount[j.customerPhone] || 0) + 1;
     if (!types2[j.customerPhone]) types2[j.customerPhone] = [];
-    if (types2[j.customerPhone].length < 2) types2[j.customerPhone].push(j.serviceType);
+    if (types2[j.customerPhone].indexOf(j.serviceType) < 0) types2[j.customerPhone].push(j.serviceType); // v71: เก็บทุกประเภท (ไม่ซ้ำ ไม่ตัดที่ 2) เพื่อโชว์ '+N' — ฝั่งมือถือ slice(0,2) คงเดิม
   });
   var isDesk = window.matchMedia && window.matchMedia('(min-width: 1024px)').matches;
   var segHTML = '';
@@ -2668,9 +2692,14 @@ function renderCustomers(filter) {
     }
     var rows = pool.map(c => {
       var jobsN = jobCount[c.phone] || 0;
-      var badgeTypes = types2[c.phone] || [];
       var hasReminder = urgentPhones.has(c.phone);
-      var tags = badgeTypes.map(st => '<span class="badge ' + (SERVICE_COLORS[st]||'badge-gray') + '" style="font-size:12px;">' + esc(typeLabel(st)) + '</span>').join(' ');
+      // v71: ประเภทงานไม่ล้นคอลัมน์ — โชว์สูงสุด 2 ป้าย (ชื่อยาวตัดจบด้วย ...) + ป้าย '+N' ชี้เห็นชื่อครบทุกประเภท
+      var allT = types2[c.phone] || [];
+      var shownT = allT.slice(0, 2);
+      var extraT = allT.length - shownT.length;
+      var tNames = allT.map(st => typeLabel(st)).join(', ');
+      var tags = shownT.map(st => '<span class="badge ' + (SERVICE_COLORS[st]||'badge-gray') + ' tb-badge" style="font-size:12px;" title="' + esc(tNames) + '">' + esc(typeLabel(st)) + '</span>').join(' ');
+      if (extraT > 0) tags += ' <span class="badge badge-gray tb-badge" style="font-size:12px;" title="' + esc(tNames) + '">+' + extraT + '</span>';
       return '<tr onclick="showCustomerDetail(\'' + escAttr(c.phone) + '\')" style="cursor:pointer;">' +
         '<td style="font-size:13px;">' + esc(c.name || '-') + (hasReminder ? ' <span title="มีงานค้าง/ใกล้นัด" style="color:var(--danger);font-size:11px;">●</span>' : '') + '</td>' +
         '<td style="font-size:12px;color:var(--text2);">' + esc(c.phone) + '</td>' +
@@ -2690,7 +2719,7 @@ function renderCustomers(filter) {
   }
   container.innerHTML = list.map(c => {
     var jobsN = jobCount[c.phone] || 0;
-    var badgeTypes = types2[c.phone] || [];
+    var badgeTypes = (types2[c.phone] || []).slice(0, 2); // v71: มือถือคงเดิม 100% — 2 ป้ายล่าสุดเท่าเดิม (types2 ตอนนี้เก็บทุกประเภท)
     var hasReminder = urgentPhones.has(c.phone);
   return '<div class="customer-card" onclick="showCustomerDetail(\'' + escAttr(c.phone) + '\')">' +
     '<div class="customer-info"><div class="customer-name">' + esc(c.name || '-') + (hasReminder ? ' <span style="color:var(--danger);font-size:12px;">●</span>' : '') + '</div>' +
@@ -2768,19 +2797,24 @@ function renderJobs() {
   if (empty) empty.style.display = 'none';
   if (container) {
     if (isDesk) {
-      container.innerHTML = statsHTML + '<div class="cust-table job-table"><div class="job-table-head"><div>ลูกค้า</div><div>อาการ/รายละเอียด</div><div>ประเภท</div><div>วันที่</div><div style="text-align:right;">ยอด (บาท)</div><div>สถานะ</div><div style="text-align:right;">จัดการ</div></div>' + list.map(function(j) {
+      // v71: หน้างาน desktop = ตารางจริงแบบหน้าทะเบียนประวัติ EBED เป๊ะ (เหมือนหน้ารายชื่อลูกค้า v70):
+      // <table> ใน .table-wrap.table-wrap-scrollable + หัว sticky + ชื่อ 13px ปกติ / ข้อมูลรอง 12px text2 /
+      // ป้าย badge 12px tb-badge กันล้น / ปุ่ม ghost btn-icon-sm 28px / แถว td 4px 14px nowrap = 37px เท่ากันทุกหน้า
+      container.innerHTML = statsHTML + '<div class="cust-table"><div class="table-wrap table-wrap-scrollable" id="jobs-table-wrap"><table>' +
+        '<thead><tr><th>ลูกค้า</th><th>อาการ/รายละเอียด</th><th>ประเภท</th><th>วันที่</th><th style="text-align:right;">ยอด (บาท)</th><th>สถานะ</th><th style="text-align:right;">จัดการ</th></tr></thead><tbody>' +
+        list.map(function(j) {
         var cust = custMap[j.customerPhone];
         var st = j.status || 'done';
-        var desc = j.symptom || j.description || j.deviceInfo || '-';
-        return '<div class="job-table-row" onclick="showCustomerDetail(\'' + escAttr(j.customerPhone) + '\')">' +
-          '<div class="ct-name">' + esc(cust?.name || j.customerPhone || '-') + '</div>' +
-          '<div class="ct-addr">' + esc(String(desc)) + '</div>' +
-          '<div class="ct-tags"><span class="badge ' + (SERVICE_COLORS[j.serviceType] || 'badge-gray') + '" style="font-size:10px;">' + esc(typeName(j.serviceType)) + '</span></div>' +
-          '<div class="ct-phone">' + formatDate(j.serviceDate) + '</div>' +
-          '<div class="jt-amt">' + (jobTotal(j) ? jobTotal(j).toLocaleString() : '0') + '</div>' +
-          '<div class="ct-tags"><span class="badge ' + (STATUS_COLORS[st] || 'badge-gray') + '" style="font-size:10px;">' + esc(STATUS_LABELS[st] || st) + '</span></div>' +
-          '<div class="ct-actions" onclick="event.stopPropagation()"><button type="button" title="ดูข้อมูล/ประวัติงาน" onclick="showCustomerDetail(\'' + escAttr(j.customerPhone) + '\')"><i class="fas fa-eye"></i></button></div></div>';
-      }).join('') + '</div>';
+        var desc = String(j.symptom || j.description || j.deviceInfo || '-');
+        return '<tr onclick="showCustomerDetail(\'' + escAttr(j.customerPhone) + '\')" style="cursor:pointer;">' +
+          '<td style="font-size:13px;">' + esc(cust?.name || j.customerPhone || '-') + '</td>' +
+          '<td style="font-size:12px;color:var(--text2);max-width:340px;overflow:hidden;text-overflow:ellipsis;" title="' + esc(desc) + '">' + esc(desc) + '</td>' +
+          '<td><span class="badge ' + (SERVICE_COLORS[j.serviceType] || 'badge-gray') + ' tb-badge" style="font-size:12px;" title="' + esc(typeName(j.serviceType)) + '">' + esc(typeName(j.serviceType)) + '</span></td>' +
+          '<td style="font-size:12px;color:var(--text2);">' + formatDate(j.serviceDate) + '</td>' +
+          '<td style="font-size:12px;font-weight:700;color:var(--success);text-align:right;">' + (jobTotal(j) ? jobTotal(j).toLocaleString() : '0') + '</td>' +
+          '<td><span class="badge ' + (STATUS_COLORS[st] || 'badge-gray') + ' tb-badge" style="font-size:12px;">' + esc(STATUS_LABELS[st] || st) + '</span></td>' +
+          '<td><div class="table-actions" onclick="event.stopPropagation()"><button type="button" class="btn btn-ghost btn-icon-sm" title="ดูข้อมูล/ประวัติงาน" onclick="showCustomerDetail(\'' + escAttr(j.customerPhone) + '\')"><i class="fas fa-eye"></i></button></div></td></tr>';
+      }).join('') + '</tbody></table></div><div class="cust-foot">' + list.length + ' รายการ</div></div>';
     } else {
     container.innerHTML = list.map(j => {
       var cust = custMap[j.customerPhone];
@@ -2840,19 +2874,21 @@ function renderReminders() {
       container.innerHTML = statsHTML + '<div class="empty-state"><i class="far fa-bell"></i><p>ไม่มีแจ้งเตือน</p></div>';
       return;
     }
-    container.innerHTML = statsHTML + '<div class="cust-table rem-table"><div class="rem-table-head"><div>ลูกค้า</div><div>ประเภทงาน</div><div>วันนัด</div><div>สถานะ</div><div style="text-align:right;">จัดการ</div></div>' + reminders.map(function(r) {
+    // v71: แจ้งเตือน desktop = ตารางจริงแบบทะเบียนประวัติ EBED เป๊ะ (มาตรฐานเดียวกับรายชื่อลูกค้า/ประวัติงาน)
+    container.innerHTML = statsHTML + '<div class="cust-table"><div class="table-wrap table-wrap-scrollable" id="reminders-table-wrap"><table>' +
+      '<thead><tr><th>ลูกค้า</th><th>ประเภทงาน</th><th>วันนัด</th><th>สถานะ</th><th style="text-align:right;">จัดการ</th></tr></thead><tbody>' + reminders.map(function(r) {
       var diff = daysDiff(r.job.nextDate);
       var diffText = diff < 0 ? '<span class="rem-when" style="color:var(--danger);">เกิน ' + Math.abs(diff) + ' วัน</span>' :
         diff === 0 ? '<span class="rem-when" style="color:var(--warning);">วันนี้!</span>' :
         '<span class="rem-when" style="color:' + (r.status === 'soon' ? 'var(--warning)' : 'var(--info)') + ';">อีก ' + diff + ' วัน</span>';
-      return '<div class="rem-table-row">' +
-        '<div class="ct-name" onclick="showCustomerDetail(\'' + escAttr(r.cust?.phone || '') + '\')" style="cursor:pointer;">' + esc(r.cust?.name || '-') + '</div>' +
-        '<div class="ct-tags"><span class="badge ' + (SERVICE_COLORS[r.job.serviceType] || 'badge-gray') + '" style="font-size:10px;">' + esc(typeLabel(r.job.serviceType)) + '</span></div>' +
-        '<div class="ct-phone">' + formatDate(r.job.nextDate) + '</div>' +
-        '<div>' + diffText + '</div>' +
-        '<div class="ct-actions"><button class="btn btn-primary btn-sm" title="บันทึกงานใหม่" onclick="openAddJobForCustomer(\'' + escAttr(r.cust?.phone || '') + '\')"><i class="fas fa-plus"></i></button>' +
-        '<button class="btn btn-secondary btn-sm" title="ส่งแจ้งเตือน" onclick="openSendReminder(\'' + escAttr(r.cust?.phone || '') + '\',\'' + escAttr(r.job.serviceType) + '\',\'' + escAttr(r.job.nextDate) + '\')"><i class="fas fa-paper-plane"></i></button></div></div>';
-    }).join('') + '</div>';
+      return '<tr>' +
+        '<td style="font-size:13px;cursor:pointer;" onclick="showCustomerDetail(\'' + escAttr(r.cust?.phone || '') + '\')">' + esc(r.cust?.name || '-') + '</td>' +
+        '<td><span class="badge ' + (SERVICE_COLORS[r.job.serviceType] || 'badge-gray') + ' tb-badge" style="font-size:12px;" title="' + esc(typeLabel(r.job.serviceType)) + '">' + esc(typeLabel(r.job.serviceType)) + '</span></td>' +
+        '<td style="font-size:12px;color:var(--text2);">' + formatDate(r.job.nextDate) + '</td>' +
+        '<td style="font-size:12px;">' + diffText + '</td>' +
+        '<td><div class="table-actions"><button class="btn btn-primary btn-icon-sm" title="บันทึกงานใหม่" onclick="openAddJobForCustomer(\'' + escAttr(r.cust?.phone || '') + '\')"><i class="fas fa-plus"></i></button>' +
+        '<button class="btn btn-secondary btn-icon-sm" title="ส่งแจ้งเตือน" onclick="openSendReminder(\'' + escAttr(r.cust?.phone || '') + '\',\'' + escAttr(r.job.serviceType) + '\',\'' + escAttr(r.job.nextDate) + '\')"><i class="fas fa-paper-plane"></i></button></div></td></tr>';
+    }).join('') + '</tbody></table></div><div class="cust-foot">' + reminders.length + ' รายการ</div></div>';
     return;
   }
   if (reminders.length === 0) {
@@ -3216,7 +3252,7 @@ var _selfBackAt = 0;        // เวลาที่เราเรียก his
 var _exitShownAt = 0;       // เวลาที่เปิดหน้าต่างยืนยันปิดแอป
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
-var APP_VERSION = 'v70';
+var APP_VERSION = 'v71';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -4601,9 +4637,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // ใช้ location.reload() (โหลดรายการประวัติเดิม ไม่สร้างรายการซ้ำ) แทนการ navigate
     // กันประวัติมีหน้าแอปเวอร์ชันเก่าค้างไว้ข้างล่าง ทำให้กดย้อนกลับแล้วเจอแอปหน้าเก่า
     navigator.serviceWorker.addEventListener('message', function(ev) {
-      if (ev.data && ev.data.type === 'FIXPRO_SW_UPDATED' && !document.querySelector('.modal-overlay.open')) {
-        location.reload();
-      }
+      // v71 แก้ "เปิดแอปกระพริบหนึ่งครั้ง" ต้นเหตุที่ 2: เดิมเมื่อติดตั้งเวอร์ชันใหม่เสร็จจะ reload ตัวเองทันที
+      // = ทุกครั้งที่มีอัปเดตแล้วเปิดแอป ผู้ใช้เห็นจอรีโหลดแวบหนึ่งครั้ง — ตอนนี้ปล่อยผ่านเงียบ ๆ
+      // เวอร์ชันใหม่พร้อมใช้ตอนเปิดครั้งถัดไปเอง (SW แคช HTML ใหม่ไว้แล้ว ข้อมูลเดิมครบไม่หาย)
+      if (ev.data && ev.data.type === 'FIXPRO_SW_UPDATED') { console.info('อัปเดตเวอร์ชันใหม่พร้อมแล้ว — จะใช้ได้ตอนเปิดแอปครั้งถัดไป'); }
     });
   }
   // v58 audit: ตัดการตั้ง dash-date 2 บรรทัดที่ถูกทับทันที — enterApp → showPage('dashboard') → renderDashboard เขียนค่านี้เสมอ
