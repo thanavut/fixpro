@@ -1,13 +1,16 @@
 /* FixPro Service Worker — แคชไฟล์แอปไว้ใช้งานตอนออฟไลน์ */
-var CACHE = 'fixpro-v59';
+var CACHE = 'fixpro-v60';
 var CORE = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './manifest.webmanifest?v=59', // v56: URL เปลี่ยนบังคับ Chrome อ่าน manifest ใหม่ = เคลียร์สแปลชม่วงตกค้างยุค v49 (v59: bump ตามรอบแคช)
+  './manifest.webmanifest?v=60', // v56: URL เปลี่ยนบังคับ Chrome อ่าน manifest ใหม่ = เคลียร์สแปลชม่วงตกค้างยุค v49 (v60: bump ตามรอบแคช)
   './icons/icon-192.png',
   './icons/icon-180.png',
   './icons/icon-512.png',
+  // v60: ไอคอนขอบโค้ง (any) แยกไฟล์ maskable เต็มพื้นไว้ให้ Android launcher มาสก์เอง — ต้องแคชให้ครบ
+  './icons/icon-maskable-192.png',
+  './icons/icon-maskable-512.png',
   // Firebase SDK เก็บในแอปเอง (โฟลเดอร์ /firebase) — เชื่อมคลาวด์ได้แม้เน็ตกระตุก/ออฟไลน์ ไม่พึ่ง gstatic อีกต่อไป
   // v40: ถอนระบบล็อกอินแล้วจึงไม่โหลด firebase-auth-compat.js (ไฟล์คงอยู่ใน repo สำหรับหน้าเก่าที่แคชค้างเท่านั้น)
   './firebase/firebase-app-compat.js',
