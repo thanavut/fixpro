@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=60">
+<link rel="manifest" href="manifest.webmanifest?v=61">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro — ระบบจัดการงานช่าง</title>
@@ -1462,8 +1462,12 @@ body::after {
         <input type="text" class="form-control" id="job-device" placeholder="รุ่นอุปกรณ์">
       </div>
       <div class="form-group">
+        <label class="form-label">🔧 อาการเสีย</label>
+        <input type="text" class="form-control" id="job-symptom" placeholder="อาการที่ลูกค้าแจ้ง เช่น แอร์ไม่เย็น"> <!-- v61: ช่องอาการเสีย อยู่บนช่องรายละเอียด -->
+      </div>
+      <div class="form-group">
         <label class="form-label">📝 รายละเอียด</label>
-        <textarea class="form-control" id="job-desc" placeholder="อาการ วิธีซ่อม อะไหล่..."></textarea>
+        <textarea class="form-control" id="job-desc" placeholder="วิธีซ่อม อะไหล่..."></textarea>
       </div>
       <div class="form-group">
         <label class="form-label">สถานะ</label>
@@ -1950,7 +1954,7 @@ function jobItemsSummary(j) { var it = jobItems(j); return it ? it.map(function(
 // เก็บไว้รายการเดียว (อัปเดตใหม่กว่า/รูปเยอะกว่า) และลบตัวซ้ำออกจากคลาวด์ด้วย
 function dedupeJobs(list) {
   var out = [];
-  var keyOf = function(j) { return [j.customerPhone, j.serviceDate, j.serviceType, (j.deviceInfo||''), (j.description||''), String(j.cost||'0'), String(j.travel||'0'), (j.status||''), (j.nextDate||''), JSON.stringify(j.photos||[])].join('||'); };
+  var keyOf = function(j) { return [j.customerPhone, j.serviceDate, j.serviceType, (j.deviceInfo||''), (j.symptom||''), (j.description||''), String(j.cost||'0'), String(j.travel||'0'), (j.status||''), (j.nextDate||''), JSON.stringify(j.photos||[])].join('||'); }; // v61: เพิ่มอาการเสียในเนื้อหาเปรียบเทียบ
   var seen = {};
   for (var i = 0; i < list.length; i++) {
     var j = list[i];
@@ -2553,7 +2557,7 @@ function renderJobs() {
   DB.customers.forEach(function(c) { custMap[c.phone] = c; });
   var list = sortByLatest(DB.jobs.filter(j => {
     var cust = custMap[j.customerPhone];
-    var matchText = !ft || (cust?.name || '').toLowerCase().includes(ft) || (j.customerPhone || '').includes(ft) || (j.description || '').toLowerCase().includes(ft) || (j.deviceInfo || '').toLowerCase().includes(ft) || jobItemsText(j).toLowerCase().includes(ft); // v53: ค้นชื่อรายการซ่อมย่อยด้วย
+    var matchText = !ft || (cust?.name || '').toLowerCase().includes(ft) || (j.customerPhone || '').includes(ft) || (j.symptom || '').toLowerCase().includes(ft) || (j.description || '').toLowerCase().includes(ft) || (j.deviceInfo || '').toLowerCase().includes(ft) || jobItemsText(j).toLowerCase().includes(ft); // v53: ค้นชื่อรายการซ่อมย่อยด้วย · v61: ค้นอาการเสียด้วย
     var matchType = !typeFilter || j.serviceType === typeFilter;
     var matchStatus = !statusFilter || (j.status || 'done') === statusFilter;
     return matchText && matchType && matchStatus;
@@ -2739,6 +2743,7 @@ function renderJobCard(j) {
     '<button class="btn btn-ghost btn-icon-sm" onclick="event.stopPropagation();openEditJob(\'' + escAttr(j.id) + '\')"><i class="fas fa-edit"></i></button>' +
     '<button class="btn btn-ghost btn-icon-sm" style="color:var(--danger)" onclick="event.stopPropagation();confirmDeleteJob(\'' + escAttr(j.id) + '\')"><i class="fas fa-trash"></i></button></div>' +
     (j.deviceInfo ? '<div class="timeline-device">' + esc(j.deviceInfo) + '</div>' : '') +
+    (j.symptom ? '<div style="font-size:13px;color:var(--text);margin-top:4px;"><span style="color:var(--text3);">🔧 อาการเสีย:</span> ' + esc(j.symptom) + '</div>' : '') + // v61: อาการเสีย
     (j.description ? '<div style="font-size:13px;color:var(--text);margin-top:4px;white-space:pre-line;">' + esc(j.description) + '</div>' : '') + // v59: โชว์ตัวขึ้นบรรทัดตามที่พิมพ์จริง
     (jobItems(j) ? '<div style="margin-top:6px;padding-top:6px;border-top:1px dashed var(--border);">' + // v53: เห็นรายการซ่อมทุกบรรทัด + ค่าเดินทางในหน้ารายละเอียดลูกค้า
       jobItems(j).map(it => '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12.5px;color:var(--text2);margin-top:3px;"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">🧾 ' + esc(it.name) + '</span><span style="flex-shrink:0;font-weight:700;color:var(--text);">' + (parseFloat(it.price)||0).toLocaleString() + ' ฿</span></div>').join('') +
@@ -2946,7 +2951,7 @@ var _selfBackAt = 0;        // เวลาที่เราเรียก his
 var _exitShownAt = 0;       // เวลาที่เปิดหน้าต่างยืนยันปิดแอป
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
-var APP_VERSION = 'v60';
+var APP_VERSION = 'v61';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -3147,6 +3152,7 @@ function openEditJob(jobId) {
   document.getElementById('job-travel').value = (j.travel ? Number(j.travel) : '');
   document.getElementById('job-discount').value = (jobDiscount(j) ? jobDiscount(j) : ''); // v59: ส่วนลดเดิมตอนแก้ไขงาน
   document.getElementById('job-device').value = j.deviceInfo || '';
+  document.getElementById('job-symptom').value = j.symptom || ''; // v61: อาการเสียเดิมตอนแก้ไขงาน
   document.getElementById('job-desc').value = j.description || '';
   document.getElementById('job-status').value = j.status || 'done';
   document.querySelectorAll('input[name="job-status-r"]').forEach(r => { r.checked = r.value === (j.status||'done'); });
@@ -3169,6 +3175,7 @@ function resetJobModal() {
   document.getElementById('job-travel').value = '';
   document.getElementById('job-discount').value = ''; // v59: ล้างส่วนลดเมื่อเปิดงานใหม่
   document.getElementById('job-device').value = '';
+  document.getElementById('job-symptom').value = ''; // v61: ล้างอาการเสียเมื่อเปิดงานใหม่
   document.getElementById('job-desc').value = '';
   updateJobTotalPreview();
   document.getElementById('job-status').value = 'done';
@@ -3250,6 +3257,7 @@ async function _doSaveJob() {
     travel: parseFloat(document.getElementById('job-travel').value) || 0,
     discount: parseFloat(document.getElementById('job-discount').value) || 0, // v59: ส่วนลด (จำนวนเงิน บาท) — หักจากยอดเก็บเงินรวม
     deviceInfo: document.getElementById('job-device').value.trim(),
+    symptom: document.getElementById('job-symptom').value.trim(), // v61: อาการเสีย
     description: document.getElementById('job-desc').value.trim(),
     status: document.getElementById('job-status').value,
     nextDate: isRemindType(type) ? document.getElementById('job-next-date').value : null,
@@ -3260,7 +3268,7 @@ async function _doSaveJob() {
   if (!editId) {
     var dup = DB.jobs.find(function(x) {
       return x.customerPhone === phone && x.serviceDate === date && x.serviceType === type &&
-        (x.deviceInfo||'') === job.deviceInfo && (x.description||'') === job.description &&
+        (x.deviceInfo||'') === job.deviceInfo && (x.description||'') === job.description && (x.symptom||'') === job.symptom && // v61: อาการเสียต่างกัน = ไม่ใช่งานซ้ำ
         String(x.cost||'0') === String(job.cost) && String(x.travel||'0') === String(job.travel) &&
         (parseFloat(x.discount) || 0) === job.discount && // v59: ส่วนลดต่างกัน = ไม่ใช่งานซ้ำ
         JSON.stringify(x.items||[]) === JSON.stringify(job.items||[]) && x.updatedAt &&
@@ -3416,6 +3424,7 @@ function buildLineReceiptText(job) {
   lines.push('บริการ: ' + typeLabel(job.serviceType));
   lines.push('📅 วันที่: ' + formatDate(job.serviceDate));
   if (job.deviceInfo) lines.push('📦 อุปกรณ์: ' + job.deviceInfo);
+  if (job.symptom) lines.push('🔧 อาการเสีย: ' + job.symptom); // v61: อาการเสีย
   if (job.description) {
     // v55: รายละเอียดหลายบรรทัดตามเทมเพลตเจ้าของร้าน — หัวข้อแยกบรรทัด + แต่ละบรรทัดนำหน้า '- '
     // (ผู้ใช้พิมพ์ • - * + นำหน้าเองแล้ว = คงไว้ ไม่ซ้อนเป็น '- -')
@@ -3460,6 +3469,7 @@ function openReceipt(jobId) {
     '<div class="receipt-row"><span style="color:var(--text3);">ประเภท</span><span>' + esc(typeLabel(j.serviceType)) + '</span></div>' +
     '<div class="receipt-row"><span style="color:var(--text3);">วันที่</span><span>' + formatDate(j.serviceDate) + '</span></div>' +
     (j.deviceInfo ? '<div class="receipt-row"><span style="color:var(--text3);">อุปกรณ์</span><span>' + esc(j.deviceInfo) + '</span></div>' : '') +
+    (j.symptom ? '<div class="receipt-row"><span style="color:var(--text3);">อาการเสีย</span><span style="text-align:right;">' + esc(j.symptom) + '</span></div>' : '') + // v61: อาการเสีย
     (j.description ? '<div class="receipt-row" style="align-items:flex-start;"><span style="color:var(--text3);flex-shrink:0;">รายละเอียด</span><span style="white-space:pre-line;text-align:right;">' + esc(j.description) + '</span></div>' : '') + // v59: โชว์ตัวขึ้นบรรทัดตามที่พิมพ์จริง
     (j.nextDate ? '<div class="receipt-row"><span style="color:var(--text3);">นัดหมายถัดไป</span><span style="color:var(--warning);font-weight:600;">' + formatDate(j.nextDate) + '</span></div>' : '') +
     '<hr style="border:1px dashed var(--border);margin:8px 0;">' +
@@ -3797,13 +3807,13 @@ function shareReportLine() {
 function exportExcel() {
   if (typeof XLSX === 'undefined') { toast('กำลังโหลด SheetJS...', 'warning'); return; }
   var wb = XLSX.utils.book_new();
-  var jobRows = [['วันที่','ลูกค้า','เบอร์โทร','ประเภทงาน','อุปกรณ์','รายละเอียด','รายการซ่อม','ค่าบริการ','ค่าเดินทาง','ส่วนลด','ยอดรวม','สถานะ','นัดหมายถัดไป']]; // v53: เพิ่มคอลัมน์รายการซ่อม (1 งาน = 1 แถว เท่าเดิม) · v59: เพิ่มคอลัมน์ส่วนลด
+  var jobRows = [['วันที่','ลูกค้า','เบอร์โทร','ประเภทงาน','อุปกรณ์','อาการเสีย','รายละเอียด','รายการซ่อม','ค่าบริการ','ค่าเดินทาง','ส่วนลด','ยอดรวม','สถานะ','นัดหมายถัดไป']]; // v53: เพิ่มคอลัมน์รายการซ่อม (1 งาน = 1 แถว เท่าเดิม) · v59: เพิ่มคอลัมน์ส่วนลด · v61: เพิ่มคอลัมน์อาการเสีย
   for (var j of DB.jobs) {
     var c = DB.customers.find(c => c.phone === j.customerPhone);
-    jobRows.push([xlsxSafe(j.serviceDate||''), xlsxSafe(c?.name||''), xlsxSafe(j.customerPhone||''), xlsxSafe(typeLabel(j.serviceType)), xlsxSafe(j.deviceInfo||''), xlsxSafe(j.description||''), xlsxSafe(jobItemsSummary(j)), parseFloat(j.cost)||0, jobTravel(j), jobDiscount(j), jobTotal(j), STATUS_LABELS[j.status]||'เสร็จ', xlsxSafe(j.nextDate||'')]);
+    jobRows.push([xlsxSafe(j.serviceDate||''), xlsxSafe(c?.name||''), xlsxSafe(j.customerPhone||''), xlsxSafe(typeLabel(j.serviceType)), xlsxSafe(j.deviceInfo||''), xlsxSafe(j.symptom||''), xlsxSafe(j.description||''), xlsxSafe(jobItemsSummary(j)), parseFloat(j.cost)||0, jobTravel(j), jobDiscount(j), jobTotal(j), STATUS_LABELS[j.status]||'เสร็จ', xlsxSafe(j.nextDate||'')]);
   }
   var wsJobs = XLSX.utils.aoa_to_sheet(jobRows);
-  wsJobs['!cols'] = [10,18,12,16,20,24,26,10,10,10,10,10,12].map(w => ({wch:w}));
+  wsJobs['!cols'] = [10,18,12,16,20,18,24,26,10,10,10,10,10,12].map(w => ({wch:w}));
   XLSX.utils.book_append_sheet(wb, wsJobs, 'งานซ่อม');
   var custRows = [['ชื่อ','เบอร์โทร','ที่อยู่','Line ID','หมายเหตุ','จำนวนงาน']];
   for (var c of DB.customers) {
