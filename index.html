@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=65">
+<link rel="manifest" href="manifest.webmanifest?v=66">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -699,6 +699,22 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
   .customer-list, #jobs-mobile-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .customer-card { margin-bottom: 0; min-height: 84px; padding: 14px 18px; }
   .customer-card:hover { border-color: var(--primary); box-shadow: var(--shadow); transform: translateY(-1px); }
+  /* v66: รายชื่อลูกค้า desktop เป็นตาราง 1 แถวต่อลูกค้า (แบบแอป EBED ตามคำขอเจ้าของร้าน) — มือถือคงการ์ดเดิม */
+  #customer-list-container { display: block; }
+  .cust-table { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm); }
+  .cust-table-head, .cust-table-row { display: grid; grid-template-columns: 1.3fr 0.9fr 1.7fr 1.2fr 56px 92px; align-items: center; gap: 12px; padding: 9px 16px; }
+  .cust-table-head { background: var(--surface2); font-size: 11px; font-weight: 700; color: var(--text3); letter-spacing: .4px; }
+  .cust-table-row { border-top: 1px solid var(--border); cursor: pointer; transition: background var(--transition); }
+  .cust-table-row:hover { background: var(--surface2); }
+  .ct-name { font-weight: 700; font-size: 14px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ct-phone { font-size: 13px; color: var(--text2); white-space: nowrap; }
+  .ct-addr { font-size: 12px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ct-tags { display: flex; gap: 6px; overflow: hidden; white-space: nowrap; }
+  .ct-count { font-weight: 700; font-size: 15px; color: var(--primary); text-align: center; }
+  .ct-actions { display: flex; gap: 6px; justify-content: flex-end; }
+  .ct-actions button { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text2); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; transition: all var(--transition); }
+  .ct-actions button:hover { border-color: var(--primary); color: var(--primary); background: #EAF3EB; }
+  [data-theme="dark"] .ct-actions button:hover { background: #1F2B21; }
   .filter-bar { flex-wrap: wrap; overflow: visible; padding-bottom: 0; }
   .filter-bar .search-input { flex: 1 1 300px; }
   .form-select { cursor: pointer; }
@@ -2531,6 +2547,27 @@ function renderCustomers(filter) {
     if (!types2[j.customerPhone]) types2[j.customerPhone] = [];
     if (types2[j.customerPhone].length < 2) types2[j.customerPhone].push(j.serviceType);
   });
+  // v66: desktop (จอ ≥1024px) = ตาราง 1 แถวต่อลูกค้า แบบแอป EBED ตามคำขอเจ้าของร้าน — มือถือคงการ์ดเดิม 100%
+  if (window.matchMedia && window.matchMedia('(min-width: 1024px)').matches) {
+    var rows = list.map(c => {
+      var jobsN = jobCount[c.phone] || 0;
+      var badgeTypes = types2[c.phone] || [];
+      var hasReminder = urgentPhones.has(c.phone);
+      var tags = badgeTypes.map(st => '<span class="badge ' + (SERVICE_COLORS[st]||'badge-gray') + '" style="font-size:10px;">' + esc(typeLabel(st)) + '</span>').join('');
+      return '<div class="cust-table-row" onclick="showCustomerDetail(\'' + escAttr(c.phone) + '\')">' +
+        '<div class="ct-name">' + esc(c.name || '-') + (hasReminder ? ' <span style="color:var(--danger);font-size:11px;">●</span>' : '') + '</div>' +
+        '<div class="ct-phone"><i class="fas fa-phone" style="font-size:11px;"></i> ' + esc(c.phone) + '</div>' +
+        '<div class="ct-addr">' + (c.address ? '<i class="fas fa-location-dot" style="font-size:11px;"></i> ' + esc(c.address) : '-') + '</div>' +
+        '<div class="ct-tags">' + (tags || '-') + '</div>' +
+        '<div class="ct-count">' + jobsN + '</div>' +
+        '<div class="ct-actions" onclick="event.stopPropagation()">' +
+          '<button type="button" title="ดูข้อมูล/ประวัติงาน" onclick="showCustomerDetail(\'' + escAttr(c.phone) + '\')"><i class="fas fa-eye"></i></button>' +
+          '<button type="button" title="แก้ไขลูกค้า" onclick="openEditCustomer(\'' + escAttr(c.phone) + '\')"><i class="fas fa-pen"></i></button>' +
+        '</div></div>';
+    }).join('');
+    container.innerHTML = '<div class="cust-table"><div class="cust-table-head"><div>ชื่อ</div><div>เบอร์โทร</div><div>ที่อยู่</div><div>ประเภทงาน</div><div style="text-align:center;">งาน</div><div style="text-align:right;">จัดการ</div></div>' + rows + '</div>';
+    return;
+  }
   container.innerHTML = list.map(c => {
     var jobsN = jobCount[c.phone] || 0;
     var badgeTypes = types2[c.phone] || [];
@@ -2544,6 +2581,9 @@ function renderCustomers(filter) {
   }).join('');
 }
 function filterCustomers() { renderCustomers(document.getElementById('customer-search')?.value || ''); }
+// v66: ข้ามขนาดจอ (desktop↔มือถือ) = เรนเดอร์รูปแบบลูกค้าใหม่ทันที (ตาราง↔การ์ด)
+var _custListMq = window.matchMedia ? window.matchMedia('(min-width: 1024px)') : null;
+if (_custListMq && _custListMq.addEventListener) _custListMq.addEventListener('change', function(){ renderCustomers(); });
 
 // ============================================================
 // JOBS (Mobile Card List)
@@ -2960,7 +3000,7 @@ var _selfBackAt = 0;        // เวลาที่เราเรียก his
 var _exitShownAt = 0;       // เวลาที่เปิดหน้าต่างยืนยันปิดแอป
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
-var APP_VERSION = 'v65';
+var APP_VERSION = 'v66';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
