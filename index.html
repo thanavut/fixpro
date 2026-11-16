@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=62">
+<link rel="manifest" href="manifest.webmanifest?v=63">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro — ระบบจัดการงานช่าง</title>
@@ -1429,7 +1429,7 @@ body::after {
         <input type="date" class="form-control" id="job-date">
       </div>
       <div class="form-group">
-        <label class="form-label">🧾 รายการซ่อม</label>
+        <label class="form-label">🧾 รายการซ่อม <span style="font-weight:500;font-size:11px;color:var(--text3);">ราคาไม่บังคับ (เว้นว่าง = 0 บาท)</span></label> <!-- v63 -->
         <div class="ji-box">
           <div id="job-items-list"></div>
           <button type="button" class="ji-add" onclick="addJobItemRow()"><i class="fas fa-plus"></i> เพิ่มรายการ</button>
@@ -1467,7 +1467,7 @@ body::after {
       </div>
       <div class="form-group">
         <label class="form-label">📝 รายละเอียด</label>
-        <textarea class="form-control" id="job-desc" placeholder="วิธีซ่อม อะไหล่..."></textarea>
+        <textarea class="form-control" id="job-desc" placeholder="วิธีซ่อม อะไหล่..." oninput="autosizeJobDesc()"></textarea> <!-- v63: ขยายสูงตามข้อความอัตโนมัติ -->
       </div>
       <div class="form-group">
         <label class="form-label">สถานะ</label>
@@ -2881,17 +2881,17 @@ function clearJobItemError(inp) {
   var row = inp && inp.closest ? inp.closest('.ji-row') : null;
   if (row) row.classList.remove('ji-error');
 }
-function markPartialItemRows() {
+function markPartialItemRows() { // v63: เน้นเฉพาะแถวใส่ราคาแต่ไม่มีชื่อ — มีชื่ออย่างเดียว (ราคาเว้นว่าง/0) บันทึกได้แล้ว
   document.querySelectorAll('#job-items-list .ji-row').forEach(function(r) {
     var n = r.querySelector('.jii-name'), p = r.querySelector('.jii-price');
     var hasName = !!(n && n.value.trim()), hasPrice = !!(p && String(p.value).trim() !== '');
-    r.classList.toggle('ji-error', hasName !== hasPrice);
+    r.classList.toggle('ji-error', !hasName && hasPrice);
   });
 }
 function collectJobItems() {
   var rows = readJobItemRows();
-  var items = rows.filter(function(r) { return r.hasName && r.hasPrice; }).map(function(r) { return { name: r.name, price: r.price }; });
-  return { rows: rows, items: items, hasAny: rows.some(function(r) { return r.hasName || r.hasPrice; }), partial: rows.some(function(r) { return r.hasName !== r.hasPrice; }) };
+  var items = rows.filter(function(r) { return r.hasName; }).map(function(r) { return { name: r.name, price: r.price }; }); // v63: ราคาไม่บังคับ — แถวมีชื่ออย่างเดียวบันทึกได้ = 0 บาท ตามคำสั่งเจ้าของร้าน
+  return { rows: rows, items: items, hasAny: rows.some(function(r) { return r.hasName || r.hasPrice; }), partial: rows.some(function(r) { return !r.hasName && r.hasPrice; }) }; // v63: partial = ใส่ราคาแต่ไม่มีชื่อเท่านั้น (เดิม v53: กรอกครึ่งเดียวห้ามบันทึก)
 }
 function toggleJobExtra(force) {
   var el = document.getElementById('job-extra'); if (!el) return;
@@ -2899,6 +2899,15 @@ function toggleJobExtra(force) {
   el.style.display = show ? '' : 'none';
   var c = document.getElementById('job-extra-chev');
   if (c) c.className = 'fas fa-chevron-' + (show ? 'up' : 'down');
+}
+// v63: ช่องรายละเอียดขยายสูงตามข้อความอัตโนมัติ ตามคำสั่งเจ้าของร้าน (สูงสุด 360px แล้วเลื่อนภายในช่อง)
+function autosizeJobDesc() {
+  var el = document.getElementById('job-desc');
+  if (!el) return;
+  el.style.height = 'auto';
+  var h = el.scrollHeight || 0;
+  if (!h) { el.style.height = ''; return; } // ยังซ่อนอยู่ (โมดัล/ส่วนพับ) = ใช้ความสูง CSS เดิมก่อน
+  el.style.height = Math.min(Math.max(h, 80), 360) + 'px';
 }
 function toggleCustExtra(force) {
   var el = document.getElementById('cust-extra'); if (!el) return;
@@ -2951,7 +2960,7 @@ var _selfBackAt = 0;        // เวลาที่เราเรียก his
 var _exitShownAt = 0;       // เวลาที่เปิดหน้าต่างยืนยันปิดแอป
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
-var APP_VERSION = 'v62';
+var APP_VERSION = 'v63';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -3164,6 +3173,7 @@ function openEditJob(jobId) {
   onJobTypeChange();
   updateJobTotalPreview();
   openModal('modal-job');
+  autosizeJobDesc(); // v63: ขยายช่องรายละเอียดตามข้อความเดิมทันทีที่เปิดแก้ไข
 }
 function resetJobModal() {
   if (typeof toggleJobExtra === 'function') toggleJobExtra(false);
@@ -3177,6 +3187,7 @@ function resetJobModal() {
   document.getElementById('job-device').value = '';
   document.getElementById('job-symptom').value = ''; // v61: ล้างอาการเสียเมื่อเปิดงานใหม่
   document.getElementById('job-desc').value = '';
+  autosizeJobDesc(); // v63: หดช่องรายละเอียดกลับเมื่อล้างฟอร์ม
   updateJobTotalPreview();
   document.getElementById('job-status').value = 'done';
   document.querySelectorAll('input[name="job-status-r"]').forEach(r => { r.checked = r.value === 'done'; });
@@ -3225,9 +3236,9 @@ async function _doSaveJob() {
   if (!phone) { toast('กรุณาเลือกลูกค้า', 'error'); return; }
   if (!date) { toast('กรุณาเลือกวันที่', 'error'); return; }
   var col = collectJobItems();
-  if (col.partial) { // v53: แถวกรอกครึ่งเดียว = เน้นแถว + ไม่บันทึกจนครบ (แถวว่างเปล่าทั้งแถวปล่อยผ่านได้ = งานไม่มีราคาเหมือนเดิม)
+  if (col.partial) { // v53: แถวว่างทั้งแถวปล่อยผ่านได้ · v63: ราคาไม่บังคับ (เว้นว่าง = 0 บาท) — เน้นเฉพาะแถวใส่ราคาแต่ไม่มีชื่อ
     markPartialItemRows();
-    toast('กรอกชื่อและราคาให้ครบทุกแถวรายการซ่อมก่อนบันทึก', 'error');
+    toast('กรอกชื่อรายการให้ครบทุกแถวก่อนบันทึก (ช่องราคาเว้นว่างได้ = 0 บาท)', 'error');
     return;
   }
   var uploadedPhotos = [];
@@ -3325,7 +3336,7 @@ function filterPicker() {
 }
 function renderPickerList(ft) {
   ft = (ft||'').toLowerCase();
-  var list = DB.customers.filter(c => !ft || c.name?.toLowerCase().includes(ft) || c.phone?.includes(ft));
+  var list = sortByLatest(DB.customers.filter(c => !ft || c.name?.toLowerCase().includes(ft) || c.phone?.includes(ft)), touchOfCust); // v63: เรียงล่าสุดขึ้นก่อนเหมือนหน้าลูกค้า ตามคำสั่งเจ้าของร้าน
   var el = document.getElementById('picker-list');
   if (list.length === 0) {
     el.innerHTML = '<div class="empty-state"><i class="fas fa-user-slash"></i><p>ไม่พบลูกค้า</p></div>';
@@ -3470,7 +3481,7 @@ function openReceipt(jobId) {
     '<div class="receipt-row"><span style="color:var(--text3);">วันที่</span><span>' + formatDate(j.serviceDate) + '</span></div>' +
     (j.deviceInfo ? '<div class="receipt-row"><span style="color:var(--text3);">อุปกรณ์</span><span>' + esc(j.deviceInfo) + '</span></div>' : '') +
     (j.symptom ? '<div class="receipt-row"><span style="color:var(--text3);">อาการเสีย</span><span style="text-align:right;">' + esc(j.symptom) + '</span></div>' : '') + // v61: อาการเสีย
-    (j.description ? '<div class="receipt-row" style="align-items:flex-start;"><span style="color:var(--text3);flex-shrink:0;">รายละเอียด</span><span style="white-space:pre-line;text-align:left;">' + esc(j.description) + '</span></div>' : '') + // v59: โชว์ตัวขึ้นบรรทัดตามที่พิมพ์จริง · v62: ข้อความรายละเอียดชิดซ้ายตามคำสั่งเจ้าของร้าน
+    (j.description ? '<div style="padding:6px 0;border-bottom:1px solid #eee;font-size:13px;"><div style="color:var(--text3);">รายละเอียด</div><div style="white-space:pre-line;margin-top:2px;">' + esc(j.description) + '</div></div>' : '') + // v59: โชว์ตัวขึ้นบรรทัดตามที่พิมพ์จริง · v63: หัวข้อแยกบรรทัด + ข้อความเต็มความกว้างชิดซ้ายการ์ด (v62 ชิดซ้ายในคอลัมน์ขวายังเริ่มกลางจอตามภาพจริง 18:33)
     (j.nextDate ? '<div class="receipt-row"><span style="color:var(--text3);">นัดหมายถัดไป</span><span style="color:var(--warning);font-weight:600;">' + formatDate(j.nextDate) + '</span></div>' : '') +
     '<hr style="border:1px dashed var(--border);margin:8px 0;">' +
     (jobItems(j) ? jobItems(j).map(function(it) { return '<div class="receipt-row"><span style="color:var(--text3);">🧾 ' + esc(it.name) + '</span><span>' + (parseFloat(it.price)||0).toLocaleString() + ' ฿</span></div>'; }).join('') : '<div class="receipt-row"><span style="color:var(--text3);">ค่าบริการ</span><span>' + Number(j.cost||0).toLocaleString() + ' ฿</span></div>') +
