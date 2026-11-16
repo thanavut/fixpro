@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=68">
+<link rel="manifest" href="manifest.webmanifest?v=69">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -635,7 +635,7 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
      ============================================================ -->
 <style id="desktop-style">
 @media (min-width: 1024px) {
-  :root { --header-h: 60px; }
+  :root { --header-h: 60px; --nav-w: 150px; }
 
   /* สกอลบาร์เดสก์ท็อปจับง่ายขึ้น */
   ::-webkit-scrollbar { width: 10px; height: 10px; }
@@ -644,68 +644,80 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
   [data-theme="dark"] ::-webkit-scrollbar-thumb { background: #343A52; background-clip: padding-box; }
 
   /* ===== โครงหน้า: แถบบนเต็มความกว้าง + แถบเมนูซ้าย + เนื้อหา ===== */
-  #app-screen.active { display: grid; grid-template-columns: 238px minmax(0, 1fr); grid-template-rows: var(--header-h) minmax(0, 1fr); grid-template-areas: "header header" "sidebar body"; }
-  .app-header { grid-area: header; padding: 0 22px; gap: 14px; }
+  #app-screen.active { display: grid; grid-template-columns: var(--nav-w) minmax(0, 1fr); grid-template-rows: var(--header-h) minmax(0, 1fr); grid-template-areas: "header header" "sidebar body"; }
+  .app-header { grid-area: header; padding: 0 20px; gap: 16px; }
   .header-brand { gap: 10px; }
-  .header-brand .brand-icon { width: 38px; height: 38px; font-size: 18px; border-radius: 10px; }
-  .header-brand h2 { font-size: 19px; }
+  .header-brand .brand-icon { width: 34px; height: 34px; font-size: 16px; border-radius: 8px; }
+  .header-brand h2 { font-size: 18px; }
+  .header-btn { width: 38px; height: 38px; }
   .header-btn:hover { background: var(--bg); color: var(--text); }
   .app-body { grid-area: body; min-height: 0; }
 
   /* ===== แถบเมนูซ้าย (DOM เดิม จัดใหม่ด้วย CSS ล้วน) ===== */
-  .mobile-nav { grid-area: sidebar; position: static; width: auto; height: auto; border-top: none; border-right: 1px solid var(--border); padding: 14px 12px; background: var(--surface); overflow-y: auto; }
-  .mobile-nav-items { flex-direction: column; justify-content: flex-start; align-items: stretch; height: auto; gap: 4px; }
-  .mobile-nav-items::before { content: "เมนูหลัก"; font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; color: var(--text3); padding: 0 14px 6px; }
-  .mobile-nav-item { flex-direction: row; align-items: center; justify-content: flex-start; gap: 12px; padding: 11px 14px; flex: none; min-width: 0; font-size: 13.5px; border-radius: 10px; }
-  .mobile-nav-item i { font-size: 16px; width: 20px; text-align: center; }
-  .mobile-nav-item:hover { background: var(--surface2); color: var(--text); }
-  .mobile-nav-item.active { background: var(--primary-bg); color: var(--primary); font-weight: 700; }
+  .mobile-nav { grid-area: sidebar; position: static; width: auto; height: auto; border-top: none; border-right: 1px solid var(--border); padding: 10px; background: var(--surface); overflow-y: auto; }
+  .mobile-nav-items { flex-direction: column; justify-content: flex-start; align-items: stretch; height: auto; gap: 1px; }
+  .mobile-nav-items::before { content: "เมนูหลัก"; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text3); padding: 4px 6px 2px; }
+  .mobile-nav-item { flex-direction: row; align-items: center; justify-content: flex-start; gap: 10px; padding: 7px 10px; flex: none; min-width: 0; font-size: 13px; font-weight: 500; border-radius: var(--radius-sm); }
+  .mobile-nav-item i { font-size: 15px; width: 20px; text-align: center; }
+  .mobile-nav-item:hover { background: var(--bg); color: var(--text); }
+  .mobile-nav-item.active { background: var(--primary-bg); color: var(--primary); font-weight: 600; }
   .mobile-nav-item .nav-badge { position: static; transform: none; margin-left: auto; }
 
   /* ===== เนื้อหา: คอลัมน์กลางสูงสุด 1280px ===== */
-  .main-content { padding: 22px 30px 46px; }
-  #main-content { max-width: 1280px; margin: 0 auto; width: 100%; }
+  .main-content { padding: 6px 10px 40px; }
+  #main-content { max-width: none; margin: 0; width: 100%; }
 
   /* หัวเรื่องของแต่ละหน้าใหญ่ขึ้น */
   #dash-greeting { font-size: 22px !important; }
   #dash-date { font-size: 13px !important; }
   #page-customers > div:first-child div, #page-jobs > div:first-child div,
   #page-reminders > div:first-child div, #page-reports > div:first-child div,
-  #page-settings > div:first-child div { font-size: 21px !important; }
+  #page-settings > div:first-child div { font-size: 22px !important; }
 
   /* การ์ด */
-  .card { border-radius: 14px; }
-  .card-header { padding: 13px 18px; }
-  .card-body { padding: 14px 18px; }
-  .card-title { font-size: 14.5px; }
+  .card { border-radius: var(--radius); }
+  .card-header { padding: 16px 20px; }
+  .card-body { padding: 20px; }
+  .card-title { font-size: 15px; }
 
   /* ===== หน้าแรก: สถิติ 4 การ์ดใหญ่ + (ต้องติดต่อ | งานล่าสุด) คู่กัน ===== */
   #page-dashboard.active { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
   #page-dashboard > div:first-child { margin-bottom: 0 !important; }
   #install-banner, #dash-unpaid, #page-dashboard .stats-grid { grid-column: 1 / -1; margin-bottom: 0; }
   #page-dashboard .card { margin-bottom: 0; }
-  .stats-grid { gap: 12px; }
-  .stat-card { padding: 14px 16px; border-radius: 14px; transition: transform 0.15s ease, box-shadow 0.15s ease; }
-  .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
-  .stat-icon { width: 34px; height: 34px; font-size: 14px; border-radius: 9px; margin-bottom: 8px; }
-  .stat-value { font-size: 26px; }
-  .stat-label { font-size: 12px; }
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-bottom: 10px; }
+  .stat-card { padding: 20px; border-radius: var(--radius); transition: var(--transition); }
+  .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,.12); border-color: var(--primary); }
+  .stat-card:hover .stat-icon { transform: scale(1.1); }
+  .stat-icon { width: 44px; height: 44px; font-size: 18px; border-radius: 10px; margin-bottom: 12px; transition: transform .2s ease; }
+  .stat-value { font-size: 24px; margin-bottom: 4px; }
+  .stat-label { font-size: 13px; }
+  .stat-card::before { content: ''; position: absolute; top: 0; right: 0; width: 80px; height: 80px; border-radius: 0 var(--radius) 0 80px; opacity: 0.1; }
+  .stat-card.green::before { background: var(--primary); }
+  .stat-card.orange::before { background: var(--accent); }
+  .stat-card.blue::before { background: var(--info); }
+  .stat-card.amber::before { background: var(--amber); }
+  .stat-card.red::before { background: var(--danger); }
 
   /* แถวรายการ (แจ้งเตือน/งานล่าสุด) เพิ่มโฮเวอร์สำหรับเมาส์ */
   .reminder-item { padding: 11px 14px; min-height: 52px; }
   .reminder-item:hover { background: var(--surface2); }
 
   /* ===== ลูกค้า + งาน: รายการ 2 คอลัมน์ + โฮเวอร์ ===== */
-  .customer-list, #jobs-mobile-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .customer-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  #jobs-mobile-list { display: block; }
   .customer-card { margin-bottom: 0; min-height: 84px; padding: 14px 18px; }
   .customer-card:hover { border-color: var(--primary); box-shadow: var(--shadow); transform: translateY(-1px); }
   /* v66: รายชื่อลูกค้า desktop เป็นตาราง 1 แถวต่อลูกค้า (แบบแอป EBED ตามคำขอเจ้าของร้าน) — มือถือคงการ์ดเดิม */
   #customer-list-container { display: block; }
   .cust-table { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm); }
-  .cust-table-head, .cust-table-row { display: grid; grid-template-columns: 1.3fr 0.9fr 1.7fr 1.2fr 56px 92px; align-items: center; gap: 12px; padding: 5px 16px; }
-  .cust-table-head { background: var(--surface2); font-size: 11px; font-weight: 700; color: var(--text3); letter-spacing: .4px; }
-  .cust-table-row { border-top: 1px solid var(--border); cursor: pointer; transition: background var(--transition); min-height: 40px; }
-  .cust-table-row:hover { background: var(--surface2); }
+  .cust-table-head, .cust-table-row, .job-table-head, .job-table-row, .rem-table-head, .rem-table-row { display: grid; align-items: center; gap: 12px; padding: 5px 16px; }
+  .cust-table-head, .cust-table-row { grid-template-columns: 1.3fr 0.9fr 1.7fr 1.2fr 56px 92px; }
+  .job-table-head, .job-table-row { grid-template-columns: 1.2fr 1.6fr 130px 110px 90px 110px 70px; }
+  .rem-table-head, .rem-table-row { grid-template-columns: 1.2fr 1fr 120px 130px 150px; }
+  .cust-table-head, .job-table-head, .rem-table-head { background: var(--surface2); font-size: 11px; font-weight: 700; color: var(--text3); letter-spacing: .4px; }
+  .cust-table-row, .job-table-row, .rem-table-row { border-top: 1px solid var(--border); cursor: pointer; transition: background var(--transition); min-height: 40px; }
+  .cust-table-row:hover, .job-table-row:hover, .rem-table-row:hover { background: var(--surface2); }
   .ct-name { font-weight: 700; font-size: 14px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ct-phone { font-size: 13px; color: var(--text2); white-space: nowrap; }
   .ct-addr { font-size: 12px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -779,23 +791,29 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
   .modal-overlay { align-items: center; }
   .modal { border-radius: var(--radius-lg); max-height: 88vh; }
   #modal-job .modal { max-width: 660px; }
-  .modal-header { padding: 15px 22px; }
-  .modal-body { padding: 18px 22px; }
-  .modal-footer { padding: 14px 22px; }
+  .modal-header { padding: 14px 20px; }
+  .modal-body { padding: 16px 20px; }
+  .modal-footer { padding: 10px 20px; }
+  .modal-title { font-size: 15px; }
+  .modal-close { width: 28px; height: 28px; border-radius: 8px; }
 
   /* popup งานเสร็จ กลางจอ */
   #job-complete-overlay { align-items: center; justify-content: center; }
   .job-complete-sheet { border-radius: 24px; max-width: 460px; }
 
   /* toast ใต้แถบหัวพอดี */
-  #toast-container { top: 70px; max-width: 460px; }
+  #toast-container { top: 0; height: var(--header-h); max-width: none; flex-direction: row; justify-content: center; }
+  .toast { padding: 10px 14px; border-radius: 10px; max-width: 340px; }
 
   /* ===== ปุ่ม: โฮเวอร์สำหรับเมาส์ (คง :active ของมือถือเดิม) ===== */
-  .btn:hover { filter: brightness(1.04); }
-  .btn-primary:hover { box-shadow: 0 4px 14px rgba(46,125,50,0.35); }
+  .btn { padding: 10px 20px; }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(46,125,50,0.4); }
   .btn-line:hover { box-shadow: 0 4px 14px rgba(6,199,85,0.35); }
-  .btn-danger:hover { box-shadow: 0 4px 14px rgba(220,38,38,0.35); }
-  .btn-ghost:hover, .btn-secondary:hover { filter: none; background: var(--btn2-border); color: var(--text); }
+  .btn-danger:hover { opacity: 0.9; }
+  .btn-secondary { background: var(--bg); color: var(--text); border: 1.5px solid var(--border); }
+  .btn-secondary:hover { background: var(--border); color: var(--text); }
+  .btn-ghost:hover { background: var(--bg); color: var(--text); }
+  .btn-sm { padding: 6px 12px; font-size: 13px; min-height: 0; }
   .jt-iconbtn:hover { background: rgba(25,118,210,0.28); }
   .jt-iconbtn.danger:hover { background: rgba(220,38,38,0.28); }
   .jt-add:hover { filter: brightness(0.96); transform: scale(1.01); }
@@ -803,7 +821,31 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
   .map-btn-open:hover { box-shadow: var(--shadow-sm); transform: none; }
   .type-card:hover { border-color: var(--primary); }
   .pv-close:hover, .pv-nav button:hover { background: rgba(255,255,255,0.3); }
-  .empty-state { padding: 40px 16px; }
+  .empty-state { padding: 48px 24px; }
+  .empty-state i { font-size: 48px; margin-bottom: 16px; opacity: 0.4; }
+  .empty-state p { font-size: 14px; }
+
+  /* v69: รูปแบบทั้งหมดตาม EBED จริง — form กระชับ + ตารางมาตรฐาน EBED + รายละเอียดเล็กๆ ที่เหลือ */
+  body { line-height: 1.6; }
+  .badge { font-weight: 400; }
+  .form-group { margin-bottom: 10px; }
+  .form-label { font-size: 11px; margin-bottom: 3px; text-transform: uppercase; letter-spacing: .3px; }
+  .form-control { padding: 5px 10px; font-size: 12px; }
+  .form-control:focus { box-shadow: 0 0 0 2px rgba(46,125,50,0.1); }
+  .filter-bar { gap: 10px; margin-bottom: 16px; }
+  .filter-bar .search-input input { padding: 5px 14px 5px 36px; font-size: 12px; min-height: 0; }
+  .filter-bar .search-input i { left: 11px; font-size: 13px; }
+  select.form-select { padding: 5px 14px; font-size: 12px; min-height: 0; }
+  table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 14px; }
+  thead th { padding: 7px 14px; text-align: left; font-size: 12px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; background: var(--surface2); border-bottom: 1px solid var(--border); white-space: nowrap; }
+  tbody td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr { background: var(--surface); transition: var(--transition); }
+  tbody tr:hover { background: var(--bg); }
+  .table-actions { display: flex; gap: 4px; }
+  #page-reminders #reminders-container { background: none; border: none; box-shadow: none; }
+  .rem-when { font-weight: 700; font-size: 13px; }
+  .jt-amt { font-weight: 700; font-size: 14px; color: var(--success); text-align: right; white-space: nowrap; }
 }
 </style>
 
@@ -2641,6 +2683,8 @@ function filterCustomers() { renderCustomers(document.getElementById('customer-s
 // v66: ข้ามขนาดจอ (desktop↔มือถือ) = เรนเดอร์รูปแบบลูกค้าใหม่ทันที (ตาราง↔การ์ด)
 var _custListMq = window.matchMedia ? window.matchMedia('(min-width: 1024px)') : null;
 if (_custListMq && _custListMq.addEventListener) _custListMq.addEventListener('change', function(){ renderCustomers(); });
+// v69: ข้ามขนาดจอ = เรนเดอร์หน้างาน/แจ้งเตือนใหม่ด้วย (ตาราง↔การ์ด เหมือนหน้าลูกค้า)
+if (_custListMq && _custListMq.addEventListener) _custListMq.addEventListener('change', function(){ renderJobs(); renderReminders(); });
 
 // ============================================================
 // JOBS (Mobile Card List)
@@ -2649,6 +2693,7 @@ function renderJobs() {
   var ft = (document.getElementById('job-search')?.value || '').toLowerCase();
   var typeFilter = document.getElementById('job-filter-type')?.value || '';
   var statusFilter = document.getElementById('job-filter-status')?.value || '';
+  // v69: ตัวกรอง 'ยังไม่เสร็จ' ของ desktop (ตั้งได้เฉพาะจากการ์ด — มือถือคง false ตลอด ไม่กระทบมือถือ)
   // v58: แผนที่ phone→ลูกค้า คำนวณครั้งเดียว — เดิม find ใน DB.customers ทุกงาน 2 รอบ (filter+map) = O(n×m)
   var custMap = {};
   DB.customers.forEach(function(c) { custMap[c.phone] = c; });
@@ -2657,17 +2702,62 @@ function renderJobs() {
     var matchText = !ft || (cust?.name || '').toLowerCase().includes(ft) || (j.customerPhone || '').includes(ft) || (j.symptom || '').toLowerCase().includes(ft) || (j.description || '').toLowerCase().includes(ft) || (j.deviceInfo || '').toLowerCase().includes(ft) || jobItemsText(j).toLowerCase().includes(ft); // v53: ค้นชื่อรายการซ่อมย่อยด้วย · v61: ค้นอาการเสียด้วย
     var matchType = !typeFilter || j.serviceType === typeFilter;
     var matchStatus = !statusFilter || (j.status || 'done') === statusFilter;
-    return matchText && matchType && matchStatus;
+    var matchOpen = !jobOpenFilter || (j.status || 'done') !== 'done';
+    return matchText && matchType && matchStatus && matchOpen;
   }), touchOfJob);
+  var isDesk = window.matchMedia && window.matchMedia('(min-width: 1024px)').matches;
   var container = document.getElementById('jobs-mobile-list');
   var empty = document.getElementById('jobs-empty');
+  // v69: หน้างาน desktop = การ์ดสรุป + ตารางแบบ EBED (นับจากงานทั้งหมดเสมอ ไม่ง้อตัวกรอง — เหมือน EBED)
+  var statsHTML = '';
+  if (isDesk) {
+    var typeCounts = {}, typeOrder = [];
+    getJobTypes(true).forEach(function(t) { if (t && t.id && !(t.id in typeCounts)) { typeCounts[t.id] = 0; typeOrder.push(t.id); } });
+    var openCount = 0;
+    DB.jobs.forEach(function(j) {
+      if (!j) return;
+      if (j.serviceType) { if (!(j.serviceType in typeCounts)) { typeCounts[j.serviceType] = 0; typeOrder.push(j.serviceType); } typeCounts[j.serviceType]++; }
+      if ((j.status || 'done') !== 'done') openCount++;
+    });
+    var totalJ = DB.jobs.length;
+    var SEG_VJ = { all: 'v-blue', open: 'v-orange' };
+    var SEG_IJ = { all: 'fa-briefcase', open: 'fa-hourglass-half' };
+    var jc = function(id, num, sub, label, title) {
+      return '<div class="cust-stat ' + (SEG_VJ[id] || 'v-blue') + '" onclick="setJobSeg(\'' + escAttr(id) + '\')" title="' + esc(title) + '">' +
+        '<div class="cust-stat-icon"><i class="fas ' + (SEG_IJ[id] || 'fa-briefcase') + '"></i></div>' +
+        '<div style="min-width:0;overflow:hidden;"><div class="cust-stat-num">' + num + (sub ? '<span class="cust-stat-sub">' + sub + '</span>' : '') + '</div><div class="cust-stat-label">' + esc(label) + '</div></div></div>';
+    };
+    var seg = jc('all', totalJ, '', 'งานทั้งหมด', 'แสดงงานทั้งหมด');
+    typeOrder.forEach(function(id) {
+      var n = typeCounts[id] || 0;
+      var pct = totalJ ? Math.round(n / totalJ * 100) : 0;
+      seg += jc('type:' + id, n, ' (' + pct + '%)', typeName(id), 'กรองเฉพาะงานประเภท' + typeName(id));
+    });
+    seg += jc('open', openCount, '', 'ยังไม่เสร็จ', 'กรองเฉพาะงานที่ยังไม่เสร็จ');
+    statsHTML = '<div class="cust-stats">' + seg + '</div>';
+  }
   if (list.length === 0) {
-    if (container) container.innerHTML = '';
+    if (container) container.innerHTML = statsHTML;
     if (empty) empty.style.display = '';
     return;
   }
   if (empty) empty.style.display = 'none';
   if (container) {
+    if (isDesk) {
+      container.innerHTML = statsHTML + '<div class="cust-table job-table"><div class="job-table-head"><div>ลูกค้า</div><div>อาการ/รายละเอียด</div><div>ประเภท</div><div>วันที่</div><div style="text-align:right;">ยอด (บาท)</div><div>สถานะ</div><div style="text-align:right;">จัดการ</div></div>' + list.map(function(j) {
+        var cust = custMap[j.customerPhone];
+        var st = j.status || 'done';
+        var desc = j.symptom || j.description || j.deviceInfo || '-';
+        return '<div class="job-table-row" onclick="showCustomerDetail(\'' + escAttr(j.customerPhone) + '\')">' +
+          '<div class="ct-name">' + esc(cust?.name || j.customerPhone || '-') + '</div>' +
+          '<div class="ct-addr">' + esc(String(desc)) + '</div>' +
+          '<div class="ct-tags"><span class="badge ' + (SERVICE_COLORS[j.serviceType] || 'badge-gray') + '" style="font-size:10px;">' + esc(typeName(j.serviceType)) + '</span></div>' +
+          '<div class="ct-phone">' + formatDate(j.serviceDate) + '</div>' +
+          '<div class="jt-amt">' + (jobTotal(j) ? jobTotal(j).toLocaleString() : '0') + '</div>' +
+          '<div class="ct-tags"><span class="badge ' + (STATUS_COLORS[st] || 'badge-gray') + '" style="font-size:10px;">' + esc(STATUS_LABELS[st] || st) + '</span></div>' +
+          '<div class="ct-actions" onclick="event.stopPropagation()"><button type="button" title="ดูข้อมูล/ประวัติงาน" onclick="showCustomerDetail(\'' + escAttr(j.customerPhone) + '\')"><i class="fas fa-eye"></i></button></div></div>';
+      }).join('') + '</div>';
+    } else {
     container.innerHTML = list.map(j => {
       var cust = custMap[j.customerPhone];
       return '<div class="customer-card" onclick="showCustomerDetail(\'' + escAttr(j.customerPhone) + '\')">' +
@@ -2679,9 +2769,21 @@ function renderJobs() {
         '</div>' +
         '<div class="customer-meta"><div class="job-count" style="font-size:16px;color:var(--success);">' + (jobTotal(j)?jobTotal(j).toLocaleString():'0') + '</div><div class="job-label">บาท</div></div></div>';
     }).join('');
+    }
   }
 }
 function filterJobs() { renderJobs(); }
+// v69 ตาม EBED personsQuickFilter: กดการ์ดหน้างาน = ล้างค้นหา+ตัวกรองทั้งหมด แล้วตั้งตามการ์ดที่กด (ไม่มี toggle — รีเซ็ต = กดการ์ด 'งานทั้งหมด')
+function setJobSeg(kind) {
+  jobOpenFilter = false;
+  var sEl = document.getElementById('job-search'); if (sEl) sEl.value = '';
+  var tEl = document.getElementById('job-filter-type'); if (tEl) tEl.value = '';
+  var stEl = document.getElementById('job-filter-status'); if (stEl) stEl.value = '';
+  if (kind.indexOf('type:') === 0) { if (tEl) tEl.value = kind.slice(5); }
+  else if (kind === 'open') { jobOpenFilter = true; }
+  renderJobs();
+}
+var jobOpenFilter = false;
 function showJobsWithStatus(st) {
   showPage('jobs');
   var s = document.getElementById('job-filter-status');
@@ -2696,6 +2798,39 @@ function showJobsWithStatus(st) {
 function renderReminders() {
   var reminders = getUpcomingReminders(reminderFilter);
   var container = document.getElementById('reminders-container');
+  // v69: แจ้งเตือน desktop = การ์ดสรุป + ตารางแบบ EBED (กดการ์ด = ตัวกรองเดิม filterReminders — รีเซ็ต = การ์ด 'ทั้งหมด')
+  var isDesk = window.matchMedia && window.matchMedia('(min-width: 1024px)').matches;
+  if (isDesk) {
+    var LAB_R = [['all', 'ทั้งหมด', 'v-blue', 'fa-bell', 'แสดงทุกรายการ'],
+      ['overdue', 'เกินกำหนด', 'v-orange', 'fa-triangle-exclamation', 'กรองเฉพาะที่เกินกำหนด'],
+      ['soon', 'ใน 30 วัน', 'v-amber', 'fa-clock', 'กรองเฉพาะที่ถึงนัดใน 30 วัน'],
+      ['upcoming', 'ใน 90 วัน', 'v-green', 'fa-calendar-check', 'กรองเฉพาะที่ถึงนัดใน 90 วัน']];
+    var seg = LAB_R.map(function(it) {
+      var n = getUpcomingReminders(it[0]).length;
+      return '<div class="cust-stat ' + it[2] + '" onclick="filterReminders(\'' + it[0] + '\', null)" title="' + esc(it[4]) + '">' +
+        '<div class="cust-stat-icon"><i class="fas ' + it[3] + '"></i></div>' +
+        '<div style="min-width:0;overflow:hidden;"><div class="cust-stat-num">' + n + '</div><div class="cust-stat-label">' + esc(it[1]) + '</div></div></div>';
+    }).join('');
+    var statsHTML = '<div class="cust-stats">' + seg + '</div>';
+    if (reminders.length === 0) {
+      container.innerHTML = statsHTML + '<div class="empty-state"><i class="far fa-bell"></i><p>ไม่มีแจ้งเตือน</p></div>';
+      return;
+    }
+    container.innerHTML = statsHTML + '<div class="cust-table rem-table"><div class="rem-table-head"><div>ลูกค้า</div><div>ประเภทงาน</div><div>วันนัด</div><div>สถานะ</div><div style="text-align:right;">จัดการ</div></div>' + reminders.map(function(r) {
+      var diff = daysDiff(r.job.nextDate);
+      var diffText = diff < 0 ? '<span class="rem-when" style="color:var(--danger);">เกิน ' + Math.abs(diff) + ' วัน</span>' :
+        diff === 0 ? '<span class="rem-when" style="color:var(--warning);">วันนี้!</span>' :
+        '<span class="rem-when" style="color:' + (r.status === 'soon' ? 'var(--warning)' : 'var(--info)') + ';">อีก ' + diff + ' วัน</span>';
+      return '<div class="rem-table-row">' +
+        '<div class="ct-name" onclick="showCustomerDetail(\'' + escAttr(r.cust?.phone || '') + '\')" style="cursor:pointer;">' + esc(r.cust?.name || '-') + '</div>' +
+        '<div class="ct-tags"><span class="badge ' + (SERVICE_COLORS[r.job.serviceType] || 'badge-gray') + '" style="font-size:10px;">' + esc(typeLabel(r.job.serviceType)) + '</span></div>' +
+        '<div class="ct-phone">' + formatDate(r.job.nextDate) + '</div>' +
+        '<div>' + diffText + '</div>' +
+        '<div class="ct-actions"><button class="btn btn-primary btn-sm" title="บันทึกงานใหม่" onclick="openAddJobForCustomer(\'' + escAttr(r.cust?.phone || '') + '\')"><i class="fas fa-plus"></i></button>' +
+        '<button class="btn btn-secondary btn-sm" title="ส่งแจ้งเตือน" onclick="openSendReminder(\'' + escAttr(r.cust?.phone || '') + '\',\'' + escAttr(r.job.serviceType) + '\',\'' + escAttr(r.job.nextDate) + '\')"><i class="fas fa-paper-plane"></i></button></div></div>';
+    }).join('') + '</div>';
+    return;
+  }
   if (reminders.length === 0) {
     container.innerHTML = '<div class="empty-state"><i class="far fa-bell"></i><p>ไม่มีแจ้งเตือน</p></div>';
     return;
@@ -3057,7 +3192,7 @@ var _selfBackAt = 0;        // เวลาที่เราเรียก his
 var _exitShownAt = 0;       // เวลาที่เปิดหน้าต่างยืนยันปิดแอป
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
-var APP_VERSION = 'v68';
+var APP_VERSION = 'v69';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
