@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=66">
+<link rel="manifest" href="manifest.webmanifest?v=67">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -702,9 +702,9 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
   /* v66: รายชื่อลูกค้า desktop เป็นตาราง 1 แถวต่อลูกค้า (แบบแอป EBED ตามคำขอเจ้าของร้าน) — มือถือคงการ์ดเดิม */
   #customer-list-container { display: block; }
   .cust-table { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm); }
-  .cust-table-head, .cust-table-row { display: grid; grid-template-columns: 1.3fr 0.9fr 1.7fr 1.2fr 56px 92px; align-items: center; gap: 12px; padding: 9px 16px; }
+  .cust-table-head, .cust-table-row { display: grid; grid-template-columns: 1.3fr 0.9fr 1.7fr 1.2fr 56px 92px; align-items: center; gap: 12px; padding: 12px 16px; }
   .cust-table-head { background: var(--surface2); font-size: 11px; font-weight: 700; color: var(--text3); letter-spacing: .4px; }
-  .cust-table-row { border-top: 1px solid var(--border); cursor: pointer; transition: background var(--transition); }
+  .cust-table-row { border-top: 1px solid var(--border); cursor: pointer; transition: background var(--transition); min-height: 60px; }
   .cust-table-row:hover { background: var(--surface2); }
   .ct-name { font-weight: 700; font-size: 14px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ct-phone { font-size: 13px; color: var(--text2); white-space: nowrap; }
@@ -715,6 +715,14 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
   .ct-actions button { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text2); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; transition: all var(--transition); }
   .ct-actions button:hover { border-color: var(--primary); color: var(--primary); background: #EAF3EB; }
   [data-theme="dark"] .ct-actions button:hover { background: #1F2B21; }
+  /* v67: การ์ดสรุปด้านบนหน้าลูกค้า desktop (แบบ EBED: ขอบซ้ายสี + ไอคอนพื้นอ่อน + เลขใหญ่) — กดกรองได้จริง */
+  .cust-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 12px; }
+  .cust-stat { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--seg-color, var(--primary)); border-radius: 10px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: all var(--transition); }
+  .cust-stat:hover { border-color: var(--seg-color, var(--primary)); box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+  .cust-stat.selected { border-color: var(--seg-color, var(--primary)); background: var(--seg-soft, #EAF3EB); box-shadow: var(--shadow-sm); }
+  .cust-stat-icon { width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 14px; background: var(--seg-soft, #EAF3EB); color: var(--seg-color, var(--primary)); flex: none; }
+  .cust-stat-num { font-size: 19px; font-weight: 800; color: var(--text); line-height: 1.1; }
+  .cust-stat-label { font-size: 11px; color: var(--text3); font-weight: 600; margin-top: 1px; white-space: nowrap; }
   .filter-bar { flex-wrap: wrap; overflow: visible; padding-bottom: 0; }
   .filter-bar .search-input { flex: 1 1 300px; }
   .form-select { cursor: pointer; }
@@ -2533,11 +2541,6 @@ function renderCustomers(filter) {
   var ft = customerFilterText.toLowerCase();
   var list = sortByLatest(DB.customers.filter(c => !ft || c.name?.toLowerCase().includes(ft) || c.phone?.includes(ft) || c.address?.toLowerCase().includes(ft)), touchOfCust);
   var container = document.getElementById('customer-list-container');
-  if (list.length === 0) {
-    container.innerHTML = '<div class="empty-state"><i class="fas fa-user-slash"></i><p>' + (customerFilterText ? 'ไม่พบลูกค้า' : 'ยังไม่มีลูกค้า') + '</p>' +
-      (!customerFilterText ? '<button class="btn btn-primary btn-sm" onclick="openAddCustomer()"><i class="fas fa-plus"></i> เพิ่มลูกค้า</button>' : '') + '</div>';
-    return;
-  }
   var urgentPhones = new Set(getUpcomingReminders('all').filter(r => r.status === 'overdue' || r.status === 'soon').map(r => r.cust?.phone));
   // v58: จำนวนงาน+ป้ายประเภท 2 อันล่าสุดต่อลูกค้า คำนวณครั้งเดียว — เดิม filter ทั้ง DB.jobs ต่อลูกค้าทุกคน = O(n×m)
   // (DB.jobs เรียงใหม่อยู่ต้นสุดอยู่แล้ว = 2 อันแรกของแต่ละเบอร์ = งานล่าสุด 2 งาน เหมือนเดิมทุกอย่าง รวมป้ายซ้ำ)
@@ -2547,9 +2550,48 @@ function renderCustomers(filter) {
     if (!types2[j.customerPhone]) types2[j.customerPhone] = [];
     if (types2[j.customerPhone].length < 2) types2[j.customerPhone].push(j.serviceType);
   });
+  var isDesk = window.matchMedia && window.matchMedia('(min-width: 1024px)').matches;
+  var segHTML = '';
+  if (isDesk) {
+    // v67: การ์ดสรุปด้านบน (แบบ EBED ตามคำขอ 'ทำให้ครบทั้งการ์ดสรุปด้านบน กดแล้วสรุปได้จริง') —
+    // ลูกค้าทั้งหมด / แต่ละประเภทงาน (นับลูกค้าที่เคยมีงานประเภทนั้น ครอบคลุมประเภทที่ผู้ใช้เพิ่มเอง) / งานค้าง-ใกล้นัด (ชุดเดียวกับจุด ●) — กดกรองตารางได้จริง กดซ้ำ = กลับเป็นทั้งหมด
+    var segPhones = {};
+    var segOrder = [];
+    getJobTypes(true).forEach(function(t) { if (t && t.id && !segPhones[t.id]) { segPhones[t.id] = new Set(); segOrder.push(t.id); } });
+    segPhones.overdue = new Set();
+    DB.jobs.forEach(function(j) {
+      if (!j.serviceType) return;
+      if (!segPhones[j.serviceType]) { segPhones[j.serviceType] = new Set(); segOrder.push(j.serviceType); }
+      segPhones[j.serviceType].add(j.customerPhone);
+    });
+    urgentPhones.forEach(function(p) { if (p) segPhones.overdue.add(p); });
+    var SEG_LOOK = { ac: { icon: 'fa-fan', color: '#3B82F6', soft: '#EBF2FE' }, washer: { icon: 'fa-temperature-arrow-up', color: '#06B6D4', soft: '#E8FAFD' }, repair: { icon: 'fa-screwdriver-wrench', color: '#F59E0B', soft: '#FEF5E7' }, other: { icon: 'fa-toolbox', color: '#8B93A1', soft: '#F1F3F5' } };
+    var segCard = function(id, num, label, look) {
+      return '<div class="cust-stat' + (customerSegFilter === id ? ' selected' : '') + '" onclick="setCustomerSeg(\'' + escAttr(id) + '\')" style="--seg-color:' + look.color + ';--seg-soft:' + look.soft + ';" title="กดเพื่อกรอง: ' + esc(label) + '">' +
+        '<div class="cust-stat-icon"><i class="fas ' + look.icon + '"></i></div>' +
+        '<div><div class="cust-stat-num">' + num + '</div><div class="cust-stat-label">' + esc(label) + '</div></div></div>';
+    };
+    segHTML = segCard('all', DB.customers.length, 'ลูกค้าทั้งหมด', { icon: 'fa-users', color: '#2E7D32', soft: '#EAF3EB' });
+    segOrder.forEach(function(id) {
+      var look = SEG_LOOK[id] || { icon: 'fa-toolbox', color: '#8B93A1', soft: '#F1F3F5' };
+      segHTML += segCard(id, segPhones[id].size, typeLabel(id), look);
+    });
+    segHTML += segCard('overdue', segPhones.overdue.size, 'งานค้าง/ใกล้นัด', { icon: 'fa-bell', color: '#EF4444', soft: '#FDECEC' });
+  }
+  var statsWrap = segHTML ? '<div class="cust-stats">' + segHTML + '</div>' : '';
+  if (list.length === 0) {
+    container.innerHTML = statsWrap + '<div class="empty-state"><i class="fas fa-user-slash"></i><p>' + (customerSegFilter !== 'all' ? 'ไม่พบลูกค้าในหมวดนี้' : (customerFilterText ? 'ไม่พบลูกค้า' : 'ยังไม่มีลูกค้า')) + '</p>' +
+      (!customerFilterText && customerSegFilter === 'all' ? '<button class="btn btn-primary btn-sm" onclick="openAddCustomer()"><i class="fas fa-plus"></i> เพิ่มลูกค้า</button>' : '') + '</div>';
+    return;
+  }
   // v66: desktop (จอ ≥1024px) = ตาราง 1 แถวต่อลูกค้า แบบแอป EBED ตามคำขอเจ้าของร้าน — มือถือคงการ์ดเดิม 100%
-  if (window.matchMedia && window.matchMedia('(min-width: 1024px)').matches) {
-    var rows = list.map(c => {
+  if (isDesk) {
+    var pool = (customerSegFilter === 'all' || !segPhones[customerSegFilter]) ? list : list.filter(c => segPhones[customerSegFilter].has(c.phone));
+    if (pool.length === 0) {
+      container.innerHTML = statsWrap + '<div class="empty-state" style="margin-top:12px;"><i class="fas fa-user-slash"></i><p>ไม่พบลูกค้าในหมวดนี้</p></div>';
+      return;
+    }
+    var rows = pool.map(c => {
       var jobsN = jobCount[c.phone] || 0;
       var badgeTypes = types2[c.phone] || [];
       var hasReminder = urgentPhones.has(c.phone);
@@ -2565,7 +2607,7 @@ function renderCustomers(filter) {
           '<button type="button" title="แก้ไขลูกค้า" onclick="openEditCustomer(\'' + escAttr(c.phone) + '\')"><i class="fas fa-pen"></i></button>' +
         '</div></div>';
     }).join('');
-    container.innerHTML = '<div class="cust-table"><div class="cust-table-head"><div>ชื่อ</div><div>เบอร์โทร</div><div>ที่อยู่</div><div>ประเภทงาน</div><div style="text-align:center;">งาน</div><div style="text-align:right;">จัดการ</div></div>' + rows + '</div>';
+    container.innerHTML = statsWrap + '<div class="cust-table"><div class="cust-table-head"><div>ชื่อ</div><div>เบอร์โทร</div><div>ที่อยู่</div><div>ประเภทงาน</div><div style="text-align:center;">งาน</div><div style="text-align:right;">จัดการ</div></div>' + rows + '</div>';
     return;
   }
   container.innerHTML = list.map(c => {
@@ -2580,6 +2622,9 @@ function renderCustomers(filter) {
       '<div class="customer-meta"><div class="job-count">' + jobsN + '</div><div class="job-label">งาน</div></div></div>';
   }).join('');
 }
+// v67: กดการ์ดสรุป = กรองตารางรายชื่อตามหมวด (กดซ้ำที่การ์ดเดิม = กลับเป็นทั้งหมด)
+var customerSegFilter = 'all';
+function setCustomerSeg(seg) { customerSegFilter = (customerSegFilter === seg) ? 'all' : seg; renderCustomers(); }
 function filterCustomers() { renderCustomers(document.getElementById('customer-search')?.value || ''); }
 // v66: ข้ามขนาดจอ (desktop↔มือถือ) = เรนเดอร์รูปแบบลูกค้าใหม่ทันที (ตาราง↔การ์ด)
 var _custListMq = window.matchMedia ? window.matchMedia('(min-width: 1024px)') : null;
@@ -3000,7 +3045,7 @@ var _selfBackAt = 0;        // เวลาที่เราเรียก his
 var _exitShownAt = 0;       // เวลาที่เปิดหน้าต่างยืนยันปิดแอป
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
-var APP_VERSION = 'v66';
+var APP_VERSION = 'v67';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
