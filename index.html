@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=67">
+<link rel="manifest" href="manifest.webmanifest?v=68">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -702,9 +702,9 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
   /* v66: รายชื่อลูกค้า desktop เป็นตาราง 1 แถวต่อลูกค้า (แบบแอป EBED ตามคำขอเจ้าของร้าน) — มือถือคงการ์ดเดิม */
   #customer-list-container { display: block; }
   .cust-table { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm); }
-  .cust-table-head, .cust-table-row { display: grid; grid-template-columns: 1.3fr 0.9fr 1.7fr 1.2fr 56px 92px; align-items: center; gap: 12px; padding: 12px 16px; }
+  .cust-table-head, .cust-table-row { display: grid; grid-template-columns: 1.3fr 0.9fr 1.7fr 1.2fr 56px 92px; align-items: center; gap: 12px; padding: 5px 16px; }
   .cust-table-head { background: var(--surface2); font-size: 11px; font-weight: 700; color: var(--text3); letter-spacing: .4px; }
-  .cust-table-row { border-top: 1px solid var(--border); cursor: pointer; transition: background var(--transition); min-height: 60px; }
+  .cust-table-row { border-top: 1px solid var(--border); cursor: pointer; transition: background var(--transition); min-height: 40px; }
   .cust-table-row:hover { background: var(--surface2); }
   .ct-name { font-weight: 700; font-size: 14px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ct-phone { font-size: 13px; color: var(--text2); white-space: nowrap; }
@@ -712,17 +712,26 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
   .ct-tags { display: flex; gap: 6px; overflow: hidden; white-space: nowrap; }
   .ct-count { font-weight: 700; font-size: 15px; color: var(--primary); text-align: center; }
   .ct-actions { display: flex; gap: 6px; justify-content: flex-end; }
-  .ct-actions button { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text2); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; transition: all var(--transition); }
+  .ct-actions button { width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text2); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; transition: all var(--transition); }
   .ct-actions button:hover { border-color: var(--primary); color: var(--primary); background: #EAF3EB; }
   [data-theme="dark"] .ct-actions button:hover { background: #1F2B21; }
-  /* v67: การ์ดสรุปด้านบนหน้าลูกค้า desktop (แบบ EBED: ขอบซ้ายสี + ไอคอนพื้นอ่อน + เลขใหญ่) — กดกรองได้จริง */
-  .cust-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 12px; }
-  .cust-stat { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--seg-color, var(--primary)); border-radius: 10px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: all var(--transition); }
-  .cust-stat:hover { border-color: var(--seg-color, var(--primary)); box-shadow: var(--shadow-sm); transform: translateY(-1px); }
-  .cust-stat.selected { border-color: var(--seg-color, var(--primary)); background: var(--seg-soft, #EAF3EB); box-shadow: var(--shadow-sm); }
-  .cust-stat-icon { width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 14px; background: var(--seg-soft, #EAF3EB); color: var(--seg-color, var(--primary)); flex: none; }
-  .cust-stat-num { font-size: 19px; font-weight: 800; color: var(--text); line-height: 1.1; }
-  .cust-stat-label { font-size: 11px; color: var(--text3); font-weight: 600; margin-top: 1px; white-space: nowrap; }
+  /* v68: การ์ดสรุป = สไตล์ .stat-card-sm ของ EBED จริง (clone thanavut/ebed-firebase) — compact + แถบซ้าย 3px + ไอคอน 24px + เลข 14px + แถวเดียวเลื่อนนอน + ไม่มีไฮไลต์การ์ดที่กด */
+  .cust-stats { display: flex; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: thin; margin-bottom: 8px; }
+  .cust-stat { position: relative; overflow: hidden; background: var(--surface); border-radius: 8px; border: 1px solid var(--border); padding: 6px 10px; box-shadow: var(--shadow-sm); transition: var(--transition); display: flex; align-items: center; gap: 7px; flex: 1 1 0; min-width: 108px; cursor: pointer; }
+  .cust-stat:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,.10); border-color: var(--primary); background: var(--primary-bg); }
+  .cust-stat::before { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; }
+  .cust-stat.v-green::before { background: var(--primary); }
+  .cust-stat.v-orange::before { background: var(--accent); }
+  .cust-stat.v-blue::before { background: var(--info); }
+  .cust-stat.v-amber::before { background: var(--amber); }
+  .cust-stat-icon { width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; }
+  .cust-stat.v-green .cust-stat-icon { background: var(--primary-bg); color: var(--primary); }
+  .cust-stat.v-orange .cust-stat-icon { background: #FBE9E7; color: var(--accent); }
+  .cust-stat.v-blue .cust-stat-icon { background: #E3F2FD; color: var(--info); }
+  .cust-stat.v-amber .cust-stat-icon { background: #FFF8E1; color: var(--amber); }
+  .cust-stat-num { font-size: 14px; font-weight: 800; color: var(--text); line-height: 1.1; }
+  .cust-stat-sub { font-size: 10px; font-weight: 400; color: var(--text3); }
+  .cust-stat-label { font-size: 10px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .filter-bar { flex-wrap: wrap; overflow: visible; padding-bottom: 0; }
   .filter-bar .search-input { flex: 1 1 300px; }
   .form-select { cursor: pointer; }
@@ -2565,18 +2574,21 @@ function renderCustomers(filter) {
       segPhones[j.serviceType].add(j.customerPhone);
     });
     urgentPhones.forEach(function(p) { if (p) segPhones.overdue.add(p); });
-    var SEG_LOOK = { ac: { icon: 'fa-fan', color: '#3B82F6', soft: '#EBF2FE' }, washer: { icon: 'fa-temperature-arrow-up', color: '#06B6D4', soft: '#E8FAFD' }, repair: { icon: 'fa-screwdriver-wrench', color: '#F59E0B', soft: '#FEF5E7' }, other: { icon: 'fa-toolbox', color: '#8B93A1', soft: '#F1F3F5' } };
-    var segCard = function(id, num, label, look) {
-      return '<div class="cust-stat' + (customerSegFilter === id ? ' selected' : '') + '" onclick="setCustomerSeg(\'' + escAttr(id) + '\')" style="--seg-color:' + look.color + ';--seg-soft:' + look.soft + ';" title="กดเพื่อกรอง: ' + esc(label) + '">' +
-        '<div class="cust-stat-icon"><i class="fas ' + look.icon + '"></i></div>' +
-        '<div><div class="cust-stat-num">' + num + '</div><div class="cust-stat-label">' + esc(label) + '</div></div></div>';
+    // v68: สไตล์+พฤติกรรมตาม EBED จริง (thanavut/ebed-firebase): การ์ด stat-card-sm compact แถบซ้าย 3px ไอคอน 24px เลข 14px + (N%) แบบการ์ดบัพทิสมา + ไม่มีไฮไลต์การ์ดที่กด
+    var SEG_V = { all: 'v-blue', ac: 'v-green', washer: 'v-blue', repair: 'v-amber', other: 'v-orange', overdue: 'v-orange' };
+    var SEG_ICON = { all: 'fa-users', ac: 'fa-fan', washer: 'fa-temperature-arrow-up', repair: 'fa-screwdriver-wrench', other: 'fa-toolbox', overdue: 'fa-bell' };
+    var segCard = function(id, num, sub, label, title) {
+      return '<div class="cust-stat ' + (SEG_V[id] || 'v-blue') + '" onclick="setCustomerSeg(\'' + escAttr(id) + '\')" title="' + esc(title) + '">' +
+        '<div class="cust-stat-icon"><i class="fas ' + (SEG_ICON[id] || 'fa-toolbox') + '"></i></div>' +
+        '<div style="min-width:0;overflow:hidden;"><div class="cust-stat-num">' + num + (sub ? '<span class="cust-stat-sub">' + sub + '</span>' : '') + '</div><div class="cust-stat-label">' + esc(label) + '</div></div></div>';
     };
-    segHTML = segCard('all', DB.customers.length, 'ลูกค้าทั้งหมด', { icon: 'fa-users', color: '#2E7D32', soft: '#EAF3EB' });
+    var totalC = DB.customers.length;
+    segHTML = segCard('all', totalC, '', 'ลูกค้าทั้งหมด', 'แสดงลูกค้าทั้งหมด');
     segOrder.forEach(function(id) {
-      var look = SEG_LOOK[id] || { icon: 'fa-toolbox', color: '#8B93A1', soft: '#F1F3F5' };
-      segHTML += segCard(id, segPhones[id].size, typeLabel(id), look);
+      var pct = totalC ? Math.round(segPhones[id].size / totalC * 100) : 0;
+      segHTML += segCard(id, segPhones[id].size, ' (' + pct + '%)', typeLabel(id), 'กรองเฉพาะลูกค้าที่เคยมีงาน' + typeLabel(id));
     });
-    segHTML += segCard('overdue', segPhones.overdue.size, 'งานค้าง/ใกล้นัด', { icon: 'fa-bell', color: '#EF4444', soft: '#FDECEC' });
+    segHTML += segCard('overdue', segPhones.overdue.size, '', 'งานค้าง/ใกล้นัด', 'กรองเฉพาะงานค้าง/ใกล้นัด');
   }
   var statsWrap = segHTML ? '<div class="cust-stats">' + segHTML + '</div>' : '';
   if (list.length === 0) {
@@ -2622,9 +2634,9 @@ function renderCustomers(filter) {
       '<div class="customer-meta"><div class="job-count">' + jobsN + '</div><div class="job-label">งาน</div></div></div>';
   }).join('');
 }
-// v67: กดการ์ดสรุป = กรองตารางรายชื่อตามหมวด (กดซ้ำที่การ์ดเดิม = กลับเป็นทั้งหมด)
+// v68 ตาม EBED personsQuickFilter: กดการ์ด = ล้างช่องค้นหา+หมวดเดิม แล้วตั้งหมวดที่กด (ไม่มี toggle กดซ้ำ — รีเซ็ต = กดการ์ด 'ลูกค้าทั้งหมด' เหมือนปุ่มล้างของ EBED)
 var customerSegFilter = 'all';
-function setCustomerSeg(seg) { customerSegFilter = (customerSegFilter === seg) ? 'all' : seg; renderCustomers(); }
+function setCustomerSeg(seg) { customerSegFilter = seg; customerFilterText = ''; var sEl = document.getElementById('customer-search'); if (sEl) sEl.value = ''; renderCustomers(); }
 function filterCustomers() { renderCustomers(document.getElementById('customer-search')?.value || ''); }
 // v66: ข้ามขนาดจอ (desktop↔มือถือ) = เรนเดอร์รูปแบบลูกค้าใหม่ทันที (ตาราง↔การ์ด)
 var _custListMq = window.matchMedia ? window.matchMedia('(min-width: 1024px)') : null;
@@ -3045,7 +3057,7 @@ var _selfBackAt = 0;        // เวลาที่เราเรียก his
 var _exitShownAt = 0;       // เวลาที่เปิดหน้าต่างยืนยันปิดแอป
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
-var APP_VERSION = 'v67';
+var APP_VERSION = 'v68';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
