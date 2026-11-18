@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=72">
+<link rel="manifest" href="manifest.webmanifest?v=73">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -3253,7 +3253,8 @@ var _selfBackAt = 0;        // เวลาที่เราเรียก his
 var _exitShownAt = 0;       // เวลาที่เปิดหน้าต่างยืนยันปิดแอป
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
-var APP_VERSION = 'v72';
+var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
+var APP_VERSION = 'v73';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -3293,11 +3294,22 @@ function _armGuard() {
   } catch (e) {}
 }
 function exitAppNow() {
+  // v73 แก้ "กดปิดแอปแล้วไม่ทำงาน": เดิม window.close() ถูกเบราว์เซอร์ห้ามในแท็บปกติ (ปิดได้เฉพาะ PWA ติดตั้งแล้ว)
+  // และ history.back() ครั้งเดียวไปตกที่ชั้นรั้ง #g ของแอปเอง แอปจึงยังเปิดอยู่ — กดย้อนกลับก็ถามใหม่ วนไม่รู้จบ
+  // ทางแก้: ถอยหลังต่อเนื่องหลายชั้นจนหลุดออกนอกรายการประวัติของแอป = กลับหน้าก่อนเข้าแอปของเบราว์เซอร์
+  // (ปิดแท็บจริง ๆ ทำได้แค่เบราว์เซอร์ — ถ้าถอยได้สุดแท็บแล้วยังอยู่ในแอป จะเปลี่ยนหน้าเป็นจอว่างให้แทน)
   _selfBackAt = Date.now();
-  _expectNoHash = true; // กดปุ่มปิดแอปแล้ว — ถ้าแท็บยังอยู่ ให้คืนรั้งเงียบๆ ไม่ต้องถามซ้ำ
+  _expectNoHash = false;
+  _exiting = true;
   closeModal('modal-exit');
-  try { window.close(); } catch (e) {}
-  setTimeout(function() { try { history.back(); } catch (e) {} }, 80);
+  try { window.close(); } catch (e) {} // โหมด PWA ติดตั้งแล้ว = ปิดได้จริง จบเลย
+  var _exitTries = 0;
+  var _exitTimer = setInterval(function() {
+    _exitTries++;
+    if (_exitTries > 8) { clearInterval(_exitTimer); try { location.assign('about:blank'); } catch (e2) {} return; }
+    try { history.back(); } catch (e) { clearInterval(_exitTimer); }
+  }, 160);
+  setTimeout(function() { clearInterval(_exitTimer); }, 2500); // กัน timer ค้างถ้าปิดไม่สำเร็จ
 }
 function _handleBack() {
   var open = _jtTopOpenModal();
@@ -3324,6 +3336,7 @@ function _handleBack() {
 }
 function _onBackSignal() {
   if (location.hash === _GUARD) return;              // รั้งถูกคืนเอง = ไม่ใช่การกดย้อนกลับ
+  if (_exiting) return;                              // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — ไม่ถามซ้ำ
   if (Date.now() - _selfBackAt < 1200) return;       // เราเรียก history.back() เองตอนปิดแอป
   if (Date.now() - _lastBackHandledAt < 300) return; // popstate+hashchange ยิงคู่กัน จัดการรอบเดียวพอ
   _lastBackHandledAt = Date.now();
@@ -3338,6 +3351,7 @@ function _onBackSignal() {
   // ตรวจเองทุก 250ms ว่า #g ยังอยู่ไหม ถ้าหาย = โดนกดย้อนกลับ จัดการแทนทันที
   setInterval(function() {
     if (document.hidden) return;
+    if (_exiting) return; // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — ไม่คืนรั้ง ไม่ถามใหม่
     if (location.hash === _GUARD) return;
     if (Date.now() - _selfBackAt < 1500) return; // ช่วงกำลังปิดแอป ไม่ต้องคืนรั้ง
     if (_expectNoHash) { _armGuard(); _expectNoHash = false; return; } // เพิ่งยืนยันปิด — คืนรั้งเงียบๆ ไม่ถามซ้ำ
