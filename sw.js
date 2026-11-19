@@ -1,10 +1,10 @@
 /* FixPro Service Worker — แคชไฟล์แอปไว้ใช้งานตอนออฟไลน์ */
-var CACHE = 'fixpro-v88';
+var CACHE = 'fixpro-v89';
 var CORE = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './manifest.webmanifest?v=88', // v56: URL เปลี่ยนบังคับ Chrome อ่าน manifest ใหม่ = เคลียร์สแปลชม่วงตกค้างยุค v49 (v88: bump ตามรอบแคช — ล้างแคช fixpro-v87 ที่มี response ตัดท้ายค้าง)
+  './manifest.webmanifest?v=89', // v56: URL เปลี่ยนบังคับ Chrome อ่าน manifest ใหม่ = เคลียร์สแปลชม่วงตกค้างยุค v49 (v89: bump ตามรอบแคช — Chart.js ย้ายเป็นไฟล์ในแอป)
   './icons/icon-192.png',
   './icons/icon-180.png',
   './icons/icon-512.png',
@@ -34,6 +34,8 @@ var CORE = [
   './assets/fonts/kanit/kanit-600-thai.woff2',
   './assets/fonts/kanit/kanit-700-latin.woff2',
   './assets/fonts/kanit/kanit-700-thai.woff2',
+  // v89: Chart.js เก็บไว้ในแอปเอง — CDN เคยโหลดตัดท้ายค้าง (v87/v88) แล้วแคช SW จำของเสียซ้ำ + SRI ที่ script tag ยืนยันไฟล์เต็ม
+  './assets/chartjs/chart.umd.min.js',
   './assets/fonts/kanit/kanit-800-latin.woff2',
   './assets/fonts/kanit/kanit-800-thai.woff2',
 ];
@@ -41,7 +43,6 @@ var CDN = [
   'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js', // v88: ย้ายจาก jsdelivr (v87 เจอแคช response ตัดท้ายค้าง) + SRI ที่ script tag กันของเสีย
 ];
 
 self.addEventListener('install', function (e) {
