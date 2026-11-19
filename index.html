@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=77">
+<link rel="manifest" href="manifest.webmanifest?v=78">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -1554,8 +1554,8 @@ body::after {
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">📦 ค่าอะไหล่ (รวมในยอดเก็บเงิน)</label> <!-- v77: ช่องยาวเท่ากัน 1fr:1fr ขอบคอลัมน์ตรงกับแถวค่าเดินทาง|ส่วนลดด้านล่าง ตามที่เจ้าของร้านขอ -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:end;">
+        <label class="form-label">📦 ค่าอะไหล่ (รวมในยอดเก็บเงิน)</label> <!-- v78: ช่องจำนวนเงินเล็กลงครึ่งหนึ่ง 3fr:1fr (เงิน = 1/4 แถว = ครึ่งของเดิมทุกขนาดจอ) ตามที่เจ้าของร้านขอ -->
+        <div style="display:grid;grid-template-columns:3fr 1fr;gap:8px;align-items:end;">
           <input type="text" class="form-control" id="job-parts-name" placeholder="อะไหล่อะไร เช่น คอมเพรสเซอร์">
           <input type="number" class="form-control" id="job-parts" placeholder="จำนวนเงิน" min="0" inputmode="decimal" oninput="updateJobTotalPreview()">
         </div>
@@ -3280,7 +3280,7 @@ var _exitShownAt = 0;       // เวลาที่เปิดหน้าต�
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
 var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
-var APP_VERSION = 'v77';
+var APP_VERSION = 'v78';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
