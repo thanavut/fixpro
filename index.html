@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=83">
+<link rel="manifest" href="manifest.webmanifest?v=84">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -1554,7 +1554,7 @@ body::after {
         <input type="text" class="form-control" id="job-customer-name" placeholder="ชื่อลูกค้า" readonly style="background:var(--bg);">
       </div>
       <div class="form-group">
-        <label class="form-label">ประเภท <span class="req">*</span></label>
+        <label class="form-label">ประเภทงาน <span class="req">*</span></label>
         <div class="type-selector" id="type-selector"></div>
         <input type="hidden" id="job-type" value="ac">
       </div>
@@ -1591,8 +1591,9 @@ body::after {
         <label class="form-label">🧮 ยอดรวมเก็บเงิน</label>
         <div id="job-total-preview" style="min-height:38px;padding:7px 11px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--primary-bg);color:var(--primary-d);font-weight:800;font-size:15px;display:flex;align-items:center;">0 ฿</div>
       </div>
-      <div class="opt-toggle" onclick="toggleJobExtra()"><i class="fas fa-chevron-down" id="job-extra-chev"></i> รายละเอียดเพิ่มเติม (ไม่บังคับ)</div>
-      <div id="job-extra" style="display:none;">
+      <!-- v84: แสดงทุกช่องตั้งแต่เปิดฟอร์ม ไม่ต้องกดหัวข้อเพื่อกาง (ตามคำขอเจ้าของร้าน) — หัวข้อเป็นป้ายนิ่ง ไม่มีลูกศร/คลิก -->
+      <div class="opt-toggle" style="cursor:default;">รายละเอียดเพิ่มเติม (ไม่บังคับ)</div>
+      <div id="job-extra">
       <div class="form-group" id="job-remind-row">
         <label class="form-label">🔔 นัดหมายถัดไป</label>
         <input type="date" class="form-control" id="job-next-date">
@@ -2528,7 +2529,7 @@ function deleteJobType(id) {
   if (!t || t.deleted) return;
   document.getElementById('confirm-title').textContent = 'ลบประเภทงาน';
   document.getElementById('confirm-ok-btn').innerHTML = '<i class="fas fa-trash"></i> ลบ';
-  document.getElementById('confirm-msg').innerHTML = 'ลบ <strong>' + esc(t.label) + '</strong> ?<br><span style="font-size:12px;color:var(--text3);">งานเก่าที่บันทึกไว้จะยังแสดงชื่อประเภทเดิม</span>';
+  document.getElementById('confirm-msg').innerHTML = 'ลบ <strong>' + esc(t.label) + '</strong> ?<br><span style="font-size:12px;color:var(--text3);">งานเก่าที่บันทึกไว้จะยังแสดงชื่อประเภทงานเดิม</span>';
   document.getElementById('confirm-ok-btn').onclick = function() {
     t.deleted = true;
     saveJobTypesList(list);
@@ -2967,7 +2968,7 @@ function renderJobs() {
     typeOrder.forEach(function(id) {
       var n = typeCounts[id] || 0;
       var pct = totalJ ? Math.round(n / totalJ * 100) : 0;
-      seg += jc('type:' + id, n, ' (' + pct + '%)', typeName(id), 'กรองเฉพาะงานประเภท' + typeName(id));
+      seg += jc('type:' + id, n, ' (' + pct + '%)', typeName(id), 'กรองเฉพาะประเภทงาน' + typeName(id)); // v84: ประเภท → ประเภทงาน
     });
     seg += jc('open', openCount, '', 'ยังไม่เสร็จ', 'กรองเฉพาะงานที่ยังไม่เสร็จ');
     statsHTML = '<div class="cust-stats">' + seg + '</div>';
@@ -2986,8 +2987,9 @@ function renderJobs() {
       // v81: เพิ่มคอลัมน์ "อุปกรณ์" (job.deviceInfo) ตามคำขอเจ้าของร้าน — วางหลังลูกค้าตามลำดับ CSV ส่งออก (ประเภทงาน→อุปกรณ์→อาการเสีย)
       // และเลิก fallback deviceInfo ในคอลัมน์อาการ/รายละเอียด (เดิมงานที่กรอกแค่อุปกรณ์จะโผล่ชื่ออุปกรณ์ซ้ำในคอลัมน์อาการ) — ตารางนี้ desktop เท่านั้น (mobile = การ์ดที่แสดง 📦 อุปกรณ์อยู่แล้ว)
       // v83: คอลัมน์อุปกรณ์แบ่งเป็น 2 คอลัมน์ "ยี่ห้อ|รุ่น" (job.brand/job.model — งานเก่าไม่มี brand แสดง deviceInfo เดิมที่ยี่ห้อ)
+      // v84: ย้ายคอลัมน์ "ประเภทงาน" ขึ้นหน้า "ยี่ห้อ" + เปลี่ยนชื่อคอลัมน์จาก "ประเภท" เป็น "ประเภทงาน" (ตรงลำดับ CSV: วันที่→ลูกค้า→ประเภทงาน→อุปกรณ์) — สถานะยังเป็น td[7] เท่าเดิม
       container.innerHTML = statsHTML + '<div class="cust-table"><div class="table-wrap table-wrap-scrollable" id="jobs-table-wrap"><table>' +
-        '<thead><tr><th>ลูกค้า</th><th>ยี่ห้อ</th><th>รุ่น</th><th>อาการ/รายละเอียด</th><th>ประเภท</th><th>วันที่</th><th style="text-align:right;">ยอด (บาท)</th><th>สถานะ</th><th style="text-align:right;">จัดการ</th></tr></thead><tbody>' +
+        '<thead><tr><th>ลูกค้า</th><th>ประเภทงาน</th><th>ยี่ห้อ</th><th>รุ่น</th><th>อาการ/รายละเอียด</th><th>วันที่</th><th style="text-align:right;">ยอด (บาท)</th><th>สถานะ</th><th style="text-align:right;">จัดการ</th></tr></thead><tbody>' +
         list.map(function(j) {
         var cust = custMap[j.customerPhone];
         var st = j.status || 'done';
@@ -2996,10 +2998,10 @@ function renderJobs() {
         var model = j.model ? String(j.model) : '';
         return '<tr data-jid="' + escAttr(j.id) + '" onclick="showCustomerDetail(\'' + escAttr(j.customerPhone) + '\')" style="cursor:pointer;">' +
           '<td style="font-size:13px;">' + esc(cust?.name || j.customerPhone || '-') + '</td>' +
+          '<td><span class="badge ' + (SERVICE_COLORS[j.serviceType] || 'badge-gray') + ' tb-badge" style="font-size:12px;" title="' + esc(typeName(j.serviceType)) + '">' + esc(typeName(j.serviceType)) + '</span></td>' + // v84: ประเภทงานขึ้นหน้ายี่ห้อ
           '<td style="font-size:12px;color:var(--text2);max-width:120px;overflow:hidden;text-overflow:ellipsis;"' + (brand ? ' title="' + esc(brand) + '"' : '') + '>' + (brand ? esc(brand) : '<span style="color:var(--text3);">-</span>') + '</td>' +
           '<td style="font-size:12px;color:var(--text2);max-width:120px;overflow:hidden;text-overflow:ellipsis;"' + (model ? ' title="' + esc(model) + '"' : '') + '>' + (model ? esc(model) : '<span style="color:var(--text3);">-</span>') + '</td>' +
           '<td style="font-size:12px;color:var(--text2);max-width:340px;overflow:hidden;text-overflow:ellipsis;" title="' + esc(desc) + '">' + esc(desc) + '</td>' +
-          '<td><span class="badge ' + (SERVICE_COLORS[j.serviceType] || 'badge-gray') + ' tb-badge" style="font-size:12px;" title="' + esc(typeName(j.serviceType)) + '">' + esc(typeName(j.serviceType)) + '</span></td>' +
           '<td style="font-size:12px;color:var(--text2);">' + formatDate(j.serviceDate) + '</td>' +
           '<td style="font-size:12px;font-weight:700;color:var(--success);text-align:right;">' + (jobTotal(j) ? jobTotal(j).toLocaleString() : '0') + '</td>' +
           '<td><span class="badge ' + (STATUS_COLORS[st] || 'badge-gray') + ' tb-badge" style="font-size:12px;">' + esc(STATUS_LABELS[st] || st) + '</span></td>' +
@@ -3393,12 +3395,10 @@ function collectJobItems() {
   var items = rows.filter(function(r) { return r.hasName; }).map(function(r) { return { name: r.name, price: r.price }; }); // v63: ราคาไม่บังคับ — แถวมีชื่ออย่างเดียวบันทึกได้ = 0 บาท ตามคำสั่งเจ้าของร้าน
   return { rows: rows, items: items, hasAny: rows.some(function(r) { return r.hasName || r.hasPrice; }), partial: rows.some(function(r) { return !r.hasName && r.hasPrice; }) }; // v63: partial = ใส่ราคาแต่ไม่มีชื่อเท่านั้น (เดิม v53: กรอกครึ่งเดียวห้ามบันทึก)
 }
+// v84: ทุกช่องแสดงตั้งแต่เปิดฟอร์มแล้ว (ไม่มีการยุบ) — ฟังก์ชันคงไว้ให้ผู้เรียก openEditJob/resetJobModal ทำหน้าที่แค่บังคับแสดง
 function toggleJobExtra(force) {
   var el = document.getElementById('job-extra'); if (!el) return;
-  var show = typeof force === 'boolean' ? force : el.style.display === 'none';
-  el.style.display = show ? '' : 'none';
-  var c = document.getElementById('job-extra-chev');
-  if (c) c.className = 'fas fa-chevron-' + (show ? 'up' : 'down');
+  el.style.display = '';
 }
 // v63: ช่องรายละเอียดขยายสูงตามข้อความอัตโนมัติ ตามคำสั่งเจ้าของร้าน (สูงสุด 360px แล้วเลื่อนภายในช่อง)
 function autosizeJobDesc() {
@@ -3461,7 +3461,7 @@ var _exitShownAt = 0;       // เวลาที่เปิดหน้าต�
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
 var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
-var APP_VERSION = 'v83';
+var APP_VERSION = 'v84';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -3997,7 +3997,7 @@ function openReceipt(jobId) {
     '<hr style="border:1px dashed var(--border);margin:8px 0;">' +
     '<div class="receipt-row"><span style="color:var(--text3);">ลูกค้า</span><span style="font-weight:600;">' + esc(DB.customers.find(c=>c.phone===j.customerPhone)?.name||'-') + '</span></div>' +
     '<div class="receipt-row"><span style="color:var(--text3);">เบอร์โทร</span><span>' + esc(j.customerPhone) + '</span></div>' +
-    '<div class="receipt-row"><span style="color:var(--text3);">ประเภท</span><span>' + esc(typeLabel(j.serviceType)) + '</span></div>' +
+    '<div class="receipt-row"><span style="color:var(--text3);">ประเภทงาน</span><span>' + esc(typeLabel(j.serviceType)) + '</span></div>' +
     '<div class="receipt-row"><span style="color:var(--text3);">วันที่</span><span>' + formatDate(j.serviceDate) + '</span></div>' +
     (j.deviceInfo ? '<div class="receipt-row"><span style="color:var(--text3);">อุปกรณ์</span><span>' + esc(j.deviceInfo) + '</span></div>' : '') +
     (j.symptom ? '<div class="receipt-row"><span style="color:var(--text3);">อาการเสีย</span><span style="text-align:right;">' + esc(j.symptom) + '</span></div>' : '') + // v61: อาการเสีย
@@ -4239,7 +4239,7 @@ function renderReport() {
   // งานที่ประเภทถูกลบ/ไม่มีในระบบแล้ว รวมเป็นหมวด "ไม่ระบุประเภท" ไม่ให้หายจากรายงาน
   var _unknownJobs = pJobs.filter(j => !_knownTypes.some(t => t.id === j.serviceType));
   if (_unknownJobs.length) typeData.push({
-    label: 'ไม่ระบุประเภท', id: '_none',
+    label: 'ไม่ระบุประเภทงาน', id: '_none',
     cnt: _unknownJobs.length,
     rev: _unknownJobs.filter(isDone).reduce((s, j) => s + jobTotal(j), 0),
     owe: _unknownJobs.filter(j => (j.status || '') === 'unpaid').reduce((s, j) => s + jobTotal(j), 0)
@@ -4354,7 +4354,7 @@ function exportExcel() {
   var wsCust = XLSX.utils.aoa_to_sheet(custRows);
   wsCust['!cols'] = [20,12,30,12,24,8].map(w => ({wch:w}));
   XLSX.utils.book_append_sheet(wb, wsCust, 'ลูกค้า');
-  var remRows = [['ลูกค้า','เบอร์โทร','ประเภท','วันบริการล่าสุด','กำหนดครั้งถัดไป','สถานะ']];
+  var remRows = [['ลูกค้า','เบอร์โทร','ประเภทงาน','วันบริการล่าสุด','กำหนดครั้งถัดไป','สถานะ']];
   for (var r of getUpcomingReminders('all')) {
     var diff = daysDiff(r.job.nextDate);
     remRows.push([xlsxSafe(r.cust?.name||''), xlsxSafe(r.cust?.phone||''), xlsxSafe(typeLabel(r.job.serviceType)), r.job.serviceDate||'', r.job.nextDate||'', r.status==='overdue'?'เกิน '+Math.abs(diff)+'วัน':'อีก '+diff+'วัน']);
@@ -4433,7 +4433,7 @@ async function exportPDFReport() {
     return [j.serviceDate||'', c?.name||'-', j.customerPhone||'', typeLabel(j.serviceType), (jobTotal(j)?jobTotal(j).toLocaleString():'-')+' ฿', STATUS_LABELS[j.status]||'-'];
   });
   doc.autoTable({
-    startY:65, head:[['วันที่','ลูกค้า','เบอร์โทร','ประเภท','ค่าใช้จ่าย','สถานะ']], body:jobData,
+    startY:65, head:[['วันที่','ลูกค้า','เบอร์โทร','ประเภทงาน','ค่าใช้จ่าย','สถานะ']], body:jobData,
     theme:'grid', font:F, headStyles:{font:F,fillColor:[26,39,68],textColor:[255,255,255],fontSize:8.5,fontStyle:'bold'},
     bodyStyles:{font:F,fontSize:8,textColor:[30,41,59]}, alternateRowStyles:{fillColor:[248,250,255]},
     columnStyles:{0:{cellWidth:22},1:{cellWidth:36},2:{cellWidth:24},3:{cellWidth:32},4:{cellWidth:22},5:{cellWidth:18}},
@@ -4449,7 +4449,7 @@ async function exportPDFReport() {
     doc.setTextColor(255,255,255); doc.setFontSize(12); doc.setFont(F,'bold');
     doc.text('รายการแจ้งเตือน', 14, 11);
     doc.autoTable({
-      startY:22, head:[['ลูกค้า','เบอร์โทร','ประเภท','กำหนดนัดหมาย','สถานะ']], body:remData,
+      startY:22, head:[['ลูกค้า','เบอร์โทร','ประเภทงาน','กำหนดนัดหมาย','สถานะ']], body:remData,
       theme:'grid', font:F, headStyles:{font:F,fillColor:[239,68,68],textColor:[255,255,255],fontSize:8.5,fontStyle:'bold'},
       bodyStyles:{font:F,fontSize:8.5,textColor:[30,41,59]}, alternateRowStyles:{fillColor:[255,248,248]},
       margin:{left:14,right:14},
