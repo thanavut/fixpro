@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=82">
+<link rel="manifest" href="manifest.webmanifest?v=83">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -718,8 +718,7 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
   .reminder-item { padding: 11px 14px; min-height: 52px; }
   .reminder-item:hover { background: var(--surface2); }
 
-  /* v82: หน้าแรก desktop — การ์ด "งานค้าง" เต็มความกว้าง (ต่อท้ายแถว ต้องติดต่อ|งานล่าสุด) + แถบไฮไลต์ชั่วคราวตอนเด้งไปหางานเฉพาะตัวบนหน้างาน */
-  #dash-pending-card { grid-column: 1 / -1; }
+  /* v82: แถบไฮไลต์ชั่วคราวตอนเด้งไปหางานเฉพาะตัวบนหน้างาน · v83: การ์ด "งานค้าง" ไม่เต็มความกว้างแล้ว — ลง grid 2 คอลัมน์เท่านั้นตามคำขอเจ้าของร้าน */
   @keyframes rowFlashV82 { 0%, 45% { background: rgba(46,125,50,0.16); } 100% { background: transparent; } }
   tr.flash-highlight, .customer-card.flash-highlight, .reminder-item.flash-highlight { animation: rowFlashV82 2.4s ease-out; }
 
@@ -1230,6 +1229,7 @@ body::after {
             <option value="done">✅ เสร็จ</option>
           </select>
         </div>
+        <div id="job-jump-chip" style="display:none;margin:-2px 0 8px;"></div> <!-- v83: ชิป "งานเดียว" โผล่เมื่อลิงก์จากการ์ด -->
         <div class="card">
           <div id="jobs-mobile-list"></div>
           <div class="empty-state" id="jobs-empty" style="padding:30px 20px;display:none;">
@@ -1599,8 +1599,17 @@ body::after {
         <div style="font-size:11px;color:var(--text3);">= วันบริการ + 1 ปี</div>
       </div>
       <div class="form-group">
-        <label class="form-label">📦 อุปกรณ์</label>
-        <input type="text" class="form-control" id="job-device" placeholder="รุ่นอุปกรณ์">
+        <!-- v83: แยกช่องอุปกรณ์เดิม (📦 อุปกรณ์) เป็น 2 คอลัมน์ ยี่ห้อ/รุ่น ตามคำขอเจ้าของร้าน — ค่ารวมเก็บใน deviceInfo ต่อ (ค้นหา/CSV/ใบเสร็จ/LINE/การ์ดมือถือ ใช้เดิม) -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div>
+            <label class="form-label">🏷️ ยี่ห้อ</label>
+            <input type="text" class="form-control" id="job-brand" placeholder="เช่น Panasonic">
+          </div>
+          <div>
+            <label class="form-label">⚙️ รุ่น</label>
+            <input type="text" class="form-control" id="job-model" placeholder="เช่น DH-6NS1">
+          </div>
+        </div>
       </div>
       <div class="form-group">
         <label class="form-label">🔧 อาการเสีย</label>
@@ -2736,25 +2745,30 @@ function renderDashboard() {
       ? '<div class="empty-state"><i class="fas fa-folder-open"></i><p>ยังไม่มีงาน</p></div>'
       : recent.map(j => {
           var cust = DB.customers.find(c => c.phone === j.customerPhone);
-          return '<div class="reminder-item" onclick="showCustomerDetail(\'' + escAttr(j.customerPhone) + '\')">' +
+          return '<div class="reminder-item" data-jid="' + escAttr(j.id) + '" onclick="jumpToJob(\'' + escAttr(j.id) + '\')">' + // v83: กดการ์ดงานล่าสุด = เด้งไปงานนั้น (เดิมเปิดประวัติลูกค้า)
             '<div style="flex:1;min-width:0;"><div class="reminder-name">' + esc(cust?.name||j.customerPhone) + '</div>' +
-            '<div class="reminder-detail">' + formatDate(j.serviceDate) + '</div></div>' +
+            '<div class="reminder-detail">' + formatDate(j.serviceDate) + (j.deviceInfo ? ' · 📦 ' + esc(j.deviceInfo) : '') + '</div></div>' +
             '<div style="text-align:right;flex-shrink:0;"><div style="font-weight:700;color:var(--success);">' + (jobTotal(j)?jobTotal(j).toLocaleString()+' ฿':'-') + '</div></div></div>';
         }).join('');
   }
 }
 
-// v82: เด้งจากหน้าแรกไปหางานเฉพาะตัวบนหน้างาน — กรองด้วยเบอร์ลูกค้า (เห็นประวัติงานของลูกค้าคนนั้นพร้อมกัน) แล้วเลื่อนไป+ไฮไลต์แถวงานนั้นชั่วคราว (desktop ตาราง / มือถือการ์ด ใช้ data-jid ร่วมกัน)
+// v83: ลิงก์จากการ์ดทุกหน้าไปยังงาน "ตัวเดียว" บนหน้างาน — โชว์เฉพาะงานนั้น (jobJumpFilter) ไม่ใช่งานทั้งหมดของลูกค้า
+// (ตามคำติ v82 ว่ากดการ์ดแล้วเจอลูกค้ามีกี่งาน) — ชิป "งานเดียว" เหนือตาราง + กด ✕/พิมพ์ค้นหา/เปลี่ยนตัวกรอง/กดการ์ดสรุป = กลับเป็นทั้งหมด
+// + เลื่อนไปหาแถวและไฮไลต์เขียวจาง 2.4 วิ (data-jid ใช้ร่วม desktop ตาราง / มือถือ การ์ด)
+var jobJumpFilter = false;
+function clearJobJump() { jobJumpFilter = false; }
 function jumpToJob(jobId) {
   var j = DB.jobs.find(x => x.id === jobId);
   if (!j) { showPage('jobs'); return; }
   jobOpenFilter = false;
-  var sEl = document.getElementById('job-search'); if (sEl) sEl.value = j.customerPhone || '';
+  jobJumpFilter = jobId;
+  var sEl = document.getElementById('job-search'); if (sEl) sEl.value = '';
   var tEl = document.getElementById('job-filter-type'); if (tEl) tEl.value = '';
   var stEl = document.getElementById('job-filter-status'); if (stEl) stEl.value = '';
   showPage('jobs');
   setTimeout(function() {
-    var row = document.querySelector('#jobs-table-wrap [data-jid="' + jobId + '"]') || document.querySelector('[data-jid="' + jobId + '"]');
+    var row = document.querySelector('#jobs-table-wrap [data-jid="' + jobId + '"]') || document.querySelector('#jobs-mobile-list [data-jid="' + jobId + '"]'); // v83: scope เฉพาะหน้างาน — กันจับ data-jid ของแถวบนหน้าแรก (งานค้าง/งานล่าสุด) ที่ซ่อนอยู่
     if (!row) return;
     row.scrollIntoView({ block: 'center', behavior: 'smooth' });
     row.classList.add('flash-highlight');
@@ -2768,6 +2782,7 @@ function dashUrgentClick() {
 }
 // v82: การ์ด/ปุ่ม "ดูทั้งหมด" ของงานค้าง → หน้างานกรองเฉพาะงานที่ยังไม่เสร็จ (jobOpenFilter = ตัวกรองยังไม่เสร็จฝั่ง desktop)
 function dashPendingClick() {
+  clearJobJump(); // v83
   if (DB.jobs.some(j => j.status === 'pending' || j.status === 'followup')) jobOpenFilter = true;
   showPage('jobs');
 }
@@ -2903,6 +2918,16 @@ function renderJobs() {
   var ft = (document.getElementById('job-search')?.value || '').toLowerCase();
   var typeFilter = document.getElementById('job-filter-type')?.value || '';
   var statusFilter = document.getElementById('job-filter-status')?.value || '';
+  // v83: ชิป "งานเดียว: ชื่อ · วันที่" เหนือตารางเมื่อลิงก์จากการ์ดมา (jobJumpFilter) กด ✕ = ดูงานทั้งหมด
+  var chip = document.getElementById('job-jump-chip');
+  if (chip) {
+    if (jobJumpFilter) {
+      var jj = DB.jobs.find(function(x){ return x.id === jobJumpFilter; });
+      var jn = jj ? (DB.customers.find(function(c){ return c.phone === jj.customerPhone; })?.name || jj.customerPhone || '') : '';
+      chip.style.display = '';
+      chip.innerHTML = '<span style="display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:4px 8px 4px 12px;font-size:12px;font-weight:600;color:var(--primary);">งานเดียว: ' + esc(jn) + (jj ? ' · ' + formatDate(jj.serviceDate) : '') + '<button onclick="clearJobJump();renderJobs();" title="ล้าง ดูงานทั้งหมด" style="border:none;background:transparent;color:var(--text3);cursor:pointer;font-size:13px;padding:0 2px;">✕</button></span>';
+    } else { chip.style.display = 'none'; }
+  }
   // v69: ตัวกรอง 'ยังไม่เสร็จ' ของ desktop (ตั้งได้เฉพาะจากการ์ด — มือถือคง false ตลอด ไม่กระทบมือถือ)
   // v58: แผนที่ phone→ลูกค้า คำนวณครั้งเดียว — เดิม find ใน DB.customers ทุกงาน 2 รอบ (filter+map) = O(n×m)
   var custMap = {};
@@ -2913,7 +2938,8 @@ function renderJobs() {
     var matchType = !typeFilter || j.serviceType === typeFilter;
     var matchStatus = !statusFilter || (j.status || 'done') === statusFilter;
     var matchOpen = !jobOpenFilter || (j.status || 'done') !== 'done';
-    return matchText && matchType && matchStatus && matchOpen;
+    var matchJump = !jobJumpFilter || j.id === jobJumpFilter; // v83: ลิงก์จากการ์ด → โชว์เฉพาะงานนั้นตัวเดียว
+    return matchText && matchType && matchStatus && matchOpen && matchJump;
   }), touchOfJob);
   var isDesk = window.matchMedia && window.matchMedia('(min-width: 1024px)').matches;
   var container = document.getElementById('jobs-mobile-list');
@@ -2959,16 +2985,19 @@ function renderJobs() {
       // ป้าย badge 12px tb-badge กันล้น / ปุ่ม ghost btn-icon-sm 28px / แถว td 4px 14px nowrap = 37px เท่ากันทุกหน้า
       // v81: เพิ่มคอลัมน์ "อุปกรณ์" (job.deviceInfo) ตามคำขอเจ้าของร้าน — วางหลังลูกค้าตามลำดับ CSV ส่งออก (ประเภทงาน→อุปกรณ์→อาการเสีย)
       // และเลิก fallback deviceInfo ในคอลัมน์อาการ/รายละเอียด (เดิมงานที่กรอกแค่อุปกรณ์จะโผล่ชื่ออุปกรณ์ซ้ำในคอลัมน์อาการ) — ตารางนี้ desktop เท่านั้น (mobile = การ์ดที่แสดง 📦 อุปกรณ์อยู่แล้ว)
+      // v83: คอลัมน์อุปกรณ์แบ่งเป็น 2 คอลัมน์ "ยี่ห้อ|รุ่น" (job.brand/job.model — งานเก่าไม่มี brand แสดง deviceInfo เดิมที่ยี่ห้อ)
       container.innerHTML = statsHTML + '<div class="cust-table"><div class="table-wrap table-wrap-scrollable" id="jobs-table-wrap"><table>' +
-        '<thead><tr><th>ลูกค้า</th><th>อุปกรณ์</th><th>อาการ/รายละเอียด</th><th>ประเภท</th><th>วันที่</th><th style="text-align:right;">ยอด (บาท)</th><th>สถานะ</th><th style="text-align:right;">จัดการ</th></tr></thead><tbody>' +
+        '<thead><tr><th>ลูกค้า</th><th>ยี่ห้อ</th><th>รุ่น</th><th>อาการ/รายละเอียด</th><th>ประเภท</th><th>วันที่</th><th style="text-align:right;">ยอด (บาท)</th><th>สถานะ</th><th style="text-align:right;">จัดการ</th></tr></thead><tbody>' +
         list.map(function(j) {
         var cust = custMap[j.customerPhone];
         var st = j.status || 'done';
         var desc = String(j.symptom || j.description || '-');
-        var dev = j.deviceInfo ? String(j.deviceInfo) : '';
+        var brand = (j.brand || j.deviceInfo) ? String(j.brand || j.deviceInfo) : '';
+        var model = j.model ? String(j.model) : '';
         return '<tr data-jid="' + escAttr(j.id) + '" onclick="showCustomerDetail(\'' + escAttr(j.customerPhone) + '\')" style="cursor:pointer;">' +
           '<td style="font-size:13px;">' + esc(cust?.name || j.customerPhone || '-') + '</td>' +
-          '<td style="font-size:12px;color:var(--text2);max-width:170px;overflow:hidden;text-overflow:ellipsis;"' + (dev ? ' title="' + esc(dev) + '"' : '') + '>' + (dev ? esc(dev) : '<span style="color:var(--text3);">-</span>') + '</td>' +
+          '<td style="font-size:12px;color:var(--text2);max-width:120px;overflow:hidden;text-overflow:ellipsis;"' + (brand ? ' title="' + esc(brand) + '"' : '') + '>' + (brand ? esc(brand) : '<span style="color:var(--text3);">-</span>') + '</td>' +
+          '<td style="font-size:12px;color:var(--text2);max-width:120px;overflow:hidden;text-overflow:ellipsis;"' + (model ? ' title="' + esc(model) + '"' : '') + '>' + (model ? esc(model) : '<span style="color:var(--text3);">-</span>') + '</td>' +
           '<td style="font-size:12px;color:var(--text2);max-width:340px;overflow:hidden;text-overflow:ellipsis;" title="' + esc(desc) + '">' + esc(desc) + '</td>' +
           '<td><span class="badge ' + (SERVICE_COLORS[j.serviceType] || 'badge-gray') + ' tb-badge" style="font-size:12px;" title="' + esc(typeName(j.serviceType)) + '">' + esc(typeName(j.serviceType)) + '</span></td>' +
           '<td style="font-size:12px;color:var(--text2);">' + formatDate(j.serviceDate) + '</td>' +
@@ -2992,9 +3021,10 @@ function renderJobs() {
     }
   }
 }
-function filterJobs() { renderJobs(); }
+function filterJobs() { clearJobJump(); renderJobs(); } // v83: ผู้ใช้พิมพ์ค้นหา/เปลี่ยนตัวกรองเอง = เลิกโชว์งานเดียว
 // v69 ตาม EBED personsQuickFilter: กดการ์ดหน้างาน = ล้างค้นหา+ตัวกรองทั้งหมด แล้วตั้งตามการ์ดที่กด (ไม่มี toggle — รีเซ็ต = กดการ์ด 'งานทั้งหมด')
 function setJobSeg(kind) {
+  clearJobJump(); // v83
   jobOpenFilter = false;
   var sEl = document.getElementById('job-search'); if (sEl) sEl.value = '';
   var tEl = document.getElementById('job-filter-type'); if (tEl) tEl.value = '';
@@ -3005,6 +3035,7 @@ function setJobSeg(kind) {
 }
 var jobOpenFilter = false;
 function showJobsWithStatus(st) {
+  clearJobJump(); // v83
   showPage('jobs');
   var s = document.getElementById('job-filter-status');
   if (s) { s.value = st; if (s.value !== st) s.value = ''; }
@@ -3044,7 +3075,7 @@ function renderReminders() {
         diff === 0 ? '<span class="rem-when" style="color:var(--warning);">วันนี้!</span>' :
         '<span class="rem-when" style="color:' + (r.status === 'soon' ? 'var(--warning)' : 'var(--info)') + ';">อีก ' + diff + ' วัน</span>';
       return '<tr>' +
-        '<td style="font-size:13px;cursor:pointer;" onclick="showCustomerDetail(\'' + escAttr(r.cust?.phone || '') + '\')">' + esc(r.cust?.name || '-') + '</td>' +
+        '<td style="font-size:13px;cursor:pointer;" onclick="jumpToJob(\'' + escAttr(r.job.id) + '\')">' + esc(r.cust?.name || '-') + '</td>' + // v83: กดแถวแจ้งเตือน = ไปยังงานนั้น (เดิมเปิดประวัติลูกค้า)
         '<td><span class="badge ' + (SERVICE_COLORS[r.job.serviceType] || 'badge-gray') + ' tb-badge" style="font-size:12px;" title="' + esc(typeLabel(r.job.serviceType)) + '">' + esc(typeLabel(r.job.serviceType)) + '</span></td>' +
         '<td style="font-size:12px;color:var(--text2);">' + formatDate(r.job.nextDate) + '</td>' +
         '<td style="font-size:12px;">' + diffText + '</td>' +
@@ -3064,7 +3095,7 @@ function renderReminders() {
       '<span style="color:' + (r.status==='soon'?'var(--warning)':'var(--info)') + ';font-weight:700;">อีก ' + diff + ' วัน</span>';
     return '<div class="reminder-item">' +
       '<div class="reminder-dot ' + r.status + '"></div>' +
-      '<div style="flex:1;min-width:0;"><div class="reminder-name" onclick="showCustomerDetail(\'' + escAttr(r.cust?.phone||'') + '\')" style="cursor:pointer;">' + esc(r.cust?.name||'-') + '</div>' +
+      '<div style="flex:1;min-width:0;"><div class="reminder-name" onclick="jumpToJob(\'' + escAttr(r.job.id) + '\')" style="cursor:pointer;">' + esc(r.cust?.name||'-') + '</div>' + // v83: มือถือก็ไปยังงานนั้น
       '<div class="reminder-detail">' + esc(typeLabel(r.job.serviceType)) + ' · ' + formatDate(r.job.nextDate) + ' · ' + diffText + '</div></div>' +
       '<div style="display:flex;gap:6px;flex-shrink:0;">' +
       '<button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openAddJobForCustomer(\'' + escAttr(r.cust?.phone||'') + '\')"><i class="fas fa-plus"></i></button>' +
@@ -3430,7 +3461,7 @@ var _exitShownAt = 0;       // เวลาที่เปิดหน้าต�
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
 var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
-var APP_VERSION = 'v82';
+var APP_VERSION = 'v83';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -3645,7 +3676,8 @@ function openEditJob(jobId) {
   document.getElementById('job-parts').value = (jobParts(j) ? jobParts(j) : ''); // v75: ค่าอะไหล่เดิมตอนแก้ไขงาน
   document.getElementById('job-parts-name').value = jobPartsName(j); // v76: ชื่ออะไหล่เดิมตอนแก้ไขงาน
   document.getElementById('job-discount').value = (jobDiscount(j) ? jobDiscount(j) : ''); // v59: ส่วนลดเดิมตอนแก้ไขงาน
-  document.getElementById('job-device').value = j.deviceInfo || '';
+  document.getElementById('job-brand').value = j.brand || j.deviceInfo || ''; // v83: ยี่ห้อ (งานเก่าที่มีแต่ deviceInfo ยกขึ้นช่องยี่ห้อให้แก้แยกได้)
+  document.getElementById('job-model').value = j.model || ''; // v83: รุ่น
   document.getElementById('job-symptom').value = j.symptom || ''; // v61: อาการเสียเดิมตอนแก้ไขงาน
   document.getElementById('job-desc').value = j.description || '';
   document.getElementById('job-status').value = j.status || 'done';
@@ -3671,7 +3703,8 @@ function resetJobModal() {
   document.getElementById('job-parts').value = ''; // v75: ล้างค่าอะไหล่เมื่อเปิดงานใหม่
   document.getElementById('job-parts-name').value = ''; // v76: ล้างชื่ออะไหล่เมื่อเปิดงานใหม่
   document.getElementById('job-discount').value = ''; // v59: ล้างส่วนลดเมื่อเปิดงานใหม่
-  document.getElementById('job-device').value = '';
+  document.getElementById('job-brand').value = ''; // v83: ล้างยี่ห้อ
+  document.getElementById('job-model').value = ''; // v83: ล้างรุ่น
   document.getElementById('job-symptom').value = ''; // v61: ล้างอาการเสียเมื่อเปิดงานใหม่
   document.getElementById('job-desc').value = '';
   autosizeJobDesc(); // v63: หดช่องรายละเอียดกลับเมื่อล้างฟอร์ม
@@ -3756,7 +3789,9 @@ async function _doSaveJob() {
     parts: parseFloat(document.getElementById('job-parts').value) || 0, // v75: ค่าอะไหล่ (จำนวนเงิน บาท) — รวมในยอดเก็บเงิน
     partsName: document.getElementById('job-parts-name').value.trim(), // v76: ชื่ออะไหล่ (แสดงในไทม์ไลน์/ใบเสร็จ)
     discount: parseFloat(document.getElementById('job-discount').value) || 0, // v59: ส่วนลด (จำนวนเงิน บาท) — หักจากยอดเก็บเงินรวม
-    deviceInfo: document.getElementById('job-device').value.trim(),
+    brand: document.getElementById('job-brand').value.trim(), // v83: ยี่ห้อ (แยกจากช่องเดียว 📦 อุปกรณ์ เดิม)
+    model: document.getElementById('job-model').value.trim(), // v83: รุ่น
+    deviceInfo: [document.getElementById('job-brand').value.trim(), document.getElementById('job-model').value.trim()].filter(Boolean).join(' '), // v83: ค่ารวม ยี่ห้อ+รุ่น — ค้นหา/CSV/ใบเสร็จ/LINE/การ์ดมือถือ ใช้ต่อได้ทันที
     symptom: document.getElementById('job-symptom').value.trim(), // v61: อาการเสีย
     description: document.getElementById('job-desc').value.trim(),
     status: document.getElementById('job-status').value,
