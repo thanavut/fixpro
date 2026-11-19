@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=84">
+<link rel="manifest" href="manifest.webmanifest?v=85">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -469,6 +469,7 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
   height: calc(var(--nav-h) + env(safe-area-inset-bottom));
 }
 .mobile-nav-items { display: flex; justify-content: space-around; align-items: stretch; height: var(--nav-h); }
+.mobile-nav-items .nav-collapse-btn { display: none; } /* v85: ปุ่มย่อ/ขยายเมนู โชว์เฉพาะ desktop (เปิดใน desktop-style) */
 .mobile-nav-item {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 2px; padding: 4px 6px; color: var(--text3); cursor: pointer;
@@ -678,6 +679,15 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
   .mobile-nav-item.active { background: var(--primary-bg); color: var(--primary); font-weight: 600; }
   .mobile-nav-item .nav-badge { position: static; transform: none; margin-left: auto; }
 
+  /* ===== v85: ย่อ/ขยายเมนูหลัก (desktop) — ปุ่มท้ายเมนู + จำสถานะใน localStorage มือถือไม่ผล ===== */
+  .mobile-nav .nav-collapse-btn { display: flex; margin-top: 8px; border-top: 1px solid var(--border); padding-top: 10px; color: var(--text3); font-weight: 500; }
+  .mobile-nav .nav-collapse-btn:hover { background: var(--bg); color: var(--text); }
+  #app-screen.nav-collapsed { --nav-w: 58px; }
+  #app-screen.nav-collapsed .mobile-nav-items::before { content: ""; padding: 0; }
+  #app-screen.nav-collapsed .mobile-nav-item span:not(.nav-badge) { display: none; }
+  #app-screen.nav-collapsed .mobile-nav-item { justify-content: center; padding-left: 6px; padding-right: 6px; gap: 0; }
+  #app-screen.nav-collapsed .mobile-nav-item .nav-badge { margin-left: 2px; }
+
   /* ===== เนื้อหา: คอลัมน์กลางสูงสุด 1280px ===== */
   .main-content { padding: 6px 10px 10px; } /* v71: ล่าง 40px→10px — FAB/แถบมือถือซ่อนอยู่แล้ว และหน้าตารางตรึงหัวต้องพอดีจอเป๊ะ */
   #main-content { max-width: none; margin: 0; width: 100%; }
@@ -876,6 +886,20 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
   #customers-table-wrap table, #jobs-table-wrap table, #reminders-table-wrap table { min-width: max-content; }
   /* v71: ป้ายประเภทงานไม่ล้นคอลัมน์ — ชื่อยาวตัดจบด้วย ... (ชี้เห็นชื่อเต็มจาก title) */
   .tb-badge { display: inline-block; max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
+  /* v85: ตารางงานพอดีจอ — เลิก min-width:max-content เฉพาะหน้างาน (9 คอลัมน์รวมกว้างเกิน viewport เดิมจึงล้นจอ)
+     ใช้ fixed layout + ความกว้างคุมสัดส่วน % + ตัดข้อความจบ ... (ชี้ title เห็นเต็ม) — ตารางลูกค้า/แจ้งเตือนคง max-content เดิม */
+  #jobs-table-wrap table { min-width: 0; table-layout: fixed; }
+  #jobs-table-wrap th:nth-child(1) { width: 10%; }  /* ลูกค้า */
+  #jobs-table-wrap th:nth-child(2) { width: 12%; }  /* ประเภทงาน */
+  #jobs-table-wrap th:nth-child(3) { width: 10%; }  /* ยี่ห้อ */
+  #jobs-table-wrap th:nth-child(4) { width: 9%; }   /* รุ่น */
+  #jobs-table-wrap th:nth-child(5) { width: 27%; }  /* อาการ/รายละเอียด */
+  #jobs-table-wrap th:nth-child(6) { width: 9%; }   /* วันที่ */
+  #jobs-table-wrap th:nth-child(7) { width: 7%; }   /* ยอด */
+  #jobs-table-wrap th:nth-child(8) { width: 8%; }   /* สถานะ */
+  #jobs-table-wrap th:nth-child(9) { width: 8%; }   /* จัดการ */
+  #jobs-table-wrap td { overflow: hidden; text-overflow: ellipsis; }
+  #jobs-table-wrap th:last-child, #jobs-table-wrap td:last-child { padding-left: 6px; padding-right: 6px; }
   /* v71: ตรึงส่วนหัวทุกหน้า desktop แบบ EBED — หน้าตาราง: หัวเรื่อง+การ์ดสรุป+ช่องค้นหา/ตัวกรองคงอยู่ตลอด เลื่อนได้แค่ตารางในกรอบ */
   #page-customers.active, #page-jobs.active, #page-reminders.active { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
   #page-customers.active > #customer-list-container,
@@ -1475,6 +1499,9 @@ body::after {
       <div class="mobile-nav-item" data-page="settings" onclick="showPage('settings')">
         <i class="fas fa-cog"></i><span>ตั้งค่า</span>
       </div>
+      <div class="mobile-nav-item nav-collapse-btn" onclick="toggleNavCollapse()" title="ย่อ/ขยายเมนู"> <!-- v85: ย่อ/ขยายเมนูหลัก (desktop) -->
+        <i class="fas fa-chevrons-left" id="nav-collapse-ic"></i><span>ย่อเมนู</span>
+      </div>
     </div>
   </nav>
 
@@ -1516,13 +1543,10 @@ body::after {
         <label class="form-label">เบอร์โทร <span class="req">*</span></label>
         <input type="tel" class="form-control" id="cust-phone" placeholder="08x-xxx-xxxx" maxlength="10">
       </div>
-      <div class="opt-toggle" onclick="toggleCustExtra()"><i class="fas fa-chevron-down" id="cust-extra-chev"></i> แผนที่ปักหมุด / LINE / หมายเหตุ (ไม่บังคับ)</div>
-      <div id="cust-extra" style="display:none;">
-      <div class="form-group">
-        <label class="form-label"><i class="fas fa-map-location-dot" style="color:var(--primary);"></i> ลิงก์ Google Maps / พิกัดบ้าน</label>
-        <input type="text" class="form-control" id="cust-mapurl" placeholder="วางลิงก์ที่แชร์จาก Google Maps เช่น https://maps.app.goo.gl/...">
-        <button type="button" class="btn btn-info btn-sm" style="width:100%;margin-top:6px;" onclick="useCurrentLocation(this)"><i class="fas fa-location-crosshairs"></i> ใช้พิกัดปัจจุบัน (GPS)</button>
-      </div>
+      <!-- v85: แสดงทุกช่องตั้งแต่เปิดฟอร์ม (LINE/หมายเหตุ) + ถอนช่องแผนที่ปักหมุด/ลิงก์ Google Maps ออกตามคำขอเจ้าของร้าน —
+           คง input ซ่อนไว้เพื่อไม่ให้พิกัดเดิมของลูกค้าเก่าหายตอนบันทึก (การ์ดแผนที่หน้ารายละเอียดยังโชว์พิกัด/เปิดแผนที่ได้) -->
+      <input type="hidden" id="cust-mapurl">
+      <div id="cust-extra">
       <div class="form-group">
         <label class="form-label">Line ID</label>
         <input type="text" class="form-control" id="cust-line" placeholder="@line_id">
@@ -1591,8 +1615,7 @@ body::after {
         <label class="form-label">🧮 ยอดรวมเก็บเงิน</label>
         <div id="job-total-preview" style="min-height:38px;padding:7px 11px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--primary-bg);color:var(--primary-d);font-weight:800;font-size:15px;display:flex;align-items:center;">0 ฿</div>
       </div>
-      <!-- v84: แสดงทุกช่องตั้งแต่เปิดฟอร์ม ไม่ต้องกดหัวข้อเพื่อกาง (ตามคำขอเจ้าของร้าน) — หัวข้อเป็นป้ายนิ่ง ไม่มีลูกศร/คลิก -->
-      <div class="opt-toggle" style="cursor:default;">รายละเอียดเพิ่มเติม (ไม่บังคับ)</div>
+      <!-- v84: แสดงทุกช่องตั้งแต่เปิดฟอร์ม · v85: ลบป้ายหัวข้อ "รายละเอียดเพิ่มเติม (ไม่บังคับ)" ออกตามคำขอเจ้าของร้าน — เหลือแต่ช่องกรอกล้วน -->
       <div id="job-extra">
       <div class="form-group" id="job-remind-row">
         <label class="form-label">🔔 นัดหมายถัดไป</label>
@@ -2667,7 +2690,7 @@ function renderDashboard() {
     return d && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   });
   var thisMonthRev = thisMonthJobs.reduce((s,j) => s+jobTotal(j), 0);
-  var greeting = now.getHours() < 12 ? 'สวัสดีตอนเช้า 🌅' : now.getHours() < 17 ? 'สวัสดีตอนบ่าย ☀️' : 'สวัสดีตอนเย็น 🌆';
+  var greeting = now.getHours() < 12 ? 'สวัสดีตอนเช้า' : now.getHours() < 17 ? 'สวัสดีตอนบ่าย' : 'สวัสดีตอนเย็น'; // v85: ตัดอิโมจิหลังคำทักทายออกตามคำขอเจ้าของร้าน
   document.getElementById('dash-greeting').textContent = greeting;
   document.getElementById('dash-date').textContent = dateLabel;
 
@@ -3213,8 +3236,8 @@ function renderCustomerDetail(phone) {
       mapNavBtn(cust, coords, addr) +
       '<button class="map-btn map-btn-open" onclick="window.open(\'' + escAttr(pinUrl || ('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(addr))) + '\',\'_blank\')"><i class="fas fa-map"></i> เปิดแผนที่</button></div>';
   } else {
-    mapCard += '<div class="empty-state" style="padding:16px 10px;"><i class="fas fa-map-location-dot"></i><p>ยังไม่มีข้อมูลแผนที่ — ปักหมุด GPS หรือวางลิงก์ Google Maps</p>' +
-      '<button class="map-btn map-btn-go" style="max-width:220px;margin:0 auto;" onclick="openEditCustomer(\'' + escAttr(phone) + '\')"><i class="fas fa-location-crosshairs"></i> ปักหมุด / ใส่พิกัด</button></div>';
+    // v85: ฟอร์มลูกค้าถอนช่องปักหมุดออกแล้ว — เหลือข้อความบอกเฉย ๆ (ลูกค้าที่เคยปักหมุดไว้ยังโชว์พิกัด + ปุ่มเปิดแผนที่ได้ปกติ)
+    mapCard += '<div class="empty-state" style="padding:16px 10px;"><i class="fas fa-map-location-dot"></i><p>ยังไม่มีข้อมูลแผนที่</p></div>';
   }
   mapCard += '</div></div>';
   html += mapCard;
@@ -3262,6 +3285,31 @@ function renderJobCard(j) {
 // ============================================================
 // NAVIGATION
 // ============================================================
+// v85: ย่อ/ขยายเมนูหลัก (desktop) — จำสถานะใน localStorage, มือถือไม่ผล (CSS อยู่ใน @media 1024px เท่านั้น)
+function toggleNavCollapse() {
+  var sc = document.getElementById('app-screen');
+  var collapsed = sc.classList.toggle('nav-collapsed');
+  try { localStorage.setItem('fixpro-nav-collapsed', collapsed ? '1' : '0'); } catch (e) {}
+  var ic = document.getElementById('nav-collapse-ic');
+  if (ic) {
+    ic.className = 'fas ' + (collapsed ? 'fa-chevrons-right' : 'fa-chevrons-left');
+    var lb = ic.parentElement.querySelector('span');
+    if (lb) lb.textContent = collapsed ? 'ขยายเมนู' : 'ย่อเมนู';
+  }
+  document.querySelectorAll('.mobile-nav-items > .mobile-nav-item[data-page]').forEach(function(it) {
+    var sp = it.querySelector('span');
+    it.title = collapsed && sp ? sp.textContent : '';
+  });
+}
+(function applyNavCollapse() {
+  var saved = false;
+  try { saved = localStorage.getItem('fixpro-nav-collapsed') === '1'; } catch (e) {}
+  if (!saved) return;
+  var sc = document.getElementById('app-screen'); if (!sc) return;
+  sc.classList.add('nav-collapsed');
+  var ic = document.getElementById('nav-collapse-ic');
+  if (ic) { ic.className = 'fas fa-chevrons-right'; var lb = ic.parentElement.querySelector('span'); if (lb) lb.textContent = 'ขยายเมนู'; }
+})();
 function showPage(page, param) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.mobile-nav-item').forEach(n => n.classList.remove('active'));
@@ -3409,12 +3457,10 @@ function autosizeJobDesc() {
   if (!h) { el.style.height = ''; return; } // ยังซ่อนอยู่ (โมดัล/ส่วนพับ) = ใช้ความสูง CSS เดิมก่อน
   el.style.height = Math.min(Math.max(h, 80), 360) + 'px';
 }
+// v85: ทุกช่องแสดงตั้งแต่เปิดฟอร์มแล้ว (แผนที่ปักหมุดถูกถอนออก) — ฟังก์ชันคงไว้ให้ resetCustomerModal/openEditCustomer เรียกไม่พัง
 function toggleCustExtra(force) {
   var el = document.getElementById('cust-extra'); if (!el) return;
-  var show = typeof force === 'boolean' ? force : el.style.display === 'none';
-  el.style.display = show ? '' : 'none';
-  var c = document.getElementById('cust-extra-chev');
-  if (c) c.className = 'fas fa-chevron-' + (show ? 'up' : 'down');
+  el.style.display = '';
 }
 // หน้าตั้งค่า: ยุบส่วนขั้นสูง (Firebase/Cloudinary) ให้หน้าสั้นลง
 function collapseAdvancedSettings() {
@@ -3461,7 +3507,7 @@ var _exitShownAt = 0;       // เวลาที่เปิดหน้าต�
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
 var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
-var APP_VERSION = 'v84';
+var APP_VERSION = 'v85';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
