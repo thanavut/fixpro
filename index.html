@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=80">
+<link rel="manifest" href="manifest.webmanifest?v=81">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -2884,14 +2884,18 @@ function renderJobs() {
       // v71: หน้างาน desktop = ตารางจริงแบบหน้าทะเบียนประวัติ EBED เป๊ะ (เหมือนหน้ารายชื่อลูกค้า v70):
       // <table> ใน .table-wrap.table-wrap-scrollable + หัว sticky + ชื่อ 13px ปกติ / ข้อมูลรอง 12px text2 /
       // ป้าย badge 12px tb-badge กันล้น / ปุ่ม ghost btn-icon-sm 28px / แถว td 4px 14px nowrap = 37px เท่ากันทุกหน้า
+      // v81: เพิ่มคอลัมน์ "อุปกรณ์" (job.deviceInfo) ตามคำขอเจ้าของร้าน — วางหลังลูกค้าตามลำดับ CSV ส่งออก (ประเภทงาน→อุปกรณ์→อาการเสีย)
+      // และเลิก fallback deviceInfo ในคอลัมน์อาการ/รายละเอียด (เดิมงานที่กรอกแค่อุปกรณ์จะโผล่ชื่ออุปกรณ์ซ้ำในคอลัมน์อาการ) — ตารางนี้ desktop เท่านั้น (mobile = การ์ดที่แสดง 📦 อุปกรณ์อยู่แล้ว)
       container.innerHTML = statsHTML + '<div class="cust-table"><div class="table-wrap table-wrap-scrollable" id="jobs-table-wrap"><table>' +
-        '<thead><tr><th>ลูกค้า</th><th>อาการ/รายละเอียด</th><th>ประเภท</th><th>วันที่</th><th style="text-align:right;">ยอด (บาท)</th><th>สถานะ</th><th style="text-align:right;">จัดการ</th></tr></thead><tbody>' +
+        '<thead><tr><th>ลูกค้า</th><th>อุปกรณ์</th><th>อาการ/รายละเอียด</th><th>ประเภท</th><th>วันที่</th><th style="text-align:right;">ยอด (บาท)</th><th>สถานะ</th><th style="text-align:right;">จัดการ</th></tr></thead><tbody>' +
         list.map(function(j) {
         var cust = custMap[j.customerPhone];
         var st = j.status || 'done';
-        var desc = String(j.symptom || j.description || j.deviceInfo || '-');
+        var desc = String(j.symptom || j.description || '-');
+        var dev = j.deviceInfo ? String(j.deviceInfo) : '';
         return '<tr onclick="showCustomerDetail(\'' + escAttr(j.customerPhone) + '\')" style="cursor:pointer;">' +
           '<td style="font-size:13px;">' + esc(cust?.name || j.customerPhone || '-') + '</td>' +
+          '<td style="font-size:12px;color:var(--text2);max-width:170px;overflow:hidden;text-overflow:ellipsis;"' + (dev ? ' title="' + esc(dev) + '"' : '') + '>' + (dev ? esc(dev) : '<span style="color:var(--text3);">-</span>') + '</td>' +
           '<td style="font-size:12px;color:var(--text2);max-width:340px;overflow:hidden;text-overflow:ellipsis;" title="' + esc(desc) + '">' + esc(desc) + '</td>' +
           '<td><span class="badge ' + (SERVICE_COLORS[j.serviceType] || 'badge-gray') + ' tb-badge" style="font-size:12px;" title="' + esc(typeName(j.serviceType)) + '">' + esc(typeName(j.serviceType)) + '</span></td>' +
           '<td style="font-size:12px;color:var(--text2);">' + formatDate(j.serviceDate) + '</td>' +
@@ -3353,7 +3357,7 @@ var _exitShownAt = 0;       // เวลาที่เปิดหน้าต�
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
 var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
-var APP_VERSION = 'v80';
+var APP_VERSION = 'v81';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
