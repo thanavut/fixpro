@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=85">
+<link rel="manifest" href="manifest.webmanifest?v=86">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -469,7 +469,7 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
   height: calc(var(--nav-h) + env(safe-area-inset-bottom));
 }
 .mobile-nav-items { display: flex; justify-content: space-around; align-items: stretch; height: var(--nav-h); }
-.mobile-nav-items .nav-collapse-btn { display: none; } /* v85: ปุ่มย่อ/ขยายเมนู โชว์เฉพาะ desktop (เปิดใน desktop-style) */
+.nav-toggle-row { display: none; } /* v86: แถวปุ่มย่อ/ขยายเมนู โชว์เฉพาะ desktop (เปิดใน desktop-style ตามโครง EBED) */
 .mobile-nav-item {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 2px; padding: 4px 6px; color: var(--text3); cursor: pointer;
@@ -679,14 +679,18 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
   .mobile-nav-item.active { background: var(--primary-bg); color: var(--primary); font-weight: 600; }
   .mobile-nav-item .nav-badge { position: static; transform: none; margin-left: auto; }
 
-  /* ===== v85: ย่อ/ขยายเมนูหลัก (desktop) — ปุ่มท้ายเมนู + จำสถานะใน localStorage มือถือไม่ผล ===== */
-  .mobile-nav .nav-collapse-btn { display: flex; margin-top: 8px; border-top: 1px solid var(--border); padding-top: 10px; color: var(--text3); font-weight: 500; }
-  .mobile-nav .nav-collapse-btn:hover { background: var(--bg); color: var(--text); }
-  #app-screen.nav-collapsed { --nav-w: 58px; }
-  #app-screen.nav-collapsed .mobile-nav-items::before { content: ""; padding: 0; }
-  #app-screen.nav-collapsed .mobile-nav-item span:not(.nav-badge) { display: none; }
-  #app-screen.nav-collapsed .mobile-nav-item { justify-content: center; padding-left: 6px; padding-right: 6px; gap: 0; }
-  #app-screen.nav-collapsed .mobile-nav-item .nav-badge { margin-left: 2px; }
+  /* ===== v85: ย่อ/ขยายเมนูหลัก (desktop) · v86: ทำตามโครง EBED เป๊ะ (index.html .sidebar.collapsed + js/02-app.11-ui.js toggleSidebar) —
+       ต้นเหตุบั๊ก v85: ไอคอน fa-chevrons-* ไม่มีใน FA CSS ที่แพ็กมา ไอคอนจึงว่างเปล่า ปุ่มมองไม่เห็น กดขยายกลับไม่ได้ — เปลี่ยนเป็น fa-chevron-left + หมุน 180° เหมือน EBED ===== */
+  .nav-toggle-row { display: flex; align-items: center; justify-content: flex-end; padding: 4px 6px 2px; }
+  #sidebar-toggle-btn { background: none; border: none; cursor: pointer; color: var(--text3); padding: 4px 6px; border-radius: 6px; }
+  #sidebar-toggle-btn:hover { background: var(--bg); }
+  #sidebar-toggle-btn i { transition: transform 0.2s ease; }
+  body.sidebar-collapsed { --nav-w: 58px; }
+  body.sidebar-collapsed .mobile-nav-items::before { content: ""; padding: 0; }
+  body.sidebar-collapsed .mobile-nav-item span { display: none; }
+  body.sidebar-collapsed .mobile-nav-item { justify-content: center; padding-left: 6px; padding-right: 6px; gap: 0; }
+  body.sidebar-collapsed .mobile-nav-item i { font-size: 16px; }
+  body.sidebar-collapsed #sidebar-toggle-btn i { transform: rotate(180deg); }
 
   /* ===== เนื้อหา: คอลัมน์กลางสูงสุด 1280px ===== */
   .main-content { padding: 6px 10px 10px; } /* v71: ล่าง 40px→10px — FAB/แถบมือถือซ่อนอยู่แล้ว และหน้าตารางตรึงหัวต้องพอดีจอเป๊ะ */
@@ -1479,6 +1483,11 @@ body::after {
 
   <!-- MOBILE NAV -->
   <nav class="mobile-nav" id="mobile-nav">
+    <div class="nav-toggle-row"> <!-- v86: ปุ่มย่อ/ขยายเมนูตามโครง EBED (บนขวาของ sidebar, ไอคอนหมุน 180° เมื่อยุบ, Ctrl+. ก็ได้) -->
+      <button id="sidebar-toggle-btn" onclick="toggleSidebar()" title="ย่อ/ขยาย (Ctrl+.)">
+        <i class="fas fa-chevron-left" style="font-size:13px;"></i>
+      </button>
+    </div>
     <div class="mobile-nav-items">
       <div class="mobile-nav-item active" data-page="dashboard" onclick="showPage('dashboard')">
         <i class="fas fa-home"></i><span>หน้าแรก</span>
@@ -1498,9 +1507,6 @@ body::after {
       </div>
       <div class="mobile-nav-item" data-page="settings" onclick="showPage('settings')">
         <i class="fas fa-cog"></i><span>ตั้งค่า</span>
-      </div>
-      <div class="mobile-nav-item nav-collapse-btn" onclick="toggleNavCollapse()" title="ย่อ/ขยายเมนู"> <!-- v85: ย่อ/ขยายเมนูหลัก (desktop) -->
-        <i class="fas fa-chevrons-left" id="nav-collapse-ic"></i><span>ย่อเมนู</span>
       </div>
     </div>
   </nav>
@@ -1543,9 +1549,13 @@ body::after {
         <label class="form-label">เบอร์โทร <span class="req">*</span></label>
         <input type="tel" class="form-control" id="cust-phone" placeholder="08x-xxx-xxxx" maxlength="10">
       </div>
-      <!-- v85: แสดงทุกช่องตั้งแต่เปิดฟอร์ม (LINE/หมายเหตุ) + ถอนช่องแผนที่ปักหมุด/ลิงก์ Google Maps ออกตามคำขอเจ้าของร้าน —
-           คง input ซ่อนไว้เพื่อไม่ให้พิกัดเดิมของลูกค้าเก่าหายตอนบันทึก (การ์ดแผนที่หน้ารายละเอียดยังโชว์พิกัด/เปิดแผนที่ได้) -->
-      <input type="hidden" id="cust-mapurl">
+      <!-- v85: ลบตัวหนังสือ toggle "แผนที่ปักหมุด / LINE / หมายเหตุ (ไม่บังคับ)" ออก แสดงทุกช่องทันที · v86: เจ้าของร้านขอ "นอกนั้นเอากลับมาทั้งหมด" —
+           คืนช่อง ลิงก์ Google Maps/พิกัดบ้าน + ปุ่ม GPS แสดงปกติ (ทุกช่องมองเห็นตั้งแต่เปิดฟอร์ม ไม่มีหัวข้อกดกาง) -->
+      <div class="form-group">
+        <label class="form-label"><i class="fas fa-map-location-dot" style="color:var(--primary);"></i> ลิงก์ Google Maps / พิกัดบ้าน</label>
+        <input type="text" class="form-control" id="cust-mapurl" placeholder="วางลิงก์ที่แชร์จาก Google Maps เช่น https://maps.app.goo.gl/...">
+        <button type="button" class="btn btn-info btn-sm" style="width:100%;margin-top:6px;" onclick="useCurrentLocation(this)"><i class="fas fa-location-crosshairs"></i> ใช้พิกัดปัจจุบัน (GPS)</button>
+      </div>
       <div id="cust-extra">
       <div class="form-group">
         <label class="form-label">Line ID</label>
@@ -3236,8 +3246,9 @@ function renderCustomerDetail(phone) {
       mapNavBtn(cust, coords, addr) +
       '<button class="map-btn map-btn-open" onclick="window.open(\'' + escAttr(pinUrl || ('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(addr))) + '\',\'_blank\')"><i class="fas fa-map"></i> เปิดแผนที่</button></div>';
   } else {
-    // v85: ฟอร์มลูกค้าถอนช่องปักหมุดออกแล้ว — เหลือข้อความบอกเฉย ๆ (ลูกค้าที่เคยปักหมุดไว้ยังโชว์พิกัด + ปุ่มเปิดแผนที่ได้ปกติ)
-    mapCard += '<div class="empty-state" style="padding:16px 10px;"><i class="fas fa-map-location-dot"></i><p>ยังไม่มีข้อมูลแผนที่</p></div>';
+    // v86: คืนปุ่ม "ปักหมุด / ใส่พิกัด" (ช่องแผนที่กลับมาในฟอร์มแล้ว — ปุ่มนี้เปิดฟอร์มแก้ไขให้ปักหมุดได้เหมือนเดิม)
+    mapCard += '<div class="empty-state" style="padding:16px 10px;"><i class="fas fa-map-location-dot"></i><p>ยังไม่มีข้อมูลแผนที่ — ปักหมุด GPS หรือวางลิงก์ Google Maps</p>' +
+      '<button class="map-btn map-btn-go" style="max-width:220px;margin:0 auto;" onclick="openEditCustomer(\'' + escAttr(phone) + '\')"><i class="fas fa-location-crosshairs"></i> ปักหมุด / ใส่พิกัด</button></div>';
   }
   mapCard += '</div></div>';
   html += mapCard;
@@ -3285,31 +3296,20 @@ function renderJobCard(j) {
 // ============================================================
 // NAVIGATION
 // ============================================================
-// v85: ย่อ/ขยายเมนูหลัก (desktop) — จำสถานะใน localStorage, มือถือไม่ผล (CSS อยู่ใน @media 1024px เท่านั้น)
-function toggleNavCollapse() {
-  var sc = document.getElementById('app-screen');
-  var collapsed = sc.classList.toggle('nav-collapsed');
-  try { localStorage.setItem('fixpro-nav-collapsed', collapsed ? '1' : '0'); } catch (e) {}
-  var ic = document.getElementById('nav-collapse-ic');
-  if (ic) {
-    ic.className = 'fas ' + (collapsed ? 'fa-chevrons-right' : 'fa-chevrons-left');
-    var lb = ic.parentElement.querySelector('span');
-    if (lb) lb.textContent = collapsed ? 'ขยายเมนู' : 'ย่อเมนู';
-  }
-  document.querySelectorAll('.mobile-nav-items > .mobile-nav-item[data-page]').forEach(function(it) {
-    var sp = it.querySelector('span');
-    it.title = collapsed && sp ? sp.textContent : '';
-  });
+// v85: ย่อ/ขยายเมนูหลัก (desktop) · v86: เขียนใหม่ตามโครง EBED (js/02-app.11-ui.js toggleSidebar/initSidebarState) —
+// จำสถานะ localStorage 'sidebarCollapsed' เหมือน EBED, Ctrl+. ก็ย่อ/ขยายได้, ไอคอนหมุนผ่าน CSS (fa-chevron-left rotate 180°)
+function toggleSidebar() {
+  var collapsed = document.body.classList.toggle('sidebar-collapsed');
+  try { localStorage.setItem('sidebarCollapsed', collapsed ? '1' : '0'); } catch (e) {}
 }
-(function applyNavCollapse() {
-  var saved = false;
-  try { saved = localStorage.getItem('fixpro-nav-collapsed') === '1'; } catch (e) {}
-  if (!saved) return;
-  var sc = document.getElementById('app-screen'); if (!sc) return;
-  sc.classList.add('nav-collapsed');
-  var ic = document.getElementById('nav-collapse-ic');
-  if (ic) { ic.className = 'fas fa-chevrons-right'; var lb = ic.parentElement.querySelector('span'); if (lb) lb.textContent = 'ขยายเมนู'; }
+(function initSidebarState() {
+  var collapsed = false;
+  try { collapsed = localStorage.getItem('sidebarCollapsed') === '1'; } catch (e) {}
+  if (collapsed) document.body.classList.add('sidebar-collapsed');
 })();
+document.addEventListener('keydown', function(e) {
+  if (e.ctrlKey && e.key === '.') { e.preventDefault(); toggleSidebar(); }
+});
 function showPage(page, param) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.mobile-nav-item').forEach(n => n.classList.remove('active'));
@@ -3507,7 +3507,7 @@ var _exitShownAt = 0;       // เวลาที่เปิดหน้าต�
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
 var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
-var APP_VERSION = 'v85';
+var APP_VERSION = 'v86';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
