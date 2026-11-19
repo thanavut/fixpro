@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=86">
+<link rel="manifest" href="manifest.webmanifest?v=87">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -55,6 +55,8 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" integrity="sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw" crossorigin="anonymous"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk" crossorigin="anonymous"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" integrity="sha384-fCAW/rDWORTbQXSiB7mOg0QtQ5c+r0f544y6XoKjuVva0nMBlCpNUjiFeG5iMdS3" crossorigin="anonymous"></script>
+<!-- v87: Chart.js สำหรับกราฟหน้ารายงาน (โหลดไม่ได้/ออฟไลน์ครั้งแรก = กลับไปใช้กราฟแท่ง CSS เดิมอัตโนมัติ) -->
+<script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 /* ===== EBED Design Tokens ===== */
 :root {
@@ -512,6 +514,23 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
 /* ===== OFFLINE BAR ===== */
 #offline-bar { display: none; position: fixed; top: var(--header-h); left: 0; right: 0; z-index: 999; background: #E65100; color: white; padding: 6px 12px; font-size: 12px; font-weight: 600; align-items: center; gap: 8px; justify-content: center; flex-wrap: wrap; }
 #offline-bar.show { display: flex; }
+/* ===== v87: INFO-BAR (สถานะซิงก์) + ศูนย์แจ้งเตือน (ตามโครง EBED index.html #info-bar / notif-panel) ===== */
+#info-bar { display: none; position: fixed; top: var(--header-h); left: 0; right: 0; z-index: 998; background: #FFF8E1; color: #92400E; border-bottom: 1px solid #FCD34D; padding: 6px 12px; font-size: 12px; font-weight: 600; align-items: center; gap: 8px; justify-content: center; flex-wrap: wrap; }
+#info-bar.show { display: flex; }
+#notif-bell { position: relative; }
+.notif-badge { position: absolute; top: 3px; right: 3px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: var(--danger); color: #fff; font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+#notif-panel { display: none; position: fixed; top: calc(var(--header-h) + 4px); right: 8px; width: 360px; max-width: calc(100vw - 16px); max-height: min(560px, calc(100vh - var(--header-h) - 16px)); overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 12px 40px rgba(15,23,42,0.18); z-index: 300; }
+#notif-panel.open { display: block; animation: fadeIn 0.15s ease; }
+.notif-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px 8px; border-bottom: 1px solid var(--border); }
+.notif-title { font-size: 14px; font-weight: 700; }
+.notif-item { display: flex; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--border); cursor: pointer; align-items: flex-start; }
+.notif-item:last-child { border-bottom: none; }
+.notif-item:hover { background: var(--bg); }
+.notif-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--danger); margin-top: 6px; flex-shrink: 0; }
+.notif-msg { font-size: 13px; font-weight: 600; line-height: 1.45; }
+.notif-time { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.notif-foot { display: flex; gap: 6px; padding: 10px 14px; border-top: 1px solid var(--border); position: sticky; bottom: 0; background: var(--surface); }
+.notif-foot .btn { flex: 1; }
 
 /* ===== ANIMATIONS ===== */
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -691,6 +710,8 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
   body.sidebar-collapsed .mobile-nav-item { justify-content: center; padding-left: 6px; padding-right: 6px; gap: 0; }
   body.sidebar-collapsed .mobile-nav-item i { font-size: 16px; }
   body.sidebar-collapsed #sidebar-toggle-btn i { transform: rotate(180deg); }
+  /* v87: แถบ offline/info เริ่มหลัง sidebar แบบ EBED — ยุบ/ขยายเมนูแล้วเลื่อนตาม var(--nav-w) อัตโนมัติ */
+  #offline-bar, #info-bar { left: var(--nav-w); transition: left 0.2s ease; }
 
   /* ===== เนื้อหา: คอลัมน์กลางสูงสุด 1280px ===== */
   .main-content { padding: 6px 10px 10px; } /* v71: ล่าง 40px→10px — FAB/แถบมือถือซ่อนอยู่แล้ว และหน้าตารางตรึงหัวต้องพอดีจอเป๊ะ */
@@ -1164,11 +1185,46 @@ body::after {
       <h2>FixPro</h2>
     </div>
     <div class="header-actions">
+      <div class="header-btn" id="notif-bell" onclick="toggleNotifPanel(event)" title="ศูนย์แจ้งเตือน"> <!-- v87: ศูนย์แจ้งเตือนแบบ EBED -->
+        <i class="fas fa-bell"></i>
+        <span class="notif-badge" id="notif-badge" style="display:none;">0</span>
+      </div>
       <div class="header-btn" onclick="toggleTheme()" title="ธีม">
         <i class="fas fa-moon" id="theme-icon"></i>
       </div>
     </div>
   </header>
+
+  <!-- v87: INFO-BAR (แถบเตือนสถานะซิงก์ใต้หัวจอ สไตล์ EBED) -->
+  <div id="info-bar"><i class="fas fa-triangle-exclamation"></i><span id="info-bar-text"></span></div>
+
+  <!-- v87: ศูนย์แจ้งเตือน (แผงเลื่อนลงจากระฆังหัวจอ) -->
+  <div id="notif-panel">
+    <div class="notif-head">
+      <span class="notif-title"><i class="fas fa-bell" style="color:var(--primary);margin-right:6px;"></i>แจ้งเตือน</span>
+      <div class="modal-close" style="width:28px;height:28px;" onclick="toggleNotifPanel()"><i class="fas fa-times" style="font-size:13px;"></i></div>
+    </div>
+    <div id="notif-list"></div>
+    <div class="notif-foot">
+      <button class="btn btn-secondary btn-sm" onclick="markAllNotifRead()"><i class="fas fa-check-double"></i> อ่านทั้งหมด</button>
+      <button class="btn btn-secondary btn-sm" onclick="toggleNotifPopup()"><i class="fas fa-bullhorn"></i> <span id="notif-popup-label">ป๊อปอัป OS: ปิด</span></button>
+    </div>
+  </div>
+
+  <!-- v87: โมดัลยืนยันทิ้งการแก้ไขฟอร์ม (DIRTY GUARD แบบ EBED — ไม่ใช้ confirm ดิบ) -->
+  <div class="modal-overlay" id="modal-dirty-confirm">
+    <div class="modal" style="max-width:360px;">
+      <div class="modal-header">
+        <span class="modal-title"><i class="fas fa-triangle-exclamation" style="color:#F59E0B;margin-right:8px;"></i>ยังไม่ได้บันทึก</span>
+        <div class="modal-close" onclick="closeModal('modal-dirty-confirm')"><i class="fas fa-times"></i></div>
+      </div>
+      <div class="modal-body" style="font-size:13px;">มีข้อมูลที่พิมพ์ไว้ยังไม่ได้บันทึก — ปิดตอนนี้ข้อมูลที่กรอกจะหาย</div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-dirty-confirm')">กลับไปแก้ต่อ</button>
+        <button class="btn btn-danger" id="dirty-discard-btn">ทิ้งการแก้ไข</button>
+      </div>
+    </div>
+  </div>
 
   <!-- MAIN CONTENT -->
   <div class="app-body">
@@ -1308,7 +1364,18 @@ body::after {
           <div class="stats-grid" id="report-stats"></div>
           <div class="card">
             <div class="card-header"><span class="card-title">รายได้แยกตามเดือน (12 เดือนล่าสุด)</span></div>
-            <div class="card-body" id="report-bar-chart" style="height:120px;display:flex;align-items:flex-end;gap:3px;padding:4px 0;"></div>
+            <!-- v87: กราฟจริง Chart.js — โหลด lib ไม่ได้ = กลับไปใช้แท่ง CSS เดิม (#report-bar-chart) -->
+            <div class="card-body" style="padding:10px 14px;">
+              <div id="rpt-chart-monthly-wrap" style="height:200px;position:relative;display:none;"><canvas id="chart-monthly"></canvas></div>
+              <div id="report-bar-chart" style="height:120px;display:flex;align-items:flex-end;gap:3px;padding:4px 0;"></div>
+            </div>
+          </div>
+          <div class="card" id="rpt-types-chart-card">
+            <div class="card-header"><span class="card-title">สัดส่วนรายได้ตามประเภทงานในช่วง</span></div>
+            <div class="card-body" style="padding:10px 14px;">
+              <div id="rpt-chart-types-wrap" style="height:200px;position:relative;display:none;"><canvas id="chart-types"></canvas></div>
+              <div id="chart-types-empty" style="display:none;text-align:center;color:var(--text3);font-size:12px;padding:10px 0;">ยังไม่มีงานในช่วงนี้</div>
+            </div>
           </div>
           <div class="card" id="rpt-status-card">
             <div class="card-header"><span class="card-title" id="rpt-status-title">สถานะงานในช่วงนี้</span></div>
@@ -1913,11 +1980,13 @@ function cfgHasMeaningfulData() {
 var _cfgPushPending = false, _cfgPushRetryTimer = null, _cfgPullDeferred = false;
 function markCfgPushPending() {
   _cfgPushPending = true;
+  if (typeof updateInfoBar === 'function') updateInfoBar(); // v87 ⑤
   try { var l = loadConfig(); l.cfgPushPending = true; localStorage.setItem(CFG_KEY, JSON.stringify(l)); } catch (e) {}
   if (!_cfgPushRetryTimer) _cfgPushRetryTimer = setInterval(function() { if (_cfgPushPending && db) pushConfigToCloud(); }, 15000);
 }
 function clearCfgPushPending() {
   _cfgPushPending = false;
+  if (typeof updateInfoBar === 'function') updateInfoBar(); // v87 ⑤
   // v58: เคลียร์ timer ด้วย — เดิม interval 15 วิวิ่งต่อทั้งอายุแอปทั้งที่ไม่มีของค้างแล้ว (หมดทั้งแบตเปล่าๆ)
   if (_cfgPushRetryTimer) { clearInterval(_cfgPushRetryTimer); _cfgPushRetryTimer = null; }
   try { var l = loadConfig(); delete l.cfgPushPending; localStorage.setItem(CFG_KEY, JSON.stringify(l)); } catch (e) {}
@@ -2243,8 +2312,8 @@ async function saveCustomerData(customer) {
   else DB.customers.unshift(customer);
   lsSaveCustomers(DB.customers);
   if (db) {
-    try { await db.collection('customers').doc(customer.phone).set(customer); return true; }
-    catch(e) { console.warn('Firestore save error:', e); return false; }
+    try { await db.collection('customers').doc(customer.phone).set(customer); window._dataSyncFail = false; if (typeof updateInfoBar === 'function') updateInfoBar(); return true; } // v87 ⑤
+    catch(e) { console.warn('Firestore save error:', e); window._dataSyncFail = true; if (typeof updateInfoBar === 'function') updateInfoBar(); return false; } // v87 ⑤: แจ้ง info-bar
   }
   // v39: บอกผู้เรียกตรงความจริงว่า "ยังไม่ขึ้นคลาวด์" (ข้อมูลเซฟในเครื่องแล้ว ระบบกู้คืน v38 จะอัปให้เองเมื่อออนไลน์)
   // บทเรียนจาก "ลูกค้าหาย": เดิมเขียนคลาวด์ไม่สำเร็จแล้วแอปเงียบ + toast บอกว่าบันทึกเรียบร้อย ทำให้ผู้ใช้เชื่อว่าขึ้นคลาวด์แล้วทั้งที่ยัง
@@ -2270,8 +2339,8 @@ async function saveJobData(job) {
   else DB.jobs.unshift(job);
   lsSaveJobs(DB.jobs);
   if (db) {
-    try { await db.collection('jobs').doc(job.id).set(job); return true; }
-    catch(e) { console.warn('Firestore save error:', e); return false; }
+    try { await db.collection('jobs').doc(job.id).set(job); window._dataSyncFail = false; if (typeof updateInfoBar === 'function') updateInfoBar(); return true; } // v87 ⑤
+    catch(e) { console.warn('Firestore save error:', e); window._dataSyncFail = true; if (typeof updateInfoBar === 'function') updateInfoBar(); return false; } // v87 ⑤: แจ้ง info-bar
   }
   return false; // v39: โหมดออฟไลน์ = ยังไม่ขึ้นคลาวด์ (เซฟในเครื่องแล้ว จะถูกกู้คืนอัปเองภายหลัง)
 }
@@ -2896,7 +2965,7 @@ function renderCustomers(filter) {
       container.innerHTML = statsWrap + '<div class="empty-state" style="margin-top:12px;"><i class="fas fa-user-slash"></i><p>ไม่พบลูกค้าในหมวดนี้</p></div>';
       return;
     }
-    var rows = pool.map(c => {
+    var rows = _fpSortRows(pool, 'customers', { name: c => c.name || '', phone: c => c.phone || '', address: c => c.address || '', types: c => (types2[c.phone] || []).map(st => typeLabel(st)).join(', '), jobsN: c => jobCount[c.phone] || 0 }).map(c => { // v87: เรียงคอลัมน์ได้
       var jobsN = jobCount[c.phone] || 0;
       var hasReminder = urgentPhones.has(c.phone);
       // v71: ประเภทงานไม่ล้นคอลัมน์ — โชว์สูงสุด 2 ป้าย (ชื่อยาวตัดจบด้วย ...) + ป้าย '+N' ชี้เห็นชื่อครบทุกประเภท
@@ -2918,9 +2987,10 @@ function renderCustomers(filter) {
         '</div></td></tr>';
     }).join('');
     container.innerHTML = statsWrap + '<div class="cust-table"><div class="table-wrap table-wrap-scrollable" id="customers-table-wrap"><table>' +
-      '<thead><tr><th>ชื่อ-นามสกุล</th><th>เบอร์โทร</th><th>ที่อยู่</th><th>ประเภทงาน</th><th style="text-align:center;">งาน</th><th style="text-align:right;">จัดการ</th></tr></thead>' +
+      '<thead><tr><th data-sort="name">ชื่อ-นามสกุล</th><th data-sort="phone">เบอร์โทร</th><th data-sort="address">ที่อยู่</th><th data-sort="types">ประเภทงาน</th><th data-sort="jobsN" data-sort-type="num" style="text-align:center;">งาน</th><th style="text-align:right;">จัดการ</th></tr></thead>' +
       '<tbody>' + rows + '</tbody></table></div>' +
       '<div class="cust-foot">' + pool.length + ' รายการ</div></div>';
+    _fpUpdateSortIndicators('customers', 'customers-table-wrap'); // v87: ลูกศร ▲▼ ที่หัวคอลัมน์
     return;
   }
   container.innerHTML = list.map(c => {
@@ -3022,8 +3092,8 @@ function renderJobs() {
       // v83: คอลัมน์อุปกรณ์แบ่งเป็น 2 คอลัมน์ "ยี่ห้อ|รุ่น" (job.brand/job.model — งานเก่าไม่มี brand แสดง deviceInfo เดิมที่ยี่ห้อ)
       // v84: ย้ายคอลัมน์ "ประเภทงาน" ขึ้นหน้า "ยี่ห้อ" + เปลี่ยนชื่อคอลัมน์จาก "ประเภท" เป็น "ประเภทงาน" (ตรงลำดับ CSV: วันที่→ลูกค้า→ประเภทงาน→อุปกรณ์) — สถานะยังเป็น td[7] เท่าเดิม
       container.innerHTML = statsHTML + '<div class="cust-table"><div class="table-wrap table-wrap-scrollable" id="jobs-table-wrap"><table>' +
-        '<thead><tr><th>ลูกค้า</th><th>ประเภทงาน</th><th>ยี่ห้อ</th><th>รุ่น</th><th>อาการ/รายละเอียด</th><th>วันที่</th><th style="text-align:right;">ยอด (บาท)</th><th>สถานะ</th><th style="text-align:right;">จัดการ</th></tr></thead><tbody>' +
-        list.map(function(j) {
+        '<thead><tr><th data-sort="cust">ลูกค้า</th><th data-sort="type">ประเภทงาน</th><th data-sort="brand">ยี่ห้อ</th><th data-sort="model">รุ่น</th><th data-sort="desc">อาการ/รายละเอียด</th><th data-sort="date">วันที่</th><th data-sort="amount" data-sort-type="num" style="text-align:right;">ยอด (บาท)</th><th data-sort="status">สถานะ</th><th style="text-align:right;">จัดการ</th></tr></thead><tbody>' +
+        _fpSortRows(list, 'jobs', { cust: function(j) { return custMap[j.customerPhone] ? custMap[j.customerPhone].name : ''; }, type: function(j) { return typeLabel(j.serviceType); }, brand: function(j) { return j.brand || j.deviceInfo || ''; }, model: function(j) { return j.model || ''; }, desc: function(j) { return ((j.symptom || '') + ' ' + (j.description || '')).trim(); }, date: function(j) { return j.serviceDate || ''; }, amount: function(j) { return jobTotal(j); }, status: function(j) { return j.status || 'done'; } }).map(function(j) { // v87: เรียงคอลัมน์ได้
         var cust = custMap[j.customerPhone];
         var st = j.status || 'done';
         var desc = String(j.symptom || j.description || '-');
@@ -3041,6 +3111,7 @@ function renderJobs() {
           '<td><div class="table-actions" onclick="event.stopPropagation()"><button type="button" class="btn btn-ghost btn-icon-sm" title="ดูข้อมูล/ประวัติงาน" onclick="showCustomerDetail(\'' + escAttr(j.customerPhone) + '\')"><i class="fas fa-eye"></i></button>' +
           '<button type="button" class="btn btn-ghost btn-icon-sm" title="แก้ไขงาน" onclick="openEditJob(\'' + escAttr(j.id) + '\')"><i class="fas fa-edit"></i></button></div></td></tr>';
       }).join('') + '</tbody></table></div><div class="cust-foot">' + list.length + ' รายการ</div></div>';
+    _fpUpdateSortIndicators('jobs', 'jobs-table-wrap'); // v87: ลูกศร ▲▼ ที่หัวคอลัมน์
     } else {
     container.innerHTML = list.map(j => {
       var cust = custMap[j.customerPhone];
@@ -3104,7 +3175,7 @@ function renderReminders() {
     }
     // v71: แจ้งเตือน desktop = ตารางจริงแบบทะเบียนประวัติ EBED เป๊ะ (มาตรฐานเดียวกับรายชื่อลูกค้า/ประวัติงาน)
     container.innerHTML = statsHTML + '<div class="cust-table"><div class="table-wrap table-wrap-scrollable" id="reminders-table-wrap"><table>' +
-      '<thead><tr><th>ลูกค้า</th><th>ประเภทงาน</th><th>วันนัด</th><th>สถานะ</th><th style="text-align:right;">จัดการ</th></tr></thead><tbody>' + reminders.map(function(r) {
+      '<thead><tr><th data-sort="cust">ลูกค้า</th><th data-sort="type">ประเภทงาน</th><th data-sort="date">วันนัด</th><th data-sort="status" data-sort-type="num">สถานะ</th><th style="text-align:right;">จัดการ</th></tr></thead><tbody>' + _fpSortRows(reminders, 'reminders', { cust: function(r) { return (r.cust && r.cust.name) || ''; }, type: function(r) { return typeLabel(r.job.serviceType); }, date: function(r) { return r.job.nextDate || ''; }, status: function(r) { return r.status === 'overdue' ? 0 : (r.status === 'soon' ? 1 : 2); } }).map(function(r) { // v87: เรียงคอลัมน์ได้
       var diff = daysDiff(r.job.nextDate);
       var diffText = diff < 0 ? '<span class="rem-when" style="color:var(--danger);">เกิน ' + Math.abs(diff) + ' วัน</span>' :
         diff === 0 ? '<span class="rem-when" style="color:var(--warning);">วันนี้!</span>' :
@@ -3117,6 +3188,7 @@ function renderReminders() {
         '<td><div class="table-actions"><button class="btn btn-primary btn-icon-sm" title="บันทึกงานใหม่" onclick="openAddJobForCustomer(\'' + escAttr(r.cust?.phone || '') + '\')"><i class="fas fa-plus"></i></button>' +
         '<button class="btn btn-secondary btn-icon-sm" title="ส่งแจ้งเตือน" onclick="openSendReminder(\'' + escAttr(r.cust?.phone || '') + '\',\'' + escAttr(r.job.serviceType) + '\',\'' + escAttr(r.job.nextDate) + '\')"><i class="fas fa-paper-plane"></i></button></div></td></tr>';
     }).join('') + '</tbody></table></div><div class="cust-foot">' + reminders.length + ' รายการ</div></div>';
+    _fpUpdateSortIndicators('reminders', 'reminders-table-wrap'); // v87: ลูกศร ▲▼ ที่หัวคอลัมน์
     return;
   }
   if (reminders.length === 0) {
@@ -3294,6 +3366,148 @@ function renderJobCard(j) {
 }
 
 // ============================================================
+// ============================================================
+// v87 — ฟีเจอร์ 5 อย่างยืมแบบจาก EBED (โคลน thanavut/ebed-firebase):
+// ② เรียงคอลัมน์ตาราง (11-ui.js _applyTableSort) · ③ กราฟ Chart.js + destroy กัน leak
+// ④ ศูนย์แจ้งเตือน (10-notif-i18n.js) · ⑤ INFO-BAR สถานะซิงก์ (index.html #info-bar)
+// (① DIRTY GUARD ทำที่ openModal/closeModal)
+// ============================================================
+// ---- ② เรียงคอลัมน์: กดหัวคอลัมน์ = เรียงข้อมูล มี ▲▼ บอกทิศ (ตาราง desktop เท่านั้น มือถือไม่มีตาราง) ----
+window._fpSort = { customers: null, jobs: null, reminders: null };
+function _fpSortRows(rows, tbl, accessors) {
+  var s = window._fpSort[tbl];
+  if (!s || !s.key || !accessors[s.key]) return rows;
+  var get = function(row) {
+    var v = accessors[s.key](row);
+    if (v == null || v === '') return s.type === 'num' ? -Infinity : '';
+    if (s.type === 'num') return parseFloat(v) || 0;
+    return String(v).toLowerCase();
+  };
+  return rows.slice().sort(function(a, b) { var va = get(a), vb = get(b); return va < vb ? -1 * s.dir : (va > vb ? 1 * s.dir : 0); });
+}
+function _fpUpdateSortIndicators(tbl, wrapId) {
+  var wrap = document.getElementById(wrapId); if (!wrap) return;
+  var s = window._fpSort[tbl];
+  wrap.querySelectorAll('thead th[data-sort]').forEach(function(th) {
+    var ar = th.querySelector('.sort-arrow');
+    if (!ar) { ar = document.createElement('span'); ar.className = 'sort-arrow'; th.appendChild(ar); }
+    var cur = s && s.key === th.dataset.sort;
+    ar.textContent = cur ? (s.dir === 1 ? '▲' : '▼') : '';
+    ar.style.cssText = 'font-size:9px;color:var(--primary);display:inline-block;min-width:10px;margin-left:2px;';
+    th.style.cursor = 'pointer';
+    if (!th.title) th.title = 'คลิกเพื่อเรียงข้อมูล';
+  });
+}
+document.addEventListener('click', function(e) {
+  var th = e.target.closest ? e.target.closest('th[data-sort]') : null; if (!th) return;
+  var wrap = th.closest('.table-wrap'); if (!wrap) return;
+  var map = { 'customers-table-wrap': ['customers', 'renderCustomers'], 'jobs-table-wrap': ['jobs', 'renderJobs'], 'reminders-table-wrap': ['reminders', 'renderReminders'] };
+  var m = map[wrap.id]; if (!m) return;
+  var cur = window._fpSort[m[0]];
+  if (cur && cur.key === th.dataset.sort) cur.dir = -cur.dir;
+  else window._fpSort[m[0]] = { key: th.dataset.sort, dir: 1, type: th.dataset.sortType || 'text' };
+  window[m[1]](); // เรนเดอร์ใหม่ด้วยลำดับใหม่
+});
+// ---- ③ กราฟหน้ารายงาน: registry + destroy กัน memory leak (แบบ EBED 02-app.05-dashboard.js) ----
+var _rptCharts = { monthly: null, types: null };
+function destroyRptCharts() {
+  Object.keys(_rptCharts).forEach(function(k) { if (_rptCharts[k]) { try { _rptCharts[k].destroy(); } catch (e) {} _rptCharts[k] = null; } });
+}
+// ---- ⑤ INFO-BAR: แถบเตือนสถานะซิงก์ใต้หัวจอ (แบบ EBED #info-bar — offline มีแถบส้มของตัวเองอยู่แล้ว) ----
+window._dataSyncFail = false; // บันทึกลูกค้า/งานขึ้นคลาวด์ล้มเหลวล่าสุด (ข้อมูลปลอดภัยในเครื่อง ระบบกู้คืน v38 จะอัปเอง)
+function updateInfoBar() {
+  var bar = document.getElementById('info-bar'); if (!bar) return;
+  var appActive = document.getElementById('app-screen').classList.contains('active');
+  var msg = '';
+  if (window._dataSyncFail && navigator.onLine && typeof db !== 'undefined' && db) msg = 'บันทึกขึ้นคลาวด์ไม่สำเร็จบางรายการ — ข้อมูลปลอดภัยในเครื่องแล้ว ระบบจะลองซิงก์ใหม่เอง';
+  else if (typeof _cfgPushPending !== 'undefined' && _cfgPushPending) msg = 'การตั้งค่ารอส่งขึ้นคลาวด์ — จะลองใหม่เมื่อออนไลน์';
+  document.getElementById('info-bar-text').textContent = msg;
+  bar.classList.toggle('show', appActive && !!msg);
+}
+// ---- ④ ศูนย์แจ้งเตือน: เหตุการณ์จากข้อมูลจริง + สถานะอ่านแล้ว (แบบ EBED 10-notif-i18n.js) ----
+function _notifList() {
+  var out = [];
+  getUpcomingReminders('all').forEach(function(r) {
+    var diff = daysDiff(r.job.nextDate);
+    if (r.status === 'overdue') out.push({ id: 'overdue:' + r.job.id, icon: '⚠️', title: 'นัดหมายเกินกำหนด', msg: ((r.cust && r.cust.name) || '-') + ' · ' + typeLabel(r.job.serviceType) + ' — เกิน ' + Math.abs(diff) + ' วัน', ts: r.job.nextDate || '', page: 'reminders' });
+    else if (r.status === 'soon') out.push({ id: 'soon:' + r.job.id, icon: '⏰', title: 'ถึงนัดหมาย', msg: ((r.cust && r.cust.name) || '-') + ' · ' + typeLabel(r.job.serviceType) + ' — ' + (diff === 0 ? 'วันนี้!' : 'อีก ' + diff + ' วัน'), ts: r.job.nextDate || '', page: 'reminders' });
+  });
+  DB.jobs.filter(function(j) { return (j.status || '') === 'unpaid'; }).forEach(function(j) {
+    var c = DB.customers.find(function(c) { return c.phone === j.customerPhone; });
+    out.push({ id: 'unpaid:' + j.id, icon: '💵', title: 'รอเก็บเงิน', msg: ((c && c.name) || '-') + ' · ' + typeLabel(j.serviceType) + ' · ' + jobTotal(j).toLocaleString() + ' บาท', ts: j.serviceDate || '', page: 'jobs' });
+  });
+  return out.sort(function(a, b) { return (b.ts || '').localeCompare(a.ts || ''); });
+}
+function _notifReadMap() { try { return JSON.parse(localStorage.getItem('fixpro-notif-read') || '{}'); } catch (e) { return {}; } }
+function notifUnreadCount() { var rd = _notifReadMap(); return _notifList().filter(function(n) { return !rd[n.id]; }).length; }
+function updateNotifBadge() {
+  var b = document.getElementById('notif-badge'); if (!b) return;
+  var n = notifUnreadCount();
+  b.textContent = n > 99 ? '99+' : String(n);
+  b.style.display = n > 0 ? 'flex' : 'none';
+}
+function toggleNotifPanel(ev) {
+  if (ev && ev.stopPropagation) ev.stopPropagation();
+  var p = document.getElementById('notif-panel'); if (!p) return;
+  var open = !p.classList.contains('open');
+  if (open) renderNotifPanel();
+  p.classList.toggle('open', open);
+}
+function renderNotifPanel() {
+  var el = document.getElementById('notif-list'); if (!el) return;
+  var list = _notifList(), rd = _notifReadMap();
+  var sw = document.getElementById('notif-popup-label');
+  if (sw) sw.textContent = 'ป๊อปอัป OS: ' + (localStorage.getItem('fixpro-notif-popup') === '1' ? 'เปิด' : 'ปิด');
+  if (list.length === 0) { el.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text3);font-size:13px;">ไม่มีการแจ้งเตือน</div>'; updateNotifBadge(); return; }
+  el.innerHTML = list.slice(0, 30).map(function(n) {
+    var unread = !rd[n.id];
+    return '<div class="notif-item" onclick="openNotif(\'' + escAttr(n.id) + '\',\'' + n.page + '\')">' +
+      (unread ? '<div class="notif-dot"></div>' : '<div style="width:8px;flex-shrink:0;"></div>') +
+      '<div style="font-size:16px;flex-shrink:0;">' + n.icon + '</div>' +
+      '<div style="flex:1;min-width:0;"><div class="notif-msg">' + esc(n.title) + ' — ' + esc(n.msg) + '</div>' +
+      '<div class="notif-time">' + (n.ts ? esc(formatDate(n.ts)) : '') + (unread ? ' · ยังไม่อ่าน' : '') + '</div></div></div>';
+  }).join('');
+  updateNotifBadge();
+}
+function openNotif(id, page) {
+  var rd = _notifReadMap(); rd[id] = new Date().toISOString();
+  try { localStorage.setItem('fixpro-notif-read', JSON.stringify(rd)); } catch (e) {}
+  var p = document.getElementById('notif-panel'); if (p) p.classList.remove('open');
+  updateNotifBadge();
+  showPage(page);
+}
+function markAllNotifRead() {
+  var rd = _notifReadMap();
+  _notifList().forEach(function(n) { rd[n.id] = new Date().toISOString(); });
+  try { localStorage.setItem('fixpro-notif-read', JSON.stringify(rd)); } catch (e) {}
+  renderNotifPanel();
+  toast('ทำเครื่องหมายว่าอ่านทั้งหมดแล้ว', 'success');
+}
+function toggleNotifPopup() {
+  var on = localStorage.getItem('fixpro-notif-popup') === '1';
+  if (!on) { // เปิดครั้งแรก = จดชุดปัจจุบันไว้ จะเด้งเฉพาะของที่เกิด "ใหม่หลังจากนี้" เท่านั้น
+    try { var now = {}; _notifList().forEach(function(n) { now[n.id] = 1; }); localStorage.setItem('fixpro-notif-seen', JSON.stringify(now)); } catch (e) {}
+  }
+  localStorage.setItem('fixpro-notif-popup', on ? '0' : '1');
+  renderNotifPanel();
+  toast(on ? 'ปิดป๊อปอัปแจ้งเตือนแล้ว' : 'เปิดป๊อปอัปแจ้งเตือนแล้ว — จะเด้งบนหน้าจอเมื่อมีรายการใหม่', 'info');
+}
+// ป๊อปอัป OS เมื่อมีรายการใหม่เข้ามา (เทียบชุดที่เคยเห็นล่าสุด — แบบ EBED initNotificationPopup)
+function checkNotifPopup() {
+  try {
+    if (localStorage.getItem('fixpro-notif-popup') !== '1') return;
+    var sc = document.getElementById('app-screen');
+    if (!sc || !sc.classList.contains('active')) return;
+    var seen = {}; try { seen = JSON.parse(localStorage.getItem('fixpro-notif-seen') || '{}'); } catch (e) {}
+    var list = _notifList();
+    var fresh = list.filter(function(n) { return !seen[n.id]; });
+    if (fresh.length > 0 && typeof showLocalNotification === 'function') {
+      showLocalNotification('FixPro — แจ้งเตือน', 'มี ' + fresh.length + ' รายการใหม่ที่ต้องดู (นัดหมาย/รอเก็บเงิน)');
+    }
+    var now = {}; list.forEach(function(n) { now[n.id] = 1; });
+    localStorage.setItem('fixpro-notif-seen', JSON.stringify(now));
+  } catch (e) {}
+}
 // NAVIGATION
 // ============================================================
 // v85: ย่อ/ขยายเมนูหลัก (desktop) · v86: เขียนใหม่ตามโครง EBED (js/02-app.11-ui.js toggleSidebar/initSidebarState) —
@@ -3340,6 +3554,7 @@ function showPage(page, param) {
   var mc = document.getElementById('main-content');
   if (mc) mc.scrollTop = 0;
   updateOfflineBar();
+  updateNotifBadge(); // v87 ④: ป้ายจำนวนแจ้งเตือนยังไม่อ่านหัวจอ
 }
 
 // ============================================================
@@ -3482,12 +3697,38 @@ function collapseAdvancedSettings() {
   });
 }
 
+// ---- ① v87: DIRTY-CHECK ฟอร์ม (ตามโครง EBED js/02-app.11-ui.js) — กันปิดฟอร์มแล้วข้อมูลที่พิมพ์ค้างหาย ----
+var DIRTY_FORM_IDS = ['modal-customer', 'modal-job'];
+window.__fpDirtyForms = window.__fpDirtyForms || {};     // id → true เมื่อมีการแก้ไขค้าง
+window.__fpSkipDirtyOnce = window.__fpSkipDirtyOnce || {}; // id → true หลังบันทึก/ยืนยันทิ้งแล้ว (ปิดได้เลย)
+function _isFormDirty(id) { return !!window.__fpDirtyForms[id]; }
+// จับแบบ delegated ครบทุกฟิลด์ในโมดัล (input + change) ไม่ต้องผูกทีละช่อง
+document.addEventListener('input', function(e) { var m = e.target.closest ? e.target.closest('.modal-overlay') : null; if (m && DIRTY_FORM_IDS.indexOf(m.id) >= 0) window.__fpDirtyForms[m.id] = true; });
+document.addEventListener('change', function(e) { var m = e.target.closest ? e.target.closest('.modal-overlay') : null; if (m && DIRTY_FORM_IDS.indexOf(m.id) >= 0) window.__fpDirtyForms[m.id] = true; });
+function _confirmDiscardChanges(id) {
+  var scr = document.getElementById('modal-dirty-confirm');
+  if (!scr) { // เผื่อโมดัลยืนยันหายไป — ใช้ confirm ของเบราว์เซอร์แทน
+    if (window.confirm('มีข้อมูลที่ยังไม่ได้บันทึก — ปิดและทิ้งการแก้ไขหรือไม่?')) { window.__fpSkipDirtyOnce[id] = true; closeModal(id); }
+    return;
+  }
+  document.getElementById('dirty-discard-btn').onclick = function() {
+    closeModal('modal-dirty-confirm');
+    window.__fpSkipDirtyOnce[id] = true;
+    closeModal(id);
+  };
+  openModal('modal-dirty-confirm');
+}
 function openModal(id) {
+  if (typeof DIRTY_FORM_IDS !== 'undefined' && DIRTY_FORM_IDS.indexOf(id) >= 0) { window.__fpDirtyForms[id] = false; window.__fpSkipDirtyOnce[id] = false; } // v87 ①: เปิดฟอร์ม = เริ่มนับ dirty ใหม่เสมอ
   var el = document.getElementById(id);
   if (!el) return;
   el.classList.add('open');
 }
 function closeModal(id) {
+  // v87 ①: ฟอร์มที่มีการแก้ไขค้าง — ถามก่อนทิ้ง (บันทึกแล้ว/ยืนยันทิ้งแล้ว = ผ่านด้วย skip flag ตามโครง EBED)
+  if (typeof DIRTY_FORM_IDS !== 'undefined' && DIRTY_FORM_IDS.indexOf(id) >= 0 && _isFormDirty(id) && !window.__fpSkipDirtyOnce[id]) { _confirmDiscardChanges(id); return; }
+  window.__fpSkipDirtyOnce[id] = false;
+  window.__fpDirtyForms[id] = false;
   var el = document.getElementById(id);
   if (el) el.classList.remove('open');
   if (id === 'modal-job') resetJobModal();
@@ -3507,7 +3748,7 @@ var _exitShownAt = 0;       // เวลาที่เปิดหน้าต�
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
 var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
-var APP_VERSION = 'v86';
+var APP_VERSION = 'v87';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -3661,6 +3902,7 @@ async function saveCustomer() {
     updatedAt: new Date().toISOString()
   });
   var cloudOk = await saveCustomerData(customer); // v39: รู้ทันทีว่าขึ้นคลาวด์จริงไหม
+  window.__fpSkipDirtyOnce['modal-customer'] = true; // v87 ①: บันทึกแล้ว — ปิดฟอร์มได้เลยไม่ถาม dirty
   closeModal('modal-customer');
   refreshAll();
   if (cloudOk) toast('บันทึกข้อมูลลูกค้าเรียบร้อย', 'success');
@@ -3856,6 +4098,7 @@ async function _doSaveJob() {
         (Date.now() - new Date(x.updatedAt).getTime()) < 30000;
     });
     if (dup) {
+      window.__fpSkipDirtyOnce['modal-job'] = true; // v87 ①: งานนี้บันทึกไปแล้วจริง — ปิดได้เลย
       closeModal('modal-job');
       if (currentPage === 'customer-detail' && currentCustomerPhone) renderCustomerDetail(currentCustomerPhone);
       refreshAll();
@@ -3864,6 +4107,7 @@ async function _doSaveJob() {
     }
   }
   var cloudOk = await saveJobData(job); // v39: รู้ทันทีว่าขึ้นคลาวด์จริงไหม
+  window.__fpSkipDirtyOnce['modal-job'] = true; // v87 ①: บันทึกแล้ว — ปิดฟอร์มได้เลยไม่ถาม dirty
   closeModal('modal-job');
   if (currentPage === 'customer-detail' && currentCustomerPhone) renderCustomerDetail(currentCustomerPhone);
   refreshAll();
@@ -4223,14 +4467,52 @@ function renderReport() {
     months.push({ label: mnNames[d.getMonth()], rev: rev, isCur: i === 0 });
   }
   var maxRev = Math.max(...months.map(m => m.rev), 1);
-  document.getElementById('report-bar-chart').innerHTML = months.map(m => {
-    var pct = Math.round(m.rev / maxRev * 100);
-    var col = m.isCur ? 'var(--primary)' : (m.rev === maxRev && m.rev > 0 ? 'var(--primary-l)' : 'rgba(46,125,50,0.35)');
-    return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0;">' +
-      '<div style="font-size:8.5px;color:var(--text2);font-weight:600;white-space:nowrap;">' + (m.rev > 0 ? rptMoney(m.rev) : '') + '</div>' +
-      '<div style="width:100%;border-radius:3px 3px 0 0;height:' + pct + '%;background:' + col + ';min-height:2px;"></div>' +
-      '<div style="font-size:8.5px;color:var(--text3);">' + m.label + '</div></div>';
-  }).join('');
+  destroyRptCharts(); // v87 ③: ล้างกราฟเก่าก่อนวาดใหม่ กัน memory leak (แบบ EBED 02-app.05-dashboard.js)
+  var mwM = document.getElementById('rpt-chart-monthly-wrap'), fwM = document.getElementById('report-bar-chart');
+  if (window.Chart) {
+    mwM.style.display = 'block'; fwM.style.display = 'none';
+    _rptCharts.monthly = new Chart(document.getElementById('chart-monthly'), {
+      type: 'bar',
+      data: { labels: months.map(m => m.label), datasets: [{ label: 'รายได้', data: months.map(m => m.rev), backgroundColor: months.map(m => m.isCur ? '#2E7D32' : 'rgba(46,125,50,0.45)'), borderRadius: 4, maxBarThickness: 38 }] },
+      options: { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(c) { return ' ' + (c.parsed.y || 0).toLocaleString() + ' บาท'; } } } },
+        scales: { y: { beginAtZero: true, ticks: { font: { family: 'Kanit', size: 10 }, callback: function(v) { return v >= 1000 ? (v / 1000) + 'k' : v; } }, grid: { color: 'rgba(128,134,158,0.18)' } }, x: { ticks: { font: { family: 'Kanit', size: 10 } }, grid: { display: false } } } }
+    });
+  } else { // ออฟไลน์/CDN โหลดไม่ได้ → กราฟแท่ง CSS เดิม (รุ่นก่อน v87)
+    mwM.style.display = 'none'; fwM.style.display = 'flex';
+    fwM.innerHTML = months.map(m => {
+      var pct = Math.round(m.rev / maxRev * 100);
+      var col = m.isCur ? 'var(--primary)' : (m.rev === maxRev && m.rev > 0 ? 'var(--primary-l)' : 'rgba(46,125,50,0.35)');
+      return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0;">' +
+        '<div style="font-size:8.5px;color:var(--text2);font-weight:600;white-space:nowrap;">' + (m.rev > 0 ? rptMoney(m.rev) : '') + '</div>' +
+        '<div style="width:100%;border-radius:3px 3px 0 0;height:' + pct + '%;background:' + col + ';min-height:2px;"></div>' +
+        '<div style="font-size:8.5px;color:var(--text3);">' + m.label + '</div></div>';
+    }).join('');
+  }
+  // v87 ③: โดนัทสัดส่วนรายได้ตามประเภทงาน (นับเฉพาะงานในช่วงที่เลือก)
+  var tCard = document.getElementById('rpt-types-chart-card');
+  var twT = document.getElementById('rpt-chart-types-wrap'), teT = document.getElementById('chart-types-empty');
+  if (!window.Chart) { tCard.style.display = 'none'; }
+  else {
+    tCard.style.display = '';
+    var typeAgg = {};
+    pJobs.forEach(function(j) { var t = typeLabel(j.serviceType); typeAgg[t] = (typeAgg[t] || 0) + jobTotal(j); });
+    var tKeys = Object.keys(typeAgg).sort(function(a, b) { return typeAgg[b] - typeAgg[a]; }).slice(0, 6);
+    var otherSum = Object.keys(typeAgg).reduce(function(s, k) { if (tKeys.indexOf(k) < 0) s += typeAgg[k]; return s; }, 0);
+    var tLabels = tKeys.slice(), tVals = tKeys.map(function(k) { return typeAgg[k]; });
+    if (otherSum > 0) { tLabels.push('อื่น ๆ'); tVals.push(otherSum); }
+    if (tVals.length > 0) {
+      twT.style.display = 'block'; teT.style.display = 'none';
+      var TCOLS = ['#2E7D32', '#1976D2', '#F59E0B', '#7C3AED', '#EF4444', '#0D9488', '#92400E'];
+      _rptCharts.types = new Chart(document.getElementById('chart-types'), {
+        type: 'doughnut',
+        data: { labels: tLabels, datasets: [{ data: tVals, backgroundColor: TCOLS.slice(0, tVals.length), borderWidth: 0 }] },
+        options: { responsive: true, maintainAspectRatio: false, cutout: '58%',
+          plugins: { legend: { position: (window.innerWidth < 480 ? 'bottom' : 'right'), labels: { font: { family: 'Kanit', size: 11 }, boxWidth: 12 } },
+            tooltip: { callbacks: { label: function(c) { return ' ' + c.label + ': ' + (c.parsed || 0).toLocaleString() + ' บาท'; } } } } }
+      });
+    } else { twT.style.display = 'none'; teT.style.display = 'block'; }
+  }
 
   // ---- สถานะงานในช่วง ----
   document.getElementById('rpt-status-title').textContent = 'สถานะงาน · ' + word;
@@ -4778,6 +5060,7 @@ function updateOfflineBar() {
   if (!bar) return;
   var appActive = document.getElementById('app-screen').classList.contains('active');
   bar.classList.toggle('show', appActive && !navigator.onLine);
+  if (typeof updateInfoBar === 'function') updateInfoBar(); // v87 ⑤: อัปเดต info-bar พร้อมกันทุกจุดที่สถานะเครือข่าย/หน้าเปลี่ยน
 }
 window.addEventListener('online', updateOfflineBar);
 window.addEventListener('offline', updateOfflineBar);
@@ -4865,6 +5148,9 @@ document.addEventListener('DOMContentLoaded', function() {
     DB.jobs = dedupeJobs(lsGetJobs());
   } catch (eLocal) { console.warn('อ่านข้อมูลในเครื่องไม่สำเร็จ:', eLocal); }
   try { enterApp(); } catch (eApp) { console.error('แสดงหน้าจอเริ่มต้นพลาด:', eApp); }
+  // v87 ④: ป้ายจำนวนแจ้งเตือน + ตรวจป๊อปอัปรายการใหม่ทุก 2 นาที (แบบ EBED initNotificationPopup)
+  try { updateNotifBadge(); } catch (eN) {}
+  setInterval(function() { try { checkNotifPopup(); } catch (eN2) {} }, 120000);
   // v37: ต่อ Firebase ให้เสร็จ แล้วซิงค์ข้อมูลเบื้องหลัง —
   // ผู้ใช้เห็นข้อมูลในเครื่องแล้ว ระบบเชื่อมคลาวด์เพื่ออัปเดตข้อมูลล่าสุดทับอัตโนมัติ
   try {

@@ -1,10 +1,10 @@
 /* FixPro Service Worker — แคชไฟล์แอปไว้ใช้งานตอนออฟไลน์ */
-var CACHE = 'fixpro-v86';
+var CACHE = 'fixpro-v87';
 var CORE = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './manifest.webmanifest?v=86', // v56: URL เปลี่ยนบังคับ Chrome อ่าน manifest ใหม่ = เคลียร์สแปลชม่วงตกค้างยุค v49 (v86: bump ตามรอบแคช)
+  './manifest.webmanifest?v=87', // v56: URL เปลี่ยนบังคับ Chrome อ่าน manifest ใหม่ = เคลียร์สแปลชม่วงตกค้างยุค v49 (v87: bump ตามรอบแคช)
   './icons/icon-192.png',
   './icons/icon-180.png',
   './icons/icon-512.png',
@@ -41,6 +41,7 @@ var CDN = [
   'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js',
+  'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js', // v87: กราฟหน้ารายงาน — แคชไว้ใช้ออฟไลน์ได้
 ];
 
 self.addEventListener('install', function (e) {
