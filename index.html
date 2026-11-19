@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=78">
+<link rel="manifest" href="manifest.webmanifest?v=79">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -370,6 +370,10 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 .jt-iconbtn:active { background: rgba(25,118,210,0.28); }
 .jt-iconbtn.danger { color: var(--danger); background: rgba(220,38,38,0.12); }
 .jt-iconbtn.danger:active { background: rgba(220,38,38,0.28); }
+/* v79: ปุ่มเลื่อนลำดับประเภทงาน (ลูกศรขึ้น-ลง) — สีเทากลางแยกจากดินสอ/ถังขยะ ชิดสุดบน/ชิดสุดล่าง = ปุ่มจางใช้ไม่ได้ (ซ่อนเมื่อการ์ดล็อกตาม .card.locked เหมือนปุ่มอื่น) */
+.jt-iconbtn.move { color: var(--text3); background: rgba(100,116,139,0.12); }
+.jt-iconbtn.move:active { background: rgba(100,116,139,0.28); }
+.jt-iconbtn.move:disabled { opacity: 0.35; cursor: default; }
 /* v47: ปุ่มเพิ่มประเภทงานย้ายมาอยู่แถวเดียวกับปุ่ม บันทึก/ยกเลิก และย่อขนาดเท่าปุ่มอื่น (เดิมเป็นปุ่มใหญ่กว้างเต็มแถวใต้รายการ) */
 .jt-add {
   padding: 5px 10px; border-radius: 8px; border: 1.5px dashed var(--primary);
@@ -1341,7 +1345,7 @@ body::after {
             <button type="button" class="btn-card-edit" onclick="setCardEditing('jobtypes', true)"><i class="fas fa-pen"></i> แก้ไข</button>
           </div>
           <div class="card-body" style="padding-top:4px;">
-            <div style="font-size:11px;color:var(--text3);margin-bottom:10px;">งานเก่าจะยังแสดงชื่อประเภทเดิม · กด “แก้ไข” เพื่อเปลี่ยนชื่อ (ดินสอ) ลบ (ถังขยะ) เพิ่มประเภทใหม่ แล้วกด “บันทึก”</div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:10px;">งานเก่าจะยังแสดงชื่อประเภทเดิม · กด “แก้ไข” เพื่อเลื่อนลำดับ (ลูกศรขึ้น-ลง) เปลี่ยนชื่อ (ดินสอ) ลบ (ถังขยะ) เพิ่มประเภทใหม่ — ลำดับใหม่มีผลทันที แล้วกด “บันทึก”</div> <!-- v79: เพิ่มการเลื่อนลำดับประเภทงานได้ -->
             <div id="jobtypes-rows"></div>
             <div class="card-actions">
               <button class="btn btn-primary btn-sm js-save" onclick="saveJobTypesCard()"><i class="fas fa-save"></i> บันทึก</button>
@@ -2375,15 +2379,39 @@ function renderJobTypeSettings() {
   var box = document.getElementById('jobtypes-rows');
   if (!box) return;
   var types = getJobTypes();
-  // แถวกระชับ แสดงผลอย่างเดียว — ปุ่มไอคอนเล็กโปร่งเหมือนหน้างาน: ดินสอ แก้ไข / ถังขยะ ลบ
+  // แถวกระชับ แสดงผลอย่างเดียว — ปุ่มไอคอนเล็กโปร่งเหมือนหน้างาน: ลูกศรขึ้น-ลง เลื่อนลำดับ / ดินสอ แก้ไข / ถังขยะ ลบ
+  // v79: ปุ่มเลื่อนลำดับ ▲▼ ต่อแถว — สลับตำแหน่งใน cfg.jobTypes (อาร์เรย์ = ลำดับที่ใช้ทั้งแอป) ปุ่มจางเมื่อชิดขอบบน/ล่าง
   // v47: ปุ่ม "เพิ่มประเภทงาน" ย้ายไปอยู่แถวเดียวกับ บันทึก/ยกเลิก (ใน HTML ของการ์ด) — ที่นี่เหลือเฉพาะแถวรายชื่อ
-  box.innerHTML = types.map(function(t) {
+  box.innerHTML = types.map(function(t, idx) {
+    var isFirst = idx === 0, isLast = idx === types.length - 1;
     return '<div class="jt-row">' +
       '<span class="jt-name">' + esc(t.label) + '</span>' +
+      '<button type="button" class="jt-iconbtn move" title="เลื่อนขึ้น" onclick="moveJobType(\'' + escAttr(t.id) + '\',-1)"' + (isFirst ? ' disabled' : '') + '><i class="fas fa-chevron-up"></i></button>' +
+      '<button type="button" class="jt-iconbtn move" title="เลื่อนลง" onclick="moveJobType(\'' + escAttr(t.id) + '\',1)"' + (isLast ? ' disabled' : '') + '><i class="fas fa-chevron-down"></i></button>' +
       '<button type="button" class="jt-iconbtn" title="แก้ไขประเภทงาน" onclick="openEditJobType(\'' + escAttr(t.id) + '\')"><i class="fas fa-pen"></i></button>' +
       '<button type="button" class="jt-iconbtn danger" title="ลบประเภทนี้" onclick="deleteJobType(\'' + escAttr(t.id) + '\')"><i class="fas fa-trash-can"></i></button>' +
       '</div>';
   }).join('');
+}
+// v79: เลื่อนลำดับประเภทงาน (หน้าตั้งค่า) — dir = -1 ขึ้น / 1 ลง สลับกับประเภทถัดไปที่ยังไม่ลบ (ประเภทที่ลบแล้วยังค้างในลิสต์ config ให้ข้ามไป)
+// ลำดับใหม่มีผลทันทีทั้งแอปเพราะทุกจุดแสดงอ่านตามลำดับอาร์เรย์: ชิปเลือกประเภทในฟอร์ม + ตัวกรองหน้างาน (applyJobTypes→renderTypeSelector) / แดชบอร์ด / หน้าตั้งค่า
+// บันทึก+ซิงค์คลาวด์ทันทีผ่าน saveJobTypesList เดียวกับ เพิ่ม/แก้/ลบ และยกเลิกได้เพราะ _jtSnapshot ครอบคลุมทั้งลำดับ
+function moveJobType(id, dir) {
+  var list = getJobTypes(true);
+  var i = -1;
+  for (var k = 0; k < list.length; k++) { if (list[k].id === id) { i = k; break; } }
+  if (i < 0) return;
+  var j = i;
+  while (true) {
+    j += dir;
+    if (j < 0 || j >= list.length) return;
+    if (!list[j].deleted) break;
+  }
+  var moved = list[i];
+  list[i] = list[j]; list[j] = moved;
+  saveJobTypesList(list);
+  renderJobTypeSettings();
+  toast('ย้าย "' + moved.label + '" แล้ว', 'success');
 }
 var _jtEditingId = null; // null = โหมดเพิ่มใหม่, มีค่า = โหมดแก้ไข id นี้
 function openAddJobType() {
@@ -3280,7 +3308,7 @@ var _exitShownAt = 0;       // เวลาที่เปิดหน้าต�
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
 var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
-var APP_VERSION = 'v78';
+var APP_VERSION = 'v79';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
