@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=73">
+<link rel="manifest" href="manifest.webmanifest?v=74">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -2934,16 +2934,26 @@ function custMapPin(c) {
   if (typeof s === 'string' && s.trim()) {
     s = s.trim();
     // v16 — ยอมรับเฉพาะลิงก์ http(s) หรือพิกัด lat,lng กัน javascript: URI หลุดเข้ามา
-    if (/^(https?:\/\/|-?\d{1,3}(\.\d+)?\s*,\s*-?\d{1,3}(\.\d+)?)/i.test(s)) return s;
+    // v74 — เพิ่มรับพิกัดองศา-ลิปดา-ฟิลิปดา เช่น 18°55'08.9"N 99°02'01.3"E (เดิม regex ไม่ยอมรับ ทำให้เซฟแล้วช่องแสดงว่าง = ดูเหมือนไม่บันทึก)
+    if (/^(https?:\/\/|-?\d{1,3}(\.\d+)?\s*,\s*-?\d{1,3}(\.\d+)?|-?\d{1,3}(\.\d+)?\s*°)/i.test(s)) return s;
     return '';
   }
   if (c.lat != null && c.lng != null && c.lat !== '' && c.lng !== '') return c.lat + ',' + c.lng;
   return '';
 }
 // ดึงพิกัด lat,lng จากลิงก์ Google Maps ทุกรูปแบบ (@lat,lng / ?q= / !3d!4d / lat,lng เฉยๆ)
+// v74 — แปลงพิกัด DMS ได้แล้ว เช่น 18°55'08.9"N 99°02'01.3"E → 18.919139,99.033694 (ทิศ S/W = ลบอัตโนมัติ)
 function extractMapCoords(url) {
   var s = String(url || '').trim();
   if (/^-?\d{1,3}(\.\d+)?\s*,\s*-?\d{1,3}(\.\d+)?$/.test(s)) return s.replace(/\s/g, '');
+  var dms = s.match(/(-?\d{1,3}(?:\.\d+)?)\s*°\s*(?:(\d{1,2}(?:\.\d+)?)\s*['′’])?\s*(?:(\d{1,2}(?:\.\d+)?)\s*["”″])?\s*([NSns])\s*,?\s*(-?\d{1,3}(?:\.\d+)?)\s*°\s*(?:(\d{1,2}(?:\.\d+)?)\s*['′’])?\s*(?:(\d{1,2}(?:\.\d+)?)\s*["”″])?\s*([EWew])/);
+  if (dms) {
+    var toDec = function(a, b, c, sgn) {
+      var v = parseFloat(a || 0) + (parseFloat(b || 0) / 60) + (parseFloat(c || 0) / 3600);
+      return ((sgn === 'S' || sgn === 'W' || sgn === 's' || sgn === 'w' ? -v : v).toFixed(6)).replace(/\.?0+$/, '');
+    };
+    return toDec(dms[1], dms[2], dms[3], dms[4]) + ',' + toDec(dms[5], dms[6], dms[7], dms[8]);
+  }
   var m = s.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) ||
           s.match(/[?&](?:q|destination|query)=(-?\d+\.\d+),(-?\d+\.\d+)/) ||
           s.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
@@ -2996,16 +3006,18 @@ function renderCustomerDetail(phone) {
   var addr = (cust.address || '').trim();
   var pin = custMapPin(cust);          // ลิงก์/พิกัดที่เคยบันทึกไว้ (รวมฟิลด์เก่า)
   var coords = pin ? extractMapCoords(pin) : '';
+  // v74: พิกัดที่ไม่ใช่ลิงก์ (DMS/lat,lng) เปิดผ่าน Google Maps search — เดิม window.open ข้อความพิกัดตรง ๆ ไม่ได้
+  var pinUrl = pin ? (/^https?:\/\//i.test(pin) ? pin : 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(pin)) : '';
   var embedQ = coords || (addr ? addr + ' ประเทศไทย' : ''); // ถ้ามีพิกัดจริงใช้พิกัดเลย — ที่อยู่เติม "ประเทศไทย" ช่วยให้ Google เจอถูกที่
   var mapCard = '<div class="card"><div class="card-header"><span class="card-title"><i class="fas fa-map-location-dot" style="color:var(--primary);"></i> แผนที่บ้านลูกค้า</span></div><div class="card-body">';
   if (embedQ || pin) {
     mapCard += (embedQ ? '<iframe class="map-embed" src="https://maps.google.com/maps?q=' + encodeURIComponent(embedQ) + '&z=16&output=embed&hl=th" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>' : '') +
       (addr ? '<div style="font-size:12px;color:var(--text3);margin-top:6px;"><i class="fas fa-location-dot"></i> ' + esc(addr) + '</div>' : '') +
       (embedQ && !coords && addr ? '<div style="font-size:11px;color:var(--text3);margin-top:4px;"><i class="fas fa-circle-info"></i> หมุดจากที่อยู่ — ถ้าไม่ตรงบ้าน ให้แนบลิงก์ Google Maps หรือพิกัดเพิ่มในหน้าแก้ไข</div>' : '') +
-      (pin ? '<div class="map-pin-row" onclick="window.open(\'' + escAttr(pin) + '\',\'_blank\')"><i class="fas fa-location-crosshairs"></i><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">พิกัดที่บันทึกไว้: ' + esc(coords || pin) + '</span><i class="fas fa-up-right-from-square"></i></div>' : '') +
+      (pin ? '<div class="map-pin-row" onclick="window.open(\'' + escAttr(pinUrl) + '\',\'_blank\')"><i class="fas fa-location-crosshairs"></i><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">พิกัดที่บันทึกไว้: ' + esc(coords || pin) + '</span><i class="fas fa-up-right-from-square"></i></div>' : '') +
       '<div class="map-actions">' +
       mapNavBtn(cust, coords, addr) +
-      '<button class="map-btn map-btn-open" onclick="window.open(\'' + escAttr(pin || ('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(addr))) + '\',\'_blank\')"><i class="fas fa-map"></i> เปิดแผนที่</button></div>';
+      '<button class="map-btn map-btn-open" onclick="window.open(\'' + escAttr(pinUrl || ('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(addr))) + '\',\'_blank\')"><i class="fas fa-map"></i> เปิดแผนที่</button></div>';
   } else {
     mapCard += '<div class="empty-state" style="padding:16px 10px;"><i class="fas fa-map-location-dot"></i><p>ยังไม่มีข้อมูลแผนที่ — ปักหมุด GPS หรือวางลิงก์ Google Maps</p>' +
       '<button class="map-btn map-btn-go" style="max-width:220px;margin:0 auto;" onclick="openEditCustomer(\'' + escAttr(phone) + '\')"><i class="fas fa-location-crosshairs"></i> ปักหมุด / ใส่พิกัด</button></div>';
@@ -3254,7 +3266,7 @@ var _exitShownAt = 0;       // เวลาที่เปิดหน้าต�
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
 var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
-var APP_VERSION = 'v73';
+var APP_VERSION = 'v74';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
