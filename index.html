@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=79">
+<link rel="manifest" href="manifest.webmanifest?v=80">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -370,10 +370,11 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 .jt-iconbtn:active { background: rgba(25,118,210,0.28); }
 .jt-iconbtn.danger { color: var(--danger); background: rgba(220,38,38,0.12); }
 .jt-iconbtn.danger:active { background: rgba(220,38,38,0.28); }
-/* v79: ปุ่มเลื่อนลำดับประเภทงาน (ลูกศรขึ้น-ลง) — สีเทากลางแยกจากดินสอ/ถังขยะ ชิดสุดบน/ชิดสุดล่าง = ปุ่มจางใช้ไม่ได้ (ซ่อนเมื่อการ์ดล็อกตาม .card.locked เหมือนปุ่มอื่น) */
-.jt-iconbtn.move { color: var(--text3); background: rgba(100,116,139,0.12); }
-.jt-iconbtn.move:active { background: rgba(100,116,139,0.28); }
-.jt-iconbtn.move:disabled { opacity: 0.35; cursor: default; }
+/* v80: จับยึดลากเรียงลำดับประเภทงาน (กดค้างแล้วเลื่อน ทั้งมือถือ/เดสก์ท็อป — Pointer Events เส้นทางเดียว แทนปุ่มลูกศร v79)
+   touch-action:none เฉพาะจุดจับ = กดที่จับแล้วหน้าไม่เลื่อน กดค้าง 250ms จึงเริ่มลาก ก่อนหน้านั้นปล่อยมือ = ไม่เกิดการลาก · พื้นหลังแถวที่ลากใช้ var(--surface) ตามธีมสว่าง/มืด */
+.jt-draghandle { width: 26px; height: 34px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: var(--text3); cursor: grab; touch-action: none; -webkit-user-select: none; user-select: none; font-size: 14px; border-radius: 8px; }
+.jt-draghandle:active { background: rgba(100,116,139,0.15); }
+.jt-row.dragging { position: relative; z-index: 5; background: var(--surface); box-shadow: 0 6px 18px rgba(15,23,42,0.25); border-radius: 10px; }
 /* v47: ปุ่มเพิ่มประเภทงานย้ายมาอยู่แถวเดียวกับปุ่ม บันทึก/ยกเลิก และย่อขนาดเท่าปุ่มอื่น (เดิมเป็นปุ่มใหญ่กว้างเต็มแถวใต้รายการ) */
 .jt-add {
   padding: 5px 10px; border-radius: 8px; border: 1.5px dashed var(--primary);
@@ -593,7 +594,7 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
 .card.locked .js-save, .card.locked .js-cancel { display: none; }
 .card.locked .form-control { pointer-events: none; background: transparent; border-color: transparent; }
 .card.locked .card-body label { pointer-events: none; cursor: default; }
-.card.locked .jt-iconbtn, .card.locked .jt-add { display: none; }
+.card.locked .jt-iconbtn, .card.locked .jt-draghandle, .card.locked .jt-add { display: none; }
 /* v58 audit: .settings-row/.settings-label/.settings-sub/.config-status.err ถูกลบ — updateConfigStatus ใช้แค่ ok/warn และไม่มี element ใช้ settings-row กลุ่มนี้ */
 .config-status { padding: 8px 12px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 500; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
 .config-status.ok { background: var(--primary-bg); color: var(--success); }
@@ -1345,7 +1346,7 @@ body::after {
             <button type="button" class="btn-card-edit" onclick="setCardEditing('jobtypes', true)"><i class="fas fa-pen"></i> แก้ไข</button>
           </div>
           <div class="card-body" style="padding-top:4px;">
-            <div style="font-size:11px;color:var(--text3);margin-bottom:10px;">งานเก่าจะยังแสดงชื่อประเภทเดิม · กด “แก้ไข” เพื่อเลื่อนลำดับ (ลูกศรขึ้น-ลง) เปลี่ยนชื่อ (ดินสอ) ลบ (ถังขยะ) เพิ่มประเภทใหม่ — ลำดับใหม่มีผลทันที แล้วกด “บันทึก”</div> <!-- v79: เพิ่มการเลื่อนลำดับประเภทงานได้ -->
+            <div style="font-size:11px;color:var(--text3);margin-bottom:10px;">งานเก่าจะยังแสดงชื่อประเภทเดิม · กด “แก้ไข” เพื่อเลื่อนลำดับ (กดค้างที่จับยึดแล้วลาก) เปลี่ยนชื่อ (ดินสอ) ลบ (ถังขยะ) เพิ่มประเภทใหม่ — ลำดับใหม่มีผลทันที แล้วกด “บันทึก”</div> <!-- v80: เลื่อนลำดับด้วยการกดค้างแล้วลาก (เดิม v79 เป็นปุ่มลูกศร) -->
             <div id="jobtypes-rows"></div>
             <div class="card-actions">
               <button class="btn btn-primary btn-sm js-save" onclick="saveJobTypesCard()"><i class="fas fa-save"></i> บันทึก</button>
@@ -2379,39 +2380,83 @@ function renderJobTypeSettings() {
   var box = document.getElementById('jobtypes-rows');
   if (!box) return;
   var types = getJobTypes();
-  // แถวกระชับ แสดงผลอย่างเดียว — ปุ่มไอคอนเล็กโปร่งเหมือนหน้างาน: ลูกศรขึ้น-ลง เลื่อนลำดับ / ดินสอ แก้ไข / ถังขยะ ลบ
-  // v79: ปุ่มเลื่อนลำดับ ▲▼ ต่อแถว — สลับตำแหน่งใน cfg.jobTypes (อาร์เรย์ = ลำดับที่ใช้ทั้งแอป) ปุ่มจางเมื่อชิดขอบบน/ล่าง
+  // แถวกระชับ แสดงผลอย่างเดียว — จับยึด กดค้างลากเรียงลำดับ / ดินสอ แก้ไข / ถังขยะ ลบ
+  // v80: เลื่อนลำดับด้วยการกดค้างที่จับยึดแล้วลาก (แทนปุ่มลูกศร v79) — data-jtid = อ้างลำดับของแถวตอนปล่อยมือ
   // v47: ปุ่ม "เพิ่มประเภทงาน" ย้ายไปอยู่แถวเดียวกับ บันทึก/ยกเลิก (ใน HTML ของการ์ด) — ที่นี่เหลือเฉพาะแถวรายชื่อ
-  box.innerHTML = types.map(function(t, idx) {
-    var isFirst = idx === 0, isLast = idx === types.length - 1;
-    return '<div class="jt-row">' +
+  box.innerHTML = types.map(function(t) {
+    return '<div class="jt-row" data-jtid="' + escAttr(t.id) + '">' +
+      '<span class="jt-draghandle" title="กดค้างแล้วลากเพื่อเลื่อนลำดับ" onpointerdown="jtDragStart(event, \'' + escAttr(t.id) + '\')"><i class="fas fa-grip-vertical"></i></span>' +
       '<span class="jt-name">' + esc(t.label) + '</span>' +
-      '<button type="button" class="jt-iconbtn move" title="เลื่อนขึ้น" onclick="moveJobType(\'' + escAttr(t.id) + '\',-1)"' + (isFirst ? ' disabled' : '') + '><i class="fas fa-chevron-up"></i></button>' +
-      '<button type="button" class="jt-iconbtn move" title="เลื่อนลง" onclick="moveJobType(\'' + escAttr(t.id) + '\',1)"' + (isLast ? ' disabled' : '') + '><i class="fas fa-chevron-down"></i></button>' +
       '<button type="button" class="jt-iconbtn" title="แก้ไขประเภทงาน" onclick="openEditJobType(\'' + escAttr(t.id) + '\')"><i class="fas fa-pen"></i></button>' +
       '<button type="button" class="jt-iconbtn danger" title="ลบประเภทนี้" onclick="deleteJobType(\'' + escAttr(t.id) + '\')"><i class="fas fa-trash-can"></i></button>' +
       '</div>';
   }).join('');
 }
-// v79: เลื่อนลำดับประเภทงาน (หน้าตั้งค่า) — dir = -1 ขึ้น / 1 ลง สลับกับประเภทถัดไปที่ยังไม่ลบ (ประเภทที่ลบแล้วยังค้างในลิสต์ config ให้ข้ามไป)
-// ลำดับใหม่มีผลทันทีทั้งแอปเพราะทุกจุดแสดงอ่านตามลำดับอาร์เรย์: ชิปเลือกประเภทในฟอร์ม + ตัวกรองหน้างาน (applyJobTypes→renderTypeSelector) / แดชบอร์ด / หน้าตั้งค่า
-// บันทึก+ซิงค์คลาวด์ทันทีผ่าน saveJobTypesList เดียวกับ เพิ่ม/แก้/ลบ และยกเลิกได้เพราะ _jtSnapshot ครอบคลุมทั้งลำดับ
-function moveJobType(id, dir) {
-  var list = getJobTypes(true);
-  var i = -1;
-  for (var k = 0; k < list.length; k++) { if (list[k].id === id) { i = k; break; } }
-  if (i < 0) return;
-  var j = i;
-  while (true) {
-    j += dir;
-    if (j < 0 || j >= list.length) return;
-    if (!list[j].deleted) break;
+// v80: ลากเรียงลำดับแบบกดค้างแล้วเลื่อน — มือถือ+เดสก์ท็อปใช้ Pointer Events เส้นทางเดียว
+// กดค้างที่จับยึด ≥250ms เริ่มลาก แถวตามนิ้ว/เมาส์ สลับแถวทันทีเมื่อกึ่งกลางแถวข้ามอีกแถว ปล่อย = บันทึกลำดับใหม่ผ่าน saveJobTypesList (ซิงค์คลาวด์ทันที + ชิปฟอร์ม/ตัวกรอง/แดชบอร์ดตามลำดับใหม่ทันที)
+// touch-action:none เฉพาะจุดจับ จึงกดที่จับแล้วหน้าไม่เลื่อน แต่กดที่เนื้อหาอื่นเลื่อนหน้าปกติ — ก่อนครบ 250ms ปล่อยมือ = ไม่เกิดการลาก · ประเภทที่ลบแล้วคงตำแหน่งเดิมในลิสต์ config
+var _jtDrag = null;
+function jtDragStart(e, id) {
+  if (!e.isPrimary || _jtDrag) return;
+  var row = e.currentTarget.closest('.jt-row');
+  if (!row) return;
+  e.preventDefault();
+  _jtDrag = { id: id, row: row, baseY: e.clientY, lastY: e.clientY, moved: false, armed: false,
+    timer: setTimeout(function() {
+      if (!_jtDrag) return;
+      _jtDrag.armed = true;
+      _jtDrag.baseY = _jtDrag.lastY; // ลากเริ่มจากตำแหน่งนิ้วปัจจุบัน แถวไม่กระโดด
+      _jtDrag.row.classList.add('dragging');
+      if (navigator.vibrate) navigator.vibrate(15);
+    }, 250) };
+  document.addEventListener('pointermove', jtDragMove, { passive: false });
+  document.addEventListener('pointerup', jtDragEnd);
+  document.addEventListener('pointercancel', jtDragEnd);
+}
+function jtDragMove(e) {
+  if (!_jtDrag) return;
+  _jtDrag.lastY = e.clientY;
+  if (!_jtDrag.armed) return;
+  e.preventDefault();
+  var row = _jtDrag.row;
+  row.style.transform = 'translateY(' + (e.clientY - _jtDrag.baseY) + 'px)';
+  _jtDrag.moved = true;
+  var rb = row.getBoundingClientRect();
+  var mid = rb.top + rb.height / 2;
+  var sibs = row.parentNode.children;
+  for (var i = 0; i < sibs.length; i++) {
+    var s = sibs[i];
+    if (s === row) continue;
+    var sb = s.getBoundingClientRect();
+    var smid = sb.top + sb.height / 2;
+    if (mid > smid && s === row.nextElementSibling) { row.parentNode.insertBefore(s, row); _jtDrag.baseY += sb.height; break; } // ลากลง: กึ่งกลางแถวที่ลากข้ามกึ่งกลางแถวถัดไป → แถวถัดไปขึ้นก่อน (แถวที่ลากเลื่อนลง 1 ช่อง)
+    if (mid < smid && s === row.previousElementSibling) { row.parentNode.insertBefore(row, s); _jtDrag.baseY -= sb.height; break; } // ลากขึ้น: กึ่งกลางแถวที่ลากข้ามกึ่งกลางแถวก่อนหน้า → แถวที่ลากขึ้นก่อน (เลื่อนขึ้น 1 ช่อง)
   }
-  var moved = list[i];
-  list[i] = list[j]; list[j] = moved;
-  saveJobTypesList(list);
-  renderJobTypeSettings();
-  toast('ย้าย "' + moved.label + '" แล้ว', 'success');
+}
+function jtDragEnd() {
+  if (!_jtDrag) return;
+  clearTimeout(_jtDrag.timer);
+  document.removeEventListener('pointermove', jtDragMove);
+  document.removeEventListener('pointerup', jtDragEnd);
+  document.removeEventListener('pointercancel', jtDragEnd);
+  var st = _jtDrag; _jtDrag = null;
+  st.row.classList.remove('dragging');
+  st.row.style.transform = '';
+  if (!st.armed) return;
+  var order = Array.prototype.map.call(document.querySelectorAll('#jobtypes-rows .jt-row'), function(r) { return r.getAttribute('data-jtid'); });
+  var current = getJobTypes().map(function(t) { return t.id; });
+  var changed = JSON.stringify(order) !== JSON.stringify(current);
+  if (st.moved && changed) {
+    // เรียงใหม่เฉพาะประเภทที่ยังไม่ลบตามลำดับที่ลาก — ประเภทที่ลบแล้วคงตำแหน่งเดิมในลิสต์ config
+    var full = getJobTypes(true);
+    var q = order.map(function(id) { return full.find(function(t) { return t.id === id && !t.deleted; }); });
+    if (q.some(function(t) { return !t; })) { renderJobTypeSettings(); return; } // กัน DOM กับ config เหลื่อมกัน
+    saveJobTypesList(full.map(function(t) { return t.deleted ? t : q.shift(); }));
+    renderJobTypeSettings();
+    toast('เรียงลำดับประเภทงานแล้ว', 'success');
+  } else if (st.moved) {
+    renderJobTypeSettings();
+  }
 }
 var _jtEditingId = null; // null = โหมดเพิ่มใหม่, มีค่า = โหมดแก้ไข id นี้
 function openAddJobType() {
@@ -3308,7 +3353,7 @@ var _exitShownAt = 0;       // เวลาที่เปิดหน้าต�
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
 var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
-var APP_VERSION = 'v79';
+var APP_VERSION = 'v80';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
