@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=90">
+<link rel="manifest" href="manifest.webmanifest?v=91">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -243,6 +243,13 @@ textarea.form-control { resize: vertical; min-height: 80px; }
   margin-bottom: 8px; min-height: 72px;
 }
 .customer-card:active { transform: scale(0.98); border-color: var(--primary); }
+/* v91: หน้างาน mobile — เลิกวางการ์ดงานในกรอบ .card ทึบ: เดิมการ์ดใบสุดท้ายมี margin-bottom 8px
+   ทำให้ขอบกรอบยื่นออกมาใต้การ์ด ~9px (มนมุม+เส้นขอบเหมือนการ์ด) = ดูเหมือน "การ์ดงานอีกใบซ้อนอยู่ข้างหลัง"
+   ตามที่เจ้าของร้านแจ้งจากหน้าจอมือถือ — ให้วางการ์ดบนพื้นหลังตรง ๆ เหมือนหน้าลูกค้า (desktop คงกรอบรอบตารางเดิม) */
+@media (max-width: 1023px) {
+  #jobs-list-card { background: transparent; border-color: transparent; box-shadow: none; margin-bottom: 0; }
+  #jobs-list-card .customer-card:last-child { margin-bottom: 0; }
+}
 .customer-info { flex: 1; min-width: 0; }
 .customer-name { font-size: 15px; font-weight: 700; }
 .customer-phone { font-size: 13px; color: var(--text2); margin-top: 2px; }
@@ -1323,7 +1330,7 @@ body::after {
           </select>
         </div>
         <div id="job-jump-chip" style="display:none;margin:-2px 0 8px;"></div> <!-- v83: ชิป "งานเดียว" โผล่เมื่อลิงก์จากการ์ด -->
-        <div class="card">
+        <div class="card" id="jobs-list-card">
           <div id="jobs-mobile-list"></div>
           <div class="empty-state" id="jobs-empty" style="padding:30px 20px;display:none;">
             <i class="fas fa-clipboard-list"></i><p>ไม่พบประวัติงาน</p>
@@ -3760,7 +3767,7 @@ var _exitShownAt = 0;       // เวลาที่เปิดหน้าต�
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
 var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
-var APP_VERSION = 'v90';
+var APP_VERSION = 'v91';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
