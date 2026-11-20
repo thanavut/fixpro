@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=96">
+<link rel="manifest" href="manifest.webmanifest?v=97">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -478,6 +478,13 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
 .toast.warning { border-color: var(--warning); }
 .toast i { font-size: 16px; }
 .toast span { flex: 1; font-size: 14px; }
+/* ===== v97: ของใหม่ 4 ฟีเจอร์ (additive — ใช้ var ธีมล้วน สว่าง/มืด/เดสก์ท็อปโอเคอัตโนมัติ ไม่แตะกฎเดิม) ===== */
+/* ปุ่มใน toast ("ยกเลิกการลบ") — โชว์เฉพาะ toast ที่เรียกด้วยอาร์กิวเมนต์ที่ 3 (ผู้เรียกเดิม 2 อาร์กิวเมนต์ไม่เปลี่ยน) */
+.toast-btn { flex-shrink: 0; border: 1px solid var(--border); background: var(--surface2); color: var(--text2); border-radius: 8px; padding: 5px 10px; font-size: 12.5px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+/* ปุ่ม "เก็บเงินแล้ว" ในการ์ดรอเก็บเงินหน้ารายงาน (การ์ดนี้แสดงทุกขนาดจอ) */
+.rpt-paid-btn { display: flex; width: 100%; justify-content: center; gap: 6px; margin-top: 6px; padding: 5px 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--success); border-radius: 8px; font-size: 11.5px; font-weight: 600; cursor: pointer; }
+/* ปุ่มเก็บเงินย่อบนการ์ดงานมือถือ (โชว์เฉพาะงาน unpaid เท่านั้น) */
+.paid-quick-btn { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--success); background: transparent; color: var(--success); border-radius: 999px; padding: 2px 9px; font-size: 10.5px; font-weight: 600; cursor: pointer; white-space: nowrap; }
 
 /* ===== MOBILE NAV ===== */
 .mobile-nav {
@@ -941,11 +948,11 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
   #jobs-table-wrap th:nth-child(2) { width: 12%; }  /* ประเภทงาน */
   #jobs-table-wrap th:nth-child(3) { width: 10%; }  /* ยี่ห้อ */
   #jobs-table-wrap th:nth-child(4) { width: 9%; }   /* รุ่น */
-  #jobs-table-wrap th:nth-child(5) { width: 27%; }  /* อาการ/รายละเอียด */
+  #jobs-table-wrap th:nth-child(5) { width: 25%; }  /* อาการ/รายละเอียด (v97: ลด 27→25 ให้คอลัมน์จัดการมีที่ปุ่มเก็บเงินเพิ่ม) */
   #jobs-table-wrap th:nth-child(6) { width: 9%; }   /* วันที่ */
   #jobs-table-wrap th:nth-child(7) { width: 7%; }   /* ยอด */
   #jobs-table-wrap th:nth-child(8) { width: 8%; }   /* สถานะ */
-  #jobs-table-wrap th:nth-child(9) { width: 8%; }   /* จัดการ */
+  #jobs-table-wrap th:nth-child(9) { width: 10%; }  /* จัดการ (v97: 8→10 รองรับปุ่มเก็บเงินเมื่องาน unpaid) */
   #jobs-table-wrap td { overflow: hidden; text-overflow: ellipsis; }
   #jobs-table-wrap th:last-child, #jobs-table-wrap td:last-child { padding-left: 6px; padding-right: 6px; }
   /* v71: ตรึงส่วนหัวทุกหน้า desktop แบบ EBED — หน้าตาราง: หัวเรื่อง+การ์ดสรุป+ช่องค้นหา/ตัวกรองคงอยู่ตลอด เลื่อนได้แค่ตารางในกรอบ */
@@ -1414,6 +1421,10 @@ body::after {
             <div class="card-header"><span class="card-title" id="rpt-types-title">รายได้ตามประเภทงาน</span></div>
             <div class="card-body" id="report-type-breakdown"></div>
           </div>
+          <div class="card" id="rpt-items-card"> <!-- v97: รายการซ่อมยอดนิยม (ข้อ E จากแผน v53 ที่ยังไม่ได้ทำ) -->
+            <div class="card-header"><span class="card-title" id="rpt-items-title">รายการซ่อมยอดนิยม</span></div>
+            <div class="card-body" id="report-items-list"></div>
+          </div>
         </div>
         <div class="rpt-pane" id="rpane-customers">
           <div class="card">
@@ -1693,6 +1704,7 @@ body::after {
         <label class="form-label">🧾 รายการซ่อม <span style="font-weight:500;font-size:11px;color:var(--text3);">ราคาไม่บังคับ (เว้นว่าง = 0 บาท)</span></label> <!-- v63 -->
         <div class="ji-box">
           <div id="job-items-list"></div>
+          <datalist id="ji-name-list"></datalist> <!-- v97: รายการ+ราคาที่เคยเก็บจากงานเก่า (renderItemNameDatalist) — เสนอตอนพิมพ์ เลือกแล้วเติมราคาให้ถ้าช่องราคาว่าง -->
           <button type="button" class="ji-add" onclick="addJobItemRow()"><i class="fas fa-plus"></i> เพิ่มรายการ</button>
           <div class="ji-subtotal"><span>รวมค่าซ่อม</span><span id="job-items-subtotal-val">0 ฿</span></div>
         </div>
@@ -2378,6 +2390,65 @@ async function deleteJobData(jobId) {
     try { await db.collection('jobs').doc(jobId).delete(); }
     catch(e) { console.warn(e); }
   }
+}
+
+// ============================================================
+// v97: ลบแล้วย้อนได้ (Undo) — ห้ามแก้ deleteCustomerData/deleteJobData เดิม (tombstone/ซิงค์ครบตามเดิม)
+// วิธี: สำเนาข้อมูลไว้ก่อนลบ → ลบผ่านฟังก์ชันเดิม → toast ปุ่ม "ยกเลิกการลบ" ค้าง 10 วิ
+// ยกเลิก = คืนผ่าน saveCustomerData/saveJobData เดิม (ซิงค์คลาวด์ทันที) + ลูกค้าต้องปลด tombstone ด้วย
+// ============================================================
+function removeTombstone(phone) { // กระจกตรงข้ามของ addTombstone — ยกเลิกลบลูกค้าแล้วต้องปลด ไม่งั้นรอบซิงค์ถัดไปลบซ้ำ
+  if (!phone) return;
+  var t = getTombstones().filter(function(p){ return String(p) !== String(phone); });
+  try { localStorage.setItem(LS_TOMB, JSON.stringify(t)); } catch (e) {}
+  if (db) { db.collection('shop').doc('deleted_phones').set({ phones: t, updatedAt: new Date().toISOString() }).catch(function(){}); }
+}
+async function deleteJobWithUndo(jobId) {
+  var j = DB.jobs.find(function(x){ return x.id === jobId; });
+  if (!j) return;
+  var copy = JSON.parse(JSON.stringify(j));
+  var custTombstoned = !DB.customers.some(function(c){ return c.phone === j.customerPhone; }) && getTombstones().indexOf(String(j.customerPhone)) >= 0; // ลูกค้าของงานนี้ถูกลบไปแล้วด้วย (เคสลบต่อเนื่องใน 10 วิ) — ต้องปลด tombstone กันงานที่คืนกลับโดนกวาดตอนซิงค์ (ลูกค้าเองยังลบอยู่)
+  await deleteJobData(jobId);
+  if (currentPage === 'customer-detail' && currentCustomerPhone === j.customerPhone) renderCustomerDetail(currentCustomerPhone);
+  toast('ลบประวัติงานแล้ว', 'success', { label: 'ยกเลิกการลบ', fn: async function() {
+    if (custTombstoned) removeTombstone(j.customerPhone);
+    var ok = await saveJobData(copy);
+    if (currentPage === 'customer-detail' && currentCustomerPhone === copy.customerPhone) renderCustomerDetail(currentCustomerPhone);
+    refreshAll();
+    if (ok) toast('คืนงานที่ลบกลับมาเรียบร้อย', 'success');
+    else toast('⚠️ คืนงานในเครื่องแล้ว แต่ยังไม่ขึ้นคลาวด์ — ออนไลน์เมื่อไหร่ระบบจะซิงค์ให้เอง', 'warning');
+  }});
+}
+async function deleteCustomerWithUndo(phone) {
+  var c = DB.customers.find(function(x){ return x.phone === phone; });
+  if (!c) return;
+  var cCopy = JSON.parse(JSON.stringify(c));
+  var jobsCopy = DB.jobs.filter(function(j){ return j.customerPhone === phone; }).map(function(j){ return JSON.parse(JSON.stringify(j)); });
+  await deleteCustomerData(phone);
+  showPage('customers');
+  refreshAll();
+  toast('ลบลูกค้าและประวัติงานแล้ว', 'success', { label: 'ยกเลิกการลบ', fn: async function() {
+    removeTombstone(phone);
+    await saveCustomerData(cCopy);
+    for (var i = 0; i < jobsCopy.length; i++) await saveJobData(jobsCopy[i]);
+    refreshAll();
+    toast('คืนลูกค้าและงานทั้งหมดกลับมาเรียบร้อย', 'success');
+  }});
+}
+// v97: ปุ่ม "เก็บเงินแล้ว" — งาน unpaid กดเดียวจบ: สถานะเป็นเสร็จ + จดวันที่เก็บเงินจริง (ฟิลด์ใหม่ paidDate)
+// ยอดเงินต่องาน (jobTotal) และสถิติเดิมทุกตัวไม่แตะ — paidDate เก็บไว้อ้างอิงภายหลังเท่านั้น
+async function markJobPaid(jobId) {
+  var j = DB.jobs.find(function(x){ return x.id === jobId; });
+  if (!j) return;
+  if ((j.status || 'done') !== 'unpaid') return; // ปุ่มโชว์เฉพาะงาน unpaid — กันกดซ้ำ/กดงานสถานะอื่น
+  j.status = 'done';
+  j.paidDate = todayStr();
+  j.updatedAt = new Date().toISOString(); // เหมือนแก้ไขงานปกติ — เรียงล่าสุดขึ้นบนตามมาตรฐานแอป
+  var ok = await saveJobData(j);
+  if (currentPage === 'customer-detail' && currentCustomerPhone === j.customerPhone) renderCustomerDetail(currentCustomerPhone);
+  refreshAll();
+  if (ok) toast('✅ เก็บเงินแล้ว ' + jobTotal(j).toLocaleString() + ' ฿', 'success');
+  else toast('⚠️ เก็บเงินแล้ว (บันทึกในเครื่อง) — ยังไม่ขึ้นคลาวด์ จะซิงค์เองเมื่อออนไลน์', 'warning');
 }
 
 // ============================================================
@@ -3137,7 +3208,8 @@ function renderJobs() {
           '<td style="font-size:12px;font-weight:700;color:var(--success);text-align:right;">' + (jobTotal(j) ? jobTotal(j).toLocaleString() : '0') + '</td>' +
           '<td><span class="badge ' + (STATUS_COLORS[st] || 'badge-gray') + ' tb-badge" style="font-size:12px;">' + esc(STATUS_LABELS[st] || st) + '</span></td>' +
           '<td><div class="table-actions" onclick="event.stopPropagation()"><button type="button" class="btn btn-ghost btn-icon-sm" title="ดูข้อมูล/ประวัติงาน" onclick="showCustomerDetail(\'' + escAttr(j.customerPhone) + '\')"><i class="fas fa-eye"></i></button>' +
-          '<button type="button" class="btn btn-ghost btn-icon-sm" title="แก้ไขงาน" onclick="openEditJob(\'' + escAttr(j.id) + '\')"><i class="fas fa-edit"></i></button></div></td></tr>';
+          '<button type="button" class="btn btn-ghost btn-icon-sm" title="แก้ไขงาน" onclick="openEditJob(\'' + escAttr(j.id) + '\')"><i class="fas fa-edit"></i></button>' +
+          (st === 'unpaid' ? '<button type="button" class="btn btn-ghost btn-icon-sm" title="เก็บเงินแล้ว — ตั้งสถานะเสร็จ + จดวันที่เก็บวันนี้" onclick="markJobPaid(\'' + escAttr(j.id) + '\')"><i class="fas fa-hand-holding-dollar"></i></button>' : '') + '</div></td></tr>'; // v97: ปุ่มที่ 3 เฉพาะงาน unpaid (.table-actions stopPropagation อยู่แล้ว)
       }).join('') + '</tbody></table></div><div class="cust-foot">' + list.length + ' รายการ</div></div>';
     _fpUpdateSortIndicators('jobs', 'jobs-table-wrap'); // v87: ลูกศร ▲▼ ที่หัวคอลัมน์
     } else {
@@ -3147,7 +3219,8 @@ function renderJobs() {
         '<div class="customer-info"><div class="customer-name">' + esc(cust?.name||j.customerPhone) + '</div>' +
         '<div class="customer-phone">' + formatDate(j.serviceDate) + ' · <span class="badge ' + (SERVICE_COLORS[j.serviceType]||'badge-gray') + '" style="font-size:10px;">' + esc(typeName(j.serviceType)) + '</span>' +
         (jobItems(j) && jobItems(j).length > 1 ? ' <span class="badge badge-blue" style="font-size:10px;">' + jobItems(j).length + ' รายการ</span>' : '') +
-        (j.status && j.status !== 'done' ? ' <span class="badge ' + (STATUS_COLORS[j.status]||'badge-gray') + '" style="font-size:10px;">' + esc(STATUS_LABELS[j.status]||j.status) + '</span>' : '') + '</div>' +
+        (j.status && j.status !== 'done' ? ' <span class="badge ' + (STATUS_COLORS[j.status]||'badge-gray') + '" style="font-size:10px;">' + esc(STATUS_LABELS[j.status]||j.status) + '</span>' : '') +
+        (j.status === 'unpaid' ? ' <button type="button" class="paid-quick-btn" title="ตั้งสถานะเสร็จ + จดวันที่เก็บเงินวันนี้" onclick="event.stopPropagation();markJobPaid(\'' + escAttr(j.id) + '\')">✓ เก็บเงิน</button>' : '') + '</div>' + // v97: ปุ่มเก็บเงินเร็ว เฉพาะงาน unpaid
         (j.deviceInfo ? '<div style="font-size:11px;color:var(--text3);">📦 ' + esc(j.deviceInfo) + '</div>' : '') +
         '</div>' +
         '<div class="customer-meta"><div class="job-count" style="font-size:16px;color:var(--success);">' + (jobTotal(j)?jobTotal(j).toLocaleString():'0') + '</div><div class="job-label">บาท</div></div></div>';
@@ -3628,7 +3701,7 @@ function updateJobTotalPreview() {
 // ---------- v53: กล่องรายการซ่อมในโมดัลบันทึกงาน (1 แถว = ชื่อ + ราคา) — v54: ถอนปุ่มชื่อด่วนจากประเภทงานออก (ซ้ำซ้อนกับประเภทด้านบน พิมพ์ชื่อเองได้) ----------
 function jobItemRowHtml(name, price) {
   return '<div class="ji-row">' +
-    '<input type="text" class="form-control jii-name" placeholder="ชื่อรายการ เช่น ล้างแอร์ 2 ตัว" value="' + escAttr(name || '') + '" oninput="clearJobItemError(this)">' +
+    '<input type="text" class="form-control jii-name" placeholder="ชื่อรายการ เช่น ล้างแอร์ 2 ตัว" list="ji-name-list" value="' + escAttr(name || '') + '" oninput="clearJobItemError(this)">' + // v97: list → datalist ราคาเคยเก็บ
     '<input type="number" class="form-control jii-price" placeholder="0" min="0" inputmode="decimal" value="' + escAttr((price === null || price === undefined || price === '') ? '' : String(price)) + '" oninput="clearJobItemError(this);updateJobTotalPreview()">' +
     '<button type="button" class="ji-del" onclick="removeJobItemRow(this)" title="ลบรายการนี้"><i class="fas fa-trash-can"></i></button>' +
     '</div>';
@@ -3680,6 +3753,53 @@ function markPartialItemRows() { // v63: เน้นเฉพาะแถวใ
     var hasName = !!(n && n.value.trim()), hasPrice = !!(p && String(p.value).trim() !== '');
     r.classList.toggle('ji-error', !hasName && hasPrice);
   });
+}
+// ============================================================
+// v97: จำราคาที่เคยเก็บ — รวมชื่อรายการ+ราคาล่าสุดจากงานเก่าทั้งหมด (เรียงงานล่าสุดก่อน งานเก่าแพ้)
+// เสนอเป็น datalist ตอนพิมพ์ช่องชื่อ (ไม่มีปุ่มเพิ่ม/ไม่แทรกแถว — ต่างจากชิปด่วน v53 ที่ถอนไปใน v54)
+// เลือก/พิมพ์ชื่อจบ (event change) = เติมราคาให้เฉพาะช่องราคาที่ยังว่าง ไม่ทับที่ผู้ใช้กรอกเอง
+// ============================================================
+function renderItemNameDatalist() {
+  var dl = document.getElementById('ji-name-list');
+  if (!dl) return;
+  var book = {};
+  sortByLatest(DB.jobs, touchOfJob).forEach(function(j) {
+    var its = jobItems(j); if (!its) return;
+    its.forEach(function(it) {
+      var nm = (it && it.name ? String(it.name).trim() : '');
+      if (!nm) return;
+      var key = nm.toLowerCase();
+      if (!(key in book)) book[key] = { name: nm, price: parseFloat(it.price) || 0 };
+    });
+  });
+  dl.innerHTML = Object.keys(book).map(function(k) {
+    var b = book[k];
+    return '<option value="' + escAttr(b.name) + '"' + (b.price > 0 ? ' label="' + escAttr(b.name + ' (' + b.price.toLocaleString() + ' ฿)') + '"' : '') + '></option>';
+  }).join('');
+  var box = document.getElementById('job-items-list'); // ผูก autofill ครั้งเดียว (guard กัน bind ซ้ำ — ฟังก์ชันนี้ถูกเรียกทุกครั้งที่เปิดฟอร์ม)
+  if (box && !box.__jiAutofillBound) {
+    box.__jiAutofillBound = true;
+    box.addEventListener('change', function(e) {
+      if (e.target && e.target.classList && e.target.classList.contains('jii-name')) autofillItemPrice(e.target);
+    });
+  }
+}
+function autofillItemPrice(inp) {
+  var nm = ((inp && inp.value) || '').trim().toLowerCase();
+  if (!nm) return;
+  var hit = null; // ราคาล่าสุดของชื่อนี้ (null = ไม่เคยเก็บชื่อนี้)
+  sortByLatest(DB.jobs, touchOfJob).some(function(j) {
+    var its = jobItems(j); if (!its) return false;
+    return its.some(function(it) {
+      if (it && String(it.name || '').trim().toLowerCase() === nm) { hit = parseFloat(it.price) || 0; return true; }
+      return false;
+    });
+  });
+  if (hit === null || !(hit > 0)) return; // ราคา 0 (ไม่ได้กรอก) = ไม่เติม
+  var row = inp.closest ? inp.closest('.ji-row') : null;
+  if (!row) return;
+  var p = row.querySelector('.jii-price');
+  if (p && String(p.value).trim() === '') { p.value = String(hit); updateJobTotalPreview(); }
 }
 function collectJobItems() {
   var rows = readJobItemRows();
@@ -3776,7 +3896,7 @@ var _exitShownAt = 0;       // เวลาที่เปิดหน้าต�
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
 var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
-var APP_VERSION = 'v96';
+var APP_VERSION = 'v97';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -3941,13 +4061,10 @@ function confirmDeleteCustomer(phone) {
   var c = DB.customers.find(c => c.phone === phone);
   document.getElementById('confirm-title').textContent = 'ลบลูกค้า';
   document.getElementById('confirm-ok-btn').innerHTML = '<i class="fas fa-trash"></i> ลบ';
-  document.getElementById('confirm-msg').innerHTML = 'ลบ <strong>' + esc(c?.name||phone) + '</strong> และประวัติงานทั้งหมด?<br><span style="color:var(--danger)">ไม่สามารถยกเลิกได้</span>';
+  document.getElementById('confirm-msg').innerHTML = 'ลบ <strong>' + esc(c?.name||phone) + '</strong> และประวัติงานทั้งหมด?<br><span style="color:var(--text3)">ยกเลิกได้ภายใน 10 วินาทีหลังลบ — กดปุ่ม "ยกเลิกการลบ" ในข้อความแจ้งด้านบน</span>';
   document.getElementById('confirm-ok-btn').onclick = async function() {
-    await deleteCustomerData(phone);
+    await deleteCustomerWithUndo(phone); // v97: ลบแล้วย้อนได้ — ฟังก์ชันจัดการ showPage/refreshAll/toast ปุ่มยกเลิกให้เอง
     closeModal('modal-confirm');
-    showPage('customers');
-    refreshAll();
-    toast('ลบลูกค้าเรียบร้อย');
   };
   openModal('modal-confirm');
 }
@@ -4015,6 +4132,7 @@ function resetJobModal() {
   var firstType = firstEnabledTypeId();
   document.getElementById('job-type').value = firstType;
   renderJobItemRows(null);
+  renderItemNameDatalist(); // v97: เติม datalist ราคาเคยเก็บทุกครั้งที่เปิดฟอร์ม (งานใหม่+แก้ไข ผ่าน resetJobModal ทั้งคู่)
   document.getElementById('job-travel').value = '';
   document.getElementById('job-parts').value = ''; // v75: ล้างค่าอะไหล่เมื่อเปิดงานใหม่
   document.getElementById('job-parts-name').value = ''; // v76: ล้างชื่ออะไหล่เมื่อเปิดงานใหม่
@@ -4152,13 +4270,11 @@ async function _doSaveJob() {
 function confirmDeleteJob(jobId) {
   document.getElementById('confirm-title').textContent = 'ลบประวัติงาน';
   document.getElementById('confirm-ok-btn').innerHTML = '<i class="fas fa-trash"></i> ลบ';
-  document.getElementById('confirm-msg').innerHTML = 'ลบประวัติงานนี้?<br><span style="color:var(--danger)">ไม่สามารถยกเลิกได้</span>';
+  document.getElementById('confirm-msg').innerHTML = 'ลบประวัติงานนี้?<br><span style="color:var(--text3)">ยกเลิกได้ภายใน 10 วินาทีหลังลบ — กดปุ่ม "ยกเลิกการลบ" ในข้อความแจ้งด้านบน</span>';
   document.getElementById('confirm-ok-btn').onclick = async function() {
-    await deleteJobData(jobId);
+    await deleteJobWithUndo(jobId); // v97: ลบแล้วย้อนได้ — ฟังก์ชันจัดการ renderCustomerDetail/toast ปุ่มยกเลิกให้เอง
     closeModal('modal-confirm');
-    if (currentPage === 'customer-detail' && currentCustomerPhone) renderCustomerDetail(currentCustomerPhone);
     refreshAll();
-    toast('ลบประวัติงานเรียบร้อย');
   };
   openModal('modal-confirm');
 }
@@ -4750,7 +4866,8 @@ function renderReport() {
         '<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(c ? (c.name || j.customerPhone) : j.customerPhone) + '</div>' +
         '<div style="font-size:11px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(typeLabel(j.serviceType)) + ' · ' + formatDate(j.serviceDate) + '</div></div>' +
         '<div style="text-align:right;flex-shrink:0;"><div style="font-weight:700;color:var(--danger);font-size:13.5px;">' + jobTotal(j).toLocaleString() + ' ฿</div>' +
-        (j.deviceInfo ? '<div style="font-size:10px;color:var(--text3);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(j.deviceInfo) + '</div>' : '') + '</div></div>';
+        (j.deviceInfo ? '<div style="font-size:10px;color:var(--text3);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(j.deviceInfo) + '</div>' : '') + '</div>' +
+        '<button type="button" class="rpt-paid-btn" title="ตั้งสถานะเสร็จ + จดวันที่เก็บเงินวันนี้" onclick="event.stopPropagation();markJobPaid(\'' + escAttr(j.id) + '\')"><i class="fas fa-check"></i> เก็บเงินแล้ว</button></div>'; // v97: ปุ่มเก็บเงินเร็ว (stopPropagation กันชน onclick เปิดประวัติลูกค้าของแถว)
     }).join('') +
       '<div class="rpt-row" style="grid-column:1/-1;border-top:1.5px solid var(--border);padding-top:8px;"><span style="flex:1;font-size:12.5px;font-weight:600;">รวมทั้งหมด</span><span style="font-weight:800;color:var(--danger);font-size:14px;">' + Math.round(unpaidSum).toLocaleString() + ' ฿</span></div>';
   }
@@ -4789,6 +4906,39 @@ function renderReport() {
       '<div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:5px;"><div style="height:100%;width:' + Math.round(d.rev / maxTypeRev * 100) + '%;background:var(--primary);border-radius:2px;"></div></div>' +
       (d.owe > 0 ? '<div style="font-size:10.5px;color:var(--danger);margin-top:3px;">รอเก็บ ' + rptMoney(d.owe) + ' ฿</div>' : '') +
       '</div>').join('');
+  }
+
+  // ---- v97: รายการซ่อมยอดนิยม (นับครั้ง + รายได้เฉพาะงานเสร็จ — ตามช่วงเวลาที่เลือก, ข้อ E จากแผน v53) ----
+  document.getElementById('rpt-items-title').textContent = 'รายการซ่อมยอดนิยม · ' + word;
+  var _itemMap = {};
+  pJobs.forEach(function(j) {
+    var its = jobItems(j); if (!its) return;
+    var _paid = isDone(j);
+    its.forEach(function(it) {
+      var nm = (it && it.name ? String(it.name).trim() : ''); if (!nm) return;
+      var key = nm.toLowerCase();
+      if (!_itemMap[key]) _itemMap[key] = { name: nm, count: 0, sum: 0 };
+      _itemMap[key].count++;
+      if (_paid) _itemMap[key].sum += parseFloat(it.price) || 0;
+    });
+  });
+  var _itemArr = Object.keys(_itemMap).map(function(k){ return _itemMap[k]; });
+  _itemArr.sort(function(a, b) { return b.sum - a.sum || b.count - a.count; });
+  var _itEl = document.getElementById('report-items-list');
+  if (!_itemArr.length) {
+    _itEl.innerHTML = '<div style="color:var(--text3);text-align:center;padding:10px 0;font-size:12px;">งานในช่วงนี้ยังไม่มีรายการซ่อม — ใส่ "รายการซ่อม" ตอนบันทึกงาน แล้วสถิติจะรวมให้ที่นี่</div>';
+  } else {
+    var _maxItem = Math.max(..._itemArr.slice(0, 8).map(function(d){ return d.sum; }), 1);
+    _itEl.innerHTML = _itemArr.slice(0, 8).map(function(d, i) {
+      return '<div style="padding:8px 0;border-bottom:1px solid var(--border);">' +
+        '<div style="display:flex;align-items:baseline;gap:8px;"><span style="flex-shrink:0;width:18px;font-size:11px;color:var(--text3);font-weight:700;">' + (i + 1) + '</span>' +
+        '<span style="flex:1;min-width:0;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + esc(d.name) + '">' + esc(d.name) + '</span>' +
+        '<span style="font-size:11px;color:var(--text3);flex-shrink:0;">' + d.count + ' ครั้ง</span>' +
+        '<span style="font-size:13px;font-weight:700;color:var(--success);min-width:64px;text-align:right;">' + rptMoney(d.sum) + ' ฿</span></div>' +
+        '<div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:5px;"><div style="height:100%;width:' + Math.round(d.sum / _maxItem * 100) + '%;background:var(--info);border-radius:2px;"></div></div>' +
+        '</div>';
+    }).join('') +
+    (_itemArr.length > 8 ? '<div style="padding-top:6px;font-size:11px;color:var(--text3);text-align:center;">แสดง 8 รายการแรก (รวม ' + _itemArr.length + ' รายการ)</div>' : '');
   }
 
   // ---- แท็บลูกค้า: ยอดสูงสุด ----
@@ -5225,7 +5375,7 @@ function enterApp() {
 // ============================================================
 // TOAST
 // ============================================================
-function toast(msg, type) {
+function toast(msg, type, action) {
   type = type || 'info';
   var container = document.getElementById('toast-container');
   var el = document.createElement('div');
@@ -5234,8 +5384,16 @@ function toast(msg, type) {
   el.innerHTML = '<i class="fas ' + (icons[type]||icons.info) + '"></i><span></span>';
   // v58: ใช้ textContent ไม่ใช่ innerHTML — ข้อความที่มีตัวแปรจากผู้ใช้ (ชื่อประเภทงาน ฯลฯ) จะไม่ถูกตีความเป็น HTML อีกต่อไป
   el.querySelector('span').textContent = msg;
+  if (action && action.label && typeof action.fn === 'function') { // v97: toast แบบมีปุ่ม (ยกเลิกการลบ) — ผู้เรียกเดิมไม่ส่งอาร์กิวเมนต์ที่ 3 = พฤติกรรมเหมือนเดิมทุกอย่าง
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'toast-btn';
+    btn.textContent = action.label;
+    btn.onclick = function() { el.remove(); action.fn(); };
+    el.appendChild(btn);
+  }
   container.appendChild(el);
-  setTimeout(function() { el.remove(); }, 3000);
+  setTimeout(function() { el.remove(); }, action ? 10000 : 3000); // v97: มีปุ่ม = ค้าง 10 วิ ให้ทันกดยกเลิก (เดิม 3 วิ)
 }
 
 // ============================================================
