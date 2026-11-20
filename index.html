@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=93">
+<link rel="manifest" href="manifest.webmanifest?v=94">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -588,6 +588,13 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
 .receipt-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; border-bottom: 1px solid #eee; }
 .receipt-row.total { border-top: 2px solid var(--primary); margin-top: 8px; padding-top: 10px; font-weight: 700; font-size: 15px; }
 .receipt-footer { text-align: center; padding: 10px 0 0; font-size: 12px; color: var(--text3); }
+/* v94: ปุ่มท้ายใบเสร็จ (ปิด/คัดลอก/ส่งภาพ/ส่ง LINE) อยู่แถวเดียวกันบนมือถือ — เดิม wrap 2 แถว */
+#modal-receipt .modal-footer { flex-wrap: nowrap; gap: 6px; }
+#modal-receipt .modal-footer .btn { padding-left: 6px; padding-right: 6px; font-size: 13px; white-space: nowrap; }
+#modal-receipt .modal-footer .btn i { font-size: 12px; }
+@media (max-width: 360px) {
+  #modal-receipt .modal-footer .btn { font-size: 12px; padding-left: 4px; padding-right: 4px; }
+}
 /* v53: กล่องรายการซ่อมในโมดัลงาน — 1 แถว = 1 รายการ (ชื่อ + ราคา) */
 .ji-box { border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); padding: 10px; }
 .ji-row { display: flex; gap: 6px; align-items: center; margin-top: 6px; }
@@ -3769,7 +3776,7 @@ var _exitShownAt = 0;       // เวลาที่เปิดหน้าต�
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
 var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
-var APP_VERSION = 'v93';
+var APP_VERSION = 'v94';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -4486,15 +4493,23 @@ function shareReceiptImage() {
     var cust = DB.customers.find(function(x){ return x.phone === j.customerPhone; });
     var fname = 'receipt-' + (j.serviceDate || '') + '-' + ((cust && cust.name || 'job').replace(/[^ก-๙a-zA-Z0-9-]+/g, '')) + '.png';
     var file = new File([u8], fname, { type: 'image/png' });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      navigator.share({ files: [file], title: 'ใบเสร็จรับเงิน ' + fname }).catch(function(e){ if (e && e.name !== 'AbortError') toast('แชร์ภาพไม่สำเร็จ ลองใหม่อีกครั้ง', 'danger'); });
-    } else {
+    function dlReceipt() { // v94: ดาวน์โหลดไฟล์ PNG + toast
       var a = document.createElement('a');
       a.href = URL.createObjectURL(new Blob([u8], { type: 'image/png' }));
       a.download = fname;
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(function(){ URL.revokeObjectURL(a.href); }, 5000);
       toast('บันทึกภาพใบเสร็จเป็นไฟล์ PNG แล้ว', 'success');
+    }
+    // v94: แชร์ไฟล์เฉพาะมือถือเท่านั้น — desktop ที่ navigator.share มีแต่แผงแชร์กะพริบแล้วปิดเอง (ไม่มี share target) เดิมเหมือน "ไม่ทำอะไร" → ดาวน์โหลดให้ตรง ๆ
+    var uaM = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '') || !!(navigator.userAgentData && navigator.userAgentData.mobile);
+    if (uaM && navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file], title: 'ใบเสร็จรับเงิน ' + fname }).catch(function(e){
+        if (e && e.name === 'AbortError') return; // ผู้ใช้กดยกเลิกเอง
+        dlReceipt(); // แชร์ไม่สำเร็จ → ดาวน์โหลดแทน ภาพไม่หาย
+      });
+    } else {
+      dlReceipt();
     }
   } catch (e) { toast('สร้างภาพใบเสร็จไม่สำเร็จ: ' + (e && e.message || e), 'danger'); }
 }
