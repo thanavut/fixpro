@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=95">
+<link rel="manifest" href="manifest.webmanifest?v=96">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -843,7 +843,7 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
   /* ===== รายงาน: (กราฟ | สถานะ) คู่กัน + (ท็อปลูกค้า | ลูกค้าใหม่) คู่กัน ===== */
   #rpane-overview.active, #rpane-customers.active { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start; }
   #rpane-overview .stats-grid { grid-column: 1 / -1; margin-bottom: 0; }
-  #rpt-unpaid-card { grid-column: 1 / -1; }
+  /* v96: การ์ด รอเก็บเงิน ไม่ยืดเต็มแถว — ไหลเข้าช่องขวาคู่กับการ์ด สถานะงาน (เดิม grid-column:1/-1 ทำให้เต็มแถวล่าง ขวาโล่ง) */
   #rpane-overview .card, #rpane-types .card, #rpane-customers .card { margin-bottom: 0; }
   #report-bar-chart { height: 190px !important; }
   .report-tabs { max-width: 620px; }
@@ -3776,7 +3776,7 @@ var _exitShownAt = 0;       // เวลาที่เปิดหน้าต�
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
 var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
-var APP_VERSION = 'v95';
+var APP_VERSION = 'v96';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
