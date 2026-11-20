@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=91">
+<link rel="manifest" href="manifest.webmanifest?v=92">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -1578,7 +1578,7 @@ body::after {
       <div class="mobile-nav-item" data-page="customers" onclick="showPage('customers')">
         <i class="fas fa-users"></i><span>ลูกค้า</span>
       </div>
-      <div class="mobile-nav-item" data-page="jobs" onclick="showPage('jobs')">
+      <div class="mobile-nav-item" data-page="jobs" onclick="gotoJobs()">
         <i class="fas fa-clipboard-list"></i><span>งาน</span>
       </div>
       <div class="mobile-nav-item" data-page="reminders" onclick="showPage('reminders')">
@@ -2804,7 +2804,7 @@ function renderDashboard() {
       <div class="stat-value">${pendingJobs.length}</div>
       <div class="stat-label">งานค้าง</div>
     </div>
-    <div class="stat-card blue" onclick="showPage('jobs')">
+    <div class="stat-card blue" onclick="gotoJobs()">
       <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
       <div class="stat-value">${thisMonthJobs.length}</div>
       <div class="stat-label">งานเดือนนี้</div>
@@ -2861,7 +2861,7 @@ function renderDashboard() {
   }
 
   var recentEl = document.getElementById('dash-recent-jobs');
-  var recent = DB.jobs.slice(0, 3);
+  var recent = sortByLatest(DB.jobs, touchOfJob).slice(0, 3); // v92: เรียงงานล่าสุดจริง (เดิม slice จากลำดับดิบใน DB = ไม่ใช่งานล่าสุด)
   if (recentEl) {
     recentEl.innerHTML = recent.length === 0
       ? '<div class="empty-state"><i class="fas fa-folder-open"></i><p>ยังไม่มีงาน</p></div>'
@@ -2880,9 +2880,10 @@ function renderDashboard() {
 // + เลื่อนไปหาแถวและไฮไลต์เขียวจาง 2.4 วิ (data-jid ใช้ร่วม desktop ตาราง / มือถือ การ์ด)
 var jobJumpFilter = false;
 function clearJobJump() { jobJumpFilter = false; }
+function gotoJobs() { clearJobJump(); showPage('jobs'); } // v92: เมนู งาน / การ์ดสถิติ = แสดงงานทั้งหมดเสมอ (เดิม chip "งานเดียว" ค้างจาก jump ก่อนหน้า)
 function jumpToJob(jobId) {
   var j = DB.jobs.find(x => x.id === jobId);
-  if (!j) { showPage('jobs'); return; }
+  if (!j) { clearJobJump(); showPage('jobs'); return; } // v92: งานถูกลบ/หาย = เคลียร์ chip งานเดียวค้าง ไม่ติดหน้างาน
   jobOpenFilter = false;
   jobJumpFilter = jobId;
   var sEl = document.getElementById('job-search'); if (sEl) sEl.value = '';
@@ -3767,7 +3768,7 @@ var _exitShownAt = 0;       // เวลาที่เปิดหน้าต�
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
 var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
-var APP_VERSION = 'v91';
+var APP_VERSION = 'v92';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
