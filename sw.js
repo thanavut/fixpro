@@ -1,10 +1,10 @@
 /* FixPro Service Worker — แคชไฟล์แอปไว้ใช้งานตอนออฟไลน์ */
-var CACHE = 'fixpro-v99';
+var CACHE = 'fixpro-v100';
 var CORE = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './manifest.webmanifest?v=99', // v56: URL เปลี่ยนบังคับ Chrome อ่าน manifest ใหม่ = เคลียร์สแปลชม่วงตกค้างยุค v49 (v99: bump ตามรอบแคช — รายการงานที่จดทุนในการ์ดกำไร+ไทม์ไลน์โชว์ทุน)
+  './manifest.webmanifest?v=100', // v56: URL เปลี่ยนบังคับ Chrome อ่าน manifest ใหม่ = เคลียร์สแปลชม่วงตกค้างยุค v49 (v100: bump ตามรอบแคช — แถวอะไหล่ 3 ช่อง+ช่องต้นทุนสีแดง · หน้ารายงาน/แรก 2 คอลัมน์ · รายการงานทุนพับได้)
   './icons/icon-192.png',
   './icons/icon-180.png',
   './icons/icon-512.png',

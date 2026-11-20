@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=99">
+<link rel="manifest" href="manifest.webmanifest?v=100">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -128,6 +128,10 @@ input, select, textarea, button { font-family: inherit; }
   font-size: 14px; transition: var(--transition); outline: none; min-height: 38px; font-family: inherit;
 }
 .form-control:focus { border-color: var(--primary); background: var(--surface); box-shadow: 0 0 0 3px rgba(46,125,50,0.12); }
+/* v100: ช่อง ต้นทุน (ทุนอะไหล่) พื้นแดงอ่อน = สื่อชัดว่าเป็นเงินออกของร้าน ไม่ถูกเอาไปคำนวณยอดเก็บเงิน (ต่างจากช่องปกติ) — ตามคำขอเจ้าของร้าน */
+.form-control.fc-cost { background: rgba(239,83,80,.09); border-color: rgba(239,83,80,.38); }
+.form-control.fc-cost:focus { border-color: var(--danger); background: rgba(239,83,80,.14); box-shadow: 0 0 0 3px rgba(239,83,80,.14); }
+[data-theme="dark"] .form-control.fc-cost { background: rgba(239,83,80,.16); border-color: rgba(239,83,80,.45); }
 textarea.form-control { resize: vertical; min-height: 80px; }
 /* v58 audit: .input-icon/.toggle-pass/.form-error/.form-check ถูกลบ — ไม่มี element ไหนใช้ (เหลือจากยุคล็อกอิน) */
 
@@ -763,7 +767,8 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
   /* ===== หน้าแรก: สถิติ 4 การ์ดใหญ่ + (ต้องติดต่อ | งานล่าสุด) คู่กัน ===== */
   #page-dashboard.active { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
   #page-dashboard > div:first-child { margin-bottom: 0 !important; }
-  #install-banner, #dash-unpaid, #page-dashboard .stats-grid { grid-column: 1 / -1; margin-bottom: 0; }
+  #install-banner { grid-column: 1 / -1; margin-bottom: 0; }
+  #dash-unpaid, #page-dashboard .stats-grid { margin-bottom: 0; } /* v100: หน้าแรก = กริด 2 คอลัมน์เท่านั้นตามคำขอเจ้าของร้าน (บันทึกเป็นกฎเหล็ก) — เหลือแถบติดตั้งแอปอย่างเดียวเต็มแถวเพราะเป็นแถบระบบ ไม่ใช่การ์ดข้อมูล */
   #page-dashboard .card { margin-bottom: 0; }
   .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-bottom: 10px; }
   .stat-card { padding: 20px; border-radius: var(--radius); transition: var(--transition); }
@@ -849,11 +854,10 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
 
   /* ===== รายงาน: (กราฟ | สถานะ) คู่กัน + (ท็อปลูกค้า | ลูกค้าใหม่) คู่กัน ===== */
   #rpane-overview.active, #rpane-customers.active { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start; }
-  #rpane-overview .stats-grid { grid-column: 1 / -1; margin-bottom: 0; }
+  #rpane-overview .stats-grid { margin-bottom: 0; } /* v100: การ์ดตัวเลขไม่ยืดเต็มแถวแล้ว — หน้ารายงาน = กริด 2 คอลัมน์เท่านั้นตามคำขอเจ้าของร้าน (บันทึกเป็นกฎเหล็ก ห้ามทำการ์ดเต็มแถวอีก) */
   /* v96: การ์ด รอเก็บเงิน ไม่ยืดเต็มแถว — ไหลเข้าช่องขวาคู่กับการ์ด สถานะงาน (เดิม grid-column:1/-1 ทำให้เต็มแถวล่าง ขวาโล่ง) */
   #rpane-overview .card, #rpane-types .card, #rpane-customers .card { margin-bottom: 0; }
-  /* v98: การ์ดกำไร = เต็มแถว (สรุป รายได้ | ทุนอะไหล่ | กำไร เรียงแถวเดียวอ่านง่าย) */
-  #rpt-profit-card { grid-column: 1 / -1; }
+  /* v100: การ์ดกำไรไม่ยืดเต็มแถวแล้ว (เดิม v98 ทำเต็มแถว = แถวรายการงานยาวเต็มจอ ที่ว่างโล่งมาก) — ลงช่องเดียวคู่กับ รอเก็บเงิน หน้ารายงาน = 2 คอลัมน์เท่านั้นตามคำขอเจ้าของร้าน */
   #report-bar-chart { height: 190px !important; }
   .report-tabs { max-width: 620px; }
   .rpt-tab { padding: 10px 4px; font-size: 13px; }
@@ -1715,12 +1719,14 @@ body::after {
           <div class="ji-subtotal"><span>รวมค่าซ่อม</span><span id="job-items-subtotal-val">0 ฿</span></div>
         </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">📦 ค่าอะไหล่ (รวมในยอดเก็บเงิน)</label> <!-- v78: ช่องจำนวนเงินเล็กลงครึ่งหนึ่ง 3fr:1fr (เงิน = 1/4 แถว = ครึ่งของเดิมทุกขนาดจอ) ตามที่เจ้าของร้านขอ -->
-        <div style="display:grid;grid-template-columns:3fr 1fr;gap:8px;align-items:end;">
+      <div class="form-group"> <!-- v100: แถวเดียว 3 ช่อง อะไหล่/จำนวนเงิน/ต้นทุน ตามคำขอเจ้าของร้าน — ย้ายช่องทุน (v98) จากหลังยอดรวมเก็บเงินมาไว้แถวนี้ + ช่องต้นทุนพื้นแดงอ่อน (.fc-cost) สื่อว่าเป็นเงินออกของร้าน ไม่ถูกเอาไปคำนวณยอดเก็บเงิน (เงินยัง = 1/4 แถวตาม v78 เพราะ 2fr:1fr:1fr) -->
+        <label class="form-label">📦 ค่าอะไหล่ (รวมในยอดเก็บเงิน) · <span style="color:var(--danger);">🏷️ ต้นทุน (ร้านซื้อมา)</span></label>
+        <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;align-items:end;">
           <input type="text" class="form-control" id="job-parts-name" placeholder="อะไหล่อะไร เช่น คอมเพรสเซอร์">
           <input type="number" class="form-control" id="job-parts" placeholder="จำนวนเงิน" min="0" inputmode="decimal" oninput="updateJobTotalPreview()">
+          <input type="number" class="form-control fc-cost" id="job-parts-cost" placeholder="ต้นทุน" min="0" inputmode="decimal">
         </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:4px;">🏷️ ต้นทุน = ราคาที่ร้านซื้ออะไหล่มา (ไม่บังคับ เว้นว่างได้) · ใช้คำนวณกำไรในหน้ารายงาน · <span style="color:var(--success);font-weight:600;">ไม่รวมในยอดเก็บเงิน</span></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:end;">
         <div class="form-group">
@@ -1736,11 +1742,7 @@ body::after {
         <label class="form-label">🧮 ยอดรวมเก็บเงิน</label>
         <div id="job-total-preview" style="min-height:38px;padding:7px 11px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--primary-bg);color:var(--primary-d);font-weight:800;font-size:15px;display:flex;align-items:center;">0 ฿</div>
       </div>
-      <div class="form-group"> <!-- v98: ทุนอะไหล่ (ไม่บังคับ) = ราคาที่ร้าน"ซื้อ"อะไหล่มา (ต่างจาก 📦 ค่าอะไหล่ = ที่ลูกค้าจ่าย) — ใช้คำนวณกำไรในหน้ารายงาน ไม่รวมในยอดเก็บเงิน ลูกค้าไม่เห็น -->
-        <label class="form-label" style="color:var(--text2);">🏷️ ทุนอะไหล่ (ไม่บังคับ — ราคาที่ร้านซื้อมา)</label>
-        <input type="number" class="form-control" id="job-parts-cost" placeholder="เว้นว่างได้" min="0" inputmode="decimal">
-        <div style="font-size:11px;color:var(--text3);">ใช้คำนวณกำไรในหน้ารายงาน · <span style="color:var(--success);font-weight:600;">ไม่รวมในยอดเก็บเงิน</span></div>
-      </div>
+      <!-- v100: ช่องทุนอะไหล่ (v98) ย้ายไปแถวเดียวกับ 📦 ค่าอะไหล่ด้านบนแล้ว (id #job-parts-cost คงเดิม — saveJob/openEditJob/resetJobModal/updateJobTotalPreview ไม่ต้องแก้) -->
       <!-- v84: แสดงทุกช่องตั้งแต่เปิดฟอร์ม · v85: ลบป้ายหัวข้อ "รายละเอียดเพิ่มเติม (ไม่บังคับ)" ออกตามคำขอเจ้าของร้าน — เหลือแต่ช่องกรอกล้วน -->
       <div id="job-extra">
       <div class="form-group" id="job-remind-row">
@@ -3489,6 +3491,9 @@ function renderJobCard(j) {
 // ============================================================
 // ---- ② เรียงคอลัมน์: กดหัวคอลัมน์ = เรียงข้อมูล มี ▲▼ บอกทิศ (ตาราง desktop เท่านั้น มือถือไม่มีตาราง) ----
 window._fpSort = { customers: null, jobs: null, reminders: null };
+// ---- v100: state พับ/ขยายรายการ "งานที่จดทุนอะไหล่" ในการ์ดกำไรหน้ารายงาน (เริ่มยุบเสมอ — กันการ์ดยาวเมื่อหลายงาน ตามคำขอเจ้าของร้าน) ----
+window._profitListOpen = false;
+function toggleProfitList() { window._profitListOpen = !window._profitListOpen; renderReport(); }
 function _fpSortRows(rows, tbl, accessors) {
   var s = window._fpSort[tbl];
   if (!s || !s.key || !accessors[s.key]) return rows;
@@ -3910,7 +3915,7 @@ var _exitShownAt = 0;       // เวลาที่เปิดหน้าต�
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
 var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
-var APP_VERSION = 'v99';
+var APP_VERSION = 'v100';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -4906,17 +4911,20 @@ function renderReport() {
         '<div class="rpt-statusbox" style="text-align:center;"><div style="font-size:11.5px;color:var(--text2);">ทุนอะไหล่</div><div style="font-size:15px;font-weight:800;color:var(--danger);margin-top:2px;">' + Math.round(_pCost).toLocaleString() + ' ฿</div></div>' +
         '<div class="rpt-statusbox" style="text-align:center;border-left:3px solid var(--success);"><div style="font-size:11.5px;color:var(--text2);">กำไร</div><div style="font-size:15px;font-weight:800;color:var(--success);margin-top:2px;">' + Math.round(revDone - _pCost).toLocaleString() + ' ฿</div></div>' +
       '</div>' +
-      (_pCostJobs.length ? '<div style="font-size:11.5px;font-weight:600;color:var(--text2);margin-top:8px;">งานที่จดทุนอะไหล่ในช่วงนี้ · ' + _pCostJobs.length + ' งาน</div>' + // v99: หัวรายการ + จำนวน
-      _pCostJobs.map(j => {
+      (_pCostJobs.length ? '<div style="display:flex;align-items:center;gap:7px;margin-top:9px;cursor:pointer;user-select:none;" onclick="toggleProfitList()" title="กดเพื่อพับ/ขยายรายการ">' + // v100: หัวรายการกดพับ/ขยายได้ — เริ่มยุบเสมอ กันการ์ดยาวเมื่อหลายงาน (คำขอเจ้าของร้าน)
+        '<span style="font-size:11.5px;font-weight:600;color:var(--text2);">งานที่จดทุนอะไหล่ในช่วงนี้ · ' + _pCostJobs.length + ' งาน</span>' +
+        '<i class="fas fa-chevron-' + (window._profitListOpen ? 'up' : 'down') + '" style="font-size:10px;color:var(--text3);"></i>' +
+        '<span style="flex:1;border-top:1px dashed var(--border);"></span></div>' +
+      (window._profitListOpen ? _pCostJobs.map(j => {
         var c = DB.customers.find(c => c.phone === j.customerPhone);
         var partLabel = jobPartsName(j) || jobItemsText(j) || j.deviceInfo || ''; // v99: โชว์ชื่ออะไหล่ → รายการซ่อม → อุปกรณ์ (อะไรก็ได้ที่บอกว่างานนี้เปลี่ยนอะไร)
-        return '<div class="rpt-statusbox" style="display:flex;align-items:center;gap:8px;cursor:pointer;border-left:3px solid var(--danger);" onclick="showCustomerDetail(\'' + escAttr(j.customerPhone) + '\')" title="กดเพื่อดูงานของลูกค้ารายนี้">' +
+        return '<div class="rpt-statusbox" style="display:flex;align-items:center;gap:8px;cursor:pointer;border-left:3px solid var(--danger);padding:5px 9px;" onclick="showCustomerDetail(\'' + escAttr(j.customerPhone) + '\')" title="กดเพื่อดูงานของลูกค้ารายนี้">' + // v100: padding กระชับขึ้น
           '<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(c ? (c.name || j.customerPhone) : j.customerPhone) + '</div>' +
           '<div style="font-size:11px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(typeLabel(j.serviceType)) + ' · ' + formatDate(j.serviceDate) + (partLabel ? ' · ' + esc(partLabel) : '') + '</div></div>' +
           '<div style="text-align:right;flex-shrink:0;"><div style="font-weight:700;color:var(--danger);font-size:13.5px;">' + jobPartsCost(j).toLocaleString() + ' ฿</div><div style="font-size:10px;color:var(--text3);">ทุนอะไหล่</div></div>' +
           '</div>';
-      }).join('') : '') +
-      (_pNoCost === _pDone.length ? '<div style="font-size:11px;color:var(--text3);margin-top:6px;">ยังไม่มีงานที่กรอกทุนอะไหล่ — กำไรยังไม่หักทุนเลย (กรอกได้ในฟอร์มงาน ช่อง 🏷️ ทุนอะไหล่ · จดทุนแล้วรายชื่องานจะโผล่ที่นี่)</div>' :
+      }).join('') : '') : '') +
+      (_pNoCost === _pDone.length ? '<div style="font-size:11px;color:var(--text3);margin-top:6px;">ยังไม่มีงานที่กรอกทุนอะไหล่ — กำไรยังไม่หักทุนเลย (กรอกได้ในฟอร์มงาน แถว 📦 ค่าอะไหล่ ช่อง 🏷️ ต้นทุน · จดทุนแล้วรายชื่องานจะโผล่ที่นี่)</div>' :
        _pNoCost > 0 ? '<div style="font-size:11px;color:var(--text3);margin-top:6px;">งานที่ยังไม่ได้กรอกทุนอะไหล่ ' + _pNoCost + ' งาน — กำไรขึ้นแบบยังไม่หักทุนงานนั้น</div>' : '');
   }
 
