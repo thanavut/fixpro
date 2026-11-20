@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=89">
+<link rel="manifest" href="manifest.webmanifest?v=90">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -287,6 +287,15 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 .photo-viewer { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.93); z-index: 3000; align-items: center; justify-content: center; }
 .photo-viewer.open { display: flex; }
 .photo-viewer img { max-width: 94vw; max-height: 84vh; border-radius: 6px; box-shadow: 0 8px 40px rgba(0,0,0,0.55); }
+/* v90: เลื่อนดูภาพถัดไป/ก่อนหน้าในหน้าต่างเดียว — ลูกศรซ้ายขวา + ตัวนับลำดับ (โหมดงานที่มีหลายภาพ) */
+.pv-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 50%; border: none; background: rgba(255,255,255,0.14); color: #fff; font-size: 17px; cursor: pointer; display: none; align-items: center; justify-content: center; transition: background 0.15s ease; }
+.pv-arrow.show { display: flex; }
+.pv-arrow:hover { background: rgba(255,255,255,0.30); }
+.pv-arrow:active { background: rgba(255,255,255,0.38); }
+#pv-prev { left: 10px; }
+#pv-next { right: 10px; }
+.pv-counter { display: none; position: absolute; bottom: 62px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.92); font-size: 12px; font-weight: 600; background: rgba(255,255,255,0.14); padding: 4px 14px; border-radius: 999px; white-space: nowrap; }
+.pv-counter.show { display: block; }
 .pv-close {
   position: absolute; top: 12px; right: 12px; width: 44px; height: 44px; border-radius: 50%; border: none;
   background: rgba(255,255,255,0.16); color: #fff; font-size: 19px; cursor: pointer;
@@ -1588,8 +1597,11 @@ body::after {
      ============================================================ -->
 <div class="photo-viewer" id="photo-viewer" onclick="closePhotoViewer(event)">
   <button class="pv-close" onclick="closePhotoViewer()" aria-label="ปิด"><i class="fas fa-times"></i></button>
+  <button class="pv-arrow" id="pv-prev" aria-label="ภาพก่อนหน้า" onclick="pvNav(event,-1)"><i class="fas fa-chevron-left"></i></button> <!-- v90: เลื่อนภาพไม่ต้องปิด-เปิดใหม่ -->
+  <button class="pv-arrow" id="pv-next" aria-label="ภาพถัดไป" onclick="pvNav(event,1)"><i class="fas fa-chevron-right"></i></button>
   <img id="pv-img" alt="รูปภาพ">
-  <div class="pv-hint">แตะพื้นที่ดำเพื่อปิด</div>
+  <div class="pv-hint" id="pv-hint">แตะพื้นที่ดำเพื่อปิด</div>
+  <div class="pv-counter" id="pv-counter"></div>
   <div class="pv-nav">
     <button onclick="event.stopPropagation();pvOpenExternally()"><i class="fas fa-up-right-from-square"></i> เปิดแท็บใหม่</button>
     <button onclick="closePhotoViewer()"><i class="fas fa-times"></i> ปิด</button>
@@ -3361,7 +3373,7 @@ function renderJobCard(j) {
     '<span class="badge ' + (STATUS_COLORS[j.status] || (j.status ? 'badge-gray' : 'badge-green')) + '">' + esc(STATUS_LABELS[j.status] || (j.status ? j.status : '✅ เสร็จ')) + '</span>' +
     (isRemindType(j.serviceType) && j.nextDate ? '<span class="badge badge-amber"><i class="fas fa-bell"></i> ' + formatDate(j.nextDate) + '</span>' : '') +
     '</div>' +
-    (photos.length ? '<div class="photo-grid">' + photos.map(url => '<div class="photo-thumb"><img src="' + esc(url) + '" alt="" onclick="event.stopPropagation();openPhotoViewer(\'' + escAttr(url) + '\')" loading="lazy"></div>').join('') + '</div>' : '') +
+    (photos.length ? '<div class="photo-grid" data-pv-list="' + escAttr(JSON.stringify(photos)) + '">' + photos.map(url => '<div class="photo-thumb"><img src="' + esc(url) + '" alt="" onclick="event.stopPropagation();openPhotoViewer(event, \'' + escAttr(url) + '\')" loading="lazy"></div>').join('') + '</div>' : '') + // v90: ใส่รายการภาพของงาน = เลื่อนดูถัดไป/ก่อนหน้าในหน้าต่างเดียวได้
     '</div></div>';
 }
 
@@ -3748,7 +3760,7 @@ var _exitShownAt = 0;       // เวลาที่เปิดหน้าต�
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
 var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
-var APP_VERSION = 'v89';
+var APP_VERSION = 'v90';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -4183,8 +4195,9 @@ async function handlePhotoSelect(e) {
 function renderPhotoPreview() {
   var grid = document.getElementById('photo-preview');
   if (!grid) return;
+  grid.setAttribute('data-pv-list', JSON.stringify(pendingPhotos.map(function(p) { return p.url; }))); // v90: เลื่อนดูรูปในหน้าต่างเดียวได้
   grid.innerHTML = pendingPhotos.map(function(p, i) {
-    return '<div class="photo-thumb"><img src="' + escAttr(p.url) + '" alt="" onclick="openPhotoViewer(\'' + escAttr(p.url) + '\')"><div class="del-photo" onclick="event.stopPropagation();removePhoto(' + i + ')"><i class="fas fa-xmark"></i></div></div>';
+    return '<div class="photo-thumb"><img src="' + escAttr(p.url) + '" alt="" onclick="openPhotoViewer(event, \'' + escAttr(p.url) + '\')"><div class="del-photo" onclick="event.stopPropagation();removePhoto(' + i + ')"><i class="fas fa-xmark"></i></div></div>';
   }).join('');
 }
 function removePhoto(i) {
@@ -4199,22 +4212,74 @@ function removePhoto(i) {
 // PHOTO VIEWER — เปิดรูปเต็มจอในแอป (มีปุ่มปิด)
 // ============================================================
 var PV_URL = '';
-function openPhotoViewer(url) {
-  PV_URL = /^https?:\/\//i.test(String(url||'')) ? url : ''; // v16 — อนุญาตเฉพาะลิงก์ http(s) กัน javascript: URI
+var PV_LIST = [], PV_IDX = 0; // v90: เลื่อนดูภาพถัดไป/ก่อนหน้าในหน้าต่างเดียว (ไม่ต้องปิดแล้วเปิดทีละภาพ)
+function _pvIsHttp(u) { return /^https?:\/\//i.test(String(u || '')); }
+function openPhotoViewer(ev, url) {
+  PV_URL = _pvIsHttp(url) ? url : ''; // v16 — อนุญาตเฉพาะลิงก์ http(s) กัน javascript: URI
+  // v90: อ่าน "รายการภาพของงานเดียวกัน" จาก data-pv-list บนกริดที่กด → เปิดโหมดเลื่อนดู (เรียกแบบเดิม = ดูเดี่ยวเหมือนเดิม)
+  PV_LIST = []; PV_IDX = 0;
+  try {
+    var g = ev && ev.target && ev.target.closest ? ev.target.closest('[data-pv-list]') : null;
+    var raw = g ? JSON.parse(g.getAttribute('data-pv-list') || '[]') : [];
+    PV_LIST = raw.filter(_pvIsHttp);
+  } catch (eList) { PV_LIST = []; }
+  PV_IDX = PV_LIST.indexOf(PV_URL);
+  if (PV_IDX < 0) { PV_LIST = PV_URL ? [PV_URL] : []; PV_IDX = 0; }
   var v = document.getElementById('photo-viewer');
-  document.getElementById('pv-img').src = PV_URL;
+  _pvApply();
   v.classList.add('open');
 }
+function _pvApply() {
+  document.getElementById('pv-img').src = PV_URL;
+  var multi = PV_LIST.length > 1;
+  document.getElementById('pv-prev').classList.toggle('show', multi);
+  document.getElementById('pv-next').classList.toggle('show', multi);
+  var c = document.getElementById('pv-counter');
+  c.classList.toggle('show', multi);
+  if (multi) c.textContent = (PV_IDX + 1) + ' / ' + PV_LIST.length;
+  document.getElementById('pv-hint').textContent = multi ? 'แตะพื้นที่ดำเพื่อปิด · สไวปหรือกดลูกศรเพื่อเปลี่ยนภาพ' : 'แตะพื้นที่ดำเพื่อปิด';
+}
+function pvNav(e, dir) {
+  if (e && e.stopPropagation) e.stopPropagation();
+  if (PV_LIST.length < 2) return;
+  PV_IDX = (PV_IDX + dir + PV_LIST.length) % PV_LIST.length; // วนกลับรอบ (หลังสุด → กลับไปภาพแรก)
+  PV_URL = PV_LIST[PV_IDX] || '';
+  _pvApply();
+}
 function closePhotoViewer(e) {
-  if (e && e.target && e.target.tagName === 'IMG') return; // แตะที่รูป = ไม่ปิด
+  if (e && e.target && e.target.tagName === 'IMG') return; // แตะที่รูป = ไม่ปิด (สไวปบนรูปได้เต็มที่)
   var v = document.getElementById('photo-viewer');
   v.classList.remove('open');
   document.getElementById('pv-img').src = '';
-  PV_URL = '';
+  PV_URL = ''; PV_LIST = []; PV_IDX = 0;
 }
 function pvOpenExternally() {
   if (PV_URL) window.open(PV_URL, '_blank');
 }
+// v90: สไวปซ้าย-ขวาบนมือถือ = เปลี่ยนภาพ (เก็บจุดเริ่ม ไว้ ตัดสินทิศทางตอนยกนิ้ว)
+(function() {
+  var sx = 0, sy = 0, ok = false;
+  var v = document.getElementById('photo-viewer');
+  if (!v) return;
+  v.addEventListener('touchstart', function(e) {
+    ok = PV_LIST.length > 1;
+    if (ok) { var t = e.changedTouches[0]; sx = t.clientX; sy = t.clientY; }
+  }, { passive: true });
+  v.addEventListener('touchend', function(e) {
+    if (!ok) return;
+    ok = false;
+    var t = e.changedTouches[0];
+    var dx = t.clientX - sx, dy = t.clientY - sy;
+    if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.5) pvNav(null, dx < 0 ? 1 : -1); // สไวปซ้าย = ถัดไป
+  }, { passive: true });
+})();
+// v90: desktop — ปุ่มลูกศรซ้าย/ขวาเปลี่ยนภาพเมื่อหน้าต่างดูรูปเปิดอยู่
+document.addEventListener('keydown', function(e) {
+  var v = document.getElementById('photo-viewer');
+  if (!v || !v.classList.contains('open')) return;
+  if (e.key === 'ArrowRight') pvNav(null, 1);
+  else if (e.key === 'ArrowLeft') pvNav(null, -1);
+});
 
 // ============================================================
 // REPORT TABS — แท็บหน้ารายงาน
