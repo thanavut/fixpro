@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=100">
+<link rel="manifest" href="manifest.webmanifest?v=101">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -767,8 +767,9 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
   /* ===== หน้าแรก: สถิติ 4 การ์ดใหญ่ + (ต้องติดต่อ | งานล่าสุด) คู่กัน ===== */
   #page-dashboard.active { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
   #page-dashboard > div:first-child { margin-bottom: 0 !important; }
-  #install-banner { grid-column: 1 / -1; margin-bottom: 0; }
-  #dash-unpaid, #page-dashboard .stats-grid { margin-bottom: 0; } /* v100: หน้าแรก = กริด 2 คอลัมน์เท่านั้นตามคำขอเจ้าของร้าน (บันทึกเป็นกฎเหล็ก) — เหลือแถบติดตั้งแอปอย่างเดียวเต็มแถวเพราะเป็นแถบระบบ ไม่ใช่การ์ดข้อมูล */
+  #install-banner, #page-dashboard .stats-grid { grid-column: 1 / -1; margin-bottom: 0; }
+  /* v101: การ์ดสรุปหน้าแรก (#dash-stats) กลับเต็มแถวเหมือนเดิม (เจ้าของร้านขอแก้กลับจาก v100) — การ์ดอื่น (dash-unpaid) ยังลงกริด 2 คอลัมน์ */
+  #dash-unpaid { margin-bottom: 0; }
   #page-dashboard .card { margin-bottom: 0; }
   .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-bottom: 10px; }
   .stat-card { padding: 20px; border-radius: var(--radius); transition: var(--transition); }
@@ -854,7 +855,7 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
 
   /* ===== รายงาน: (กราฟ | สถานะ) คู่กัน + (ท็อปลูกค้า | ลูกค้าใหม่) คู่กัน ===== */
   #rpane-overview.active, #rpane-customers.active { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start; }
-  #rpane-overview .stats-grid { margin-bottom: 0; } /* v100: การ์ดตัวเลขไม่ยืดเต็มแถวแล้ว — หน้ารายงาน = กริด 2 คอลัมน์เท่านั้นตามคำขอเจ้าของร้าน (บันทึกเป็นกฎเหล็ก ห้ามทำการ์ดเต็มแถวอีก) */
+  #rpane-overview .stats-grid { grid-column: 1 / -1; margin-bottom: 0; } /* v101: การ์ดสรุปตัวเลข (บนสุด) กลับเต็มแถวเหมือนเดิม — เจ้าของร้านขอแก้กลับจาก v100 ("ที่บอกว่าต้องเป็น 2 คอลัมน์ไม่ได้ให้แก้การ์ดสรุปที่อยู่บนสุด") — กฎ 2 คอลัมน์ใช้กับการ์ดอื่นเท่านั้น */
   /* v96: การ์ด รอเก็บเงิน ไม่ยืดเต็มแถว — ไหลเข้าช่องขวาคู่กับการ์ด สถานะงาน (เดิม grid-column:1/-1 ทำให้เต็มแถวล่าง ขวาโล่ง) */
   #rpane-overview .card, #rpane-types .card, #rpane-customers .card { margin-bottom: 0; }
   /* v100: การ์ดกำไรไม่ยืดเต็มแถวแล้ว (เดิม v98 ทำเต็มแถว = แถวรายการงานยาวเต็มจอ ที่ว่างโล่งมาก) — ลงช่องเดียวคู่กับ รอเก็บเงิน หน้ารายงาน = 2 คอลัมน์เท่านั้นตามคำขอเจ้าของร้าน */
@@ -3491,9 +3492,7 @@ function renderJobCard(j) {
 // ============================================================
 // ---- ② เรียงคอลัมน์: กดหัวคอลัมน์ = เรียงข้อมูล มี ▲▼ บอกทิศ (ตาราง desktop เท่านั้น มือถือไม่มีตาราง) ----
 window._fpSort = { customers: null, jobs: null, reminders: null };
-// ---- v100: state พับ/ขยายรายการ "งานที่จดทุนอะไหล่" ในการ์ดกำไรหน้ารายงาน (เริ่มยุบเสมอ — กันการ์ดยาวเมื่อหลายงาน ตามคำขอเจ้าของร้าน) ----
-window._profitListOpen = false;
-function toggleProfitList() { window._profitListOpen = !window._profitListOpen; renderReport(); }
+// v101: ยกเลิกการพับ/ขยายรายการ "งานที่จดทุนอะไหล่" ในการ์ดกำไร (ที่เพิ่มใน v100) — เจ้าของร้านให้โชว์รายการเสมอแบบกระชับ ลบ toggleProfitList/window._profitListOpen ทิ้ง
 function _fpSortRows(rows, tbl, accessors) {
   var s = window._fpSort[tbl];
   if (!s || !s.key || !accessors[s.key]) return rows;
@@ -3915,7 +3914,7 @@ var _exitShownAt = 0;       // เวลาที่เปิดหน้าต�
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
 var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
-var APP_VERSION = 'v100';
+var APP_VERSION = 'v101';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -4911,11 +4910,8 @@ function renderReport() {
         '<div class="rpt-statusbox" style="text-align:center;"><div style="font-size:11.5px;color:var(--text2);">ทุนอะไหล่</div><div style="font-size:15px;font-weight:800;color:var(--danger);margin-top:2px;">' + Math.round(_pCost).toLocaleString() + ' ฿</div></div>' +
         '<div class="rpt-statusbox" style="text-align:center;border-left:3px solid var(--success);"><div style="font-size:11.5px;color:var(--text2);">กำไร</div><div style="font-size:15px;font-weight:800;color:var(--success);margin-top:2px;">' + Math.round(revDone - _pCost).toLocaleString() + ' ฿</div></div>' +
       '</div>' +
-      (_pCostJobs.length ? '<div style="display:flex;align-items:center;gap:7px;margin-top:9px;cursor:pointer;user-select:none;" onclick="toggleProfitList()" title="กดเพื่อพับ/ขยายรายการ">' + // v100: หัวรายการกดพับ/ขยายได้ — เริ่มยุบเสมอ กันการ์ดยาวเมื่อหลายงาน (คำขอเจ้าของร้าน)
-        '<span style="font-size:11.5px;font-weight:600;color:var(--text2);">งานที่จดทุนอะไหล่ในช่วงนี้ · ' + _pCostJobs.length + ' งาน</span>' +
-        '<i class="fas fa-chevron-' + (window._profitListOpen ? 'up' : 'down') + '" style="font-size:10px;color:var(--text3);"></i>' +
-        '<span style="flex:1;border-top:1px dashed var(--border);"></span></div>' +
-      (window._profitListOpen ? _pCostJobs.map(j => {
+      (_pCostJobs.length ? '<div style="font-size:11.5px;font-weight:600;color:var(--text2);margin-top:9px;">งานที่จดทุนอะไหล่ในช่วงนี้ · ' + _pCostJobs.length + ' งาน</div>' + // v101: โชว์รายการเสมอ ไม่ซ่อน/ไม่พับ (เจ้าของร้านขอแก้กลับจาก v100) — แถวกระชับให้หลายงานไม่ยาวเกิน
+      _pCostJobs.map(j => {
         var c = DB.customers.find(c => c.phone === j.customerPhone);
         var partLabel = jobPartsName(j) || jobItemsText(j) || j.deviceInfo || ''; // v99: โชว์ชื่ออะไหล่ → รายการซ่อม → อุปกรณ์ (อะไรก็ได้ที่บอกว่างานนี้เปลี่ยนอะไร)
         return '<div class="rpt-statusbox" style="display:flex;align-items:center;gap:8px;cursor:pointer;border-left:3px solid var(--danger);padding:5px 9px;" onclick="showCustomerDetail(\'' + escAttr(j.customerPhone) + '\')" title="กดเพื่อดูงานของลูกค้ารายนี้">' + // v100: padding กระชับขึ้น
@@ -4923,7 +4919,7 @@ function renderReport() {
           '<div style="font-size:11px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(typeLabel(j.serviceType)) + ' · ' + formatDate(j.serviceDate) + (partLabel ? ' · ' + esc(partLabel) : '') + '</div></div>' +
           '<div style="text-align:right;flex-shrink:0;"><div style="font-weight:700;color:var(--danger);font-size:13.5px;">' + jobPartsCost(j).toLocaleString() + ' ฿</div><div style="font-size:10px;color:var(--text3);">ทุนอะไหล่</div></div>' +
           '</div>';
-      }).join('') : '') : '') +
+      }).join('') : '') +
       (_pNoCost === _pDone.length ? '<div style="font-size:11px;color:var(--text3);margin-top:6px;">ยังไม่มีงานที่กรอกทุนอะไหล่ — กำไรยังไม่หักทุนเลย (กรอกได้ในฟอร์มงาน แถว 📦 ค่าอะไหล่ ช่อง 🏷️ ต้นทุน · จดทุนแล้วรายชื่องานจะโผล่ที่นี่)</div>' :
        _pNoCost > 0 ? '<div style="font-size:11px;color:var(--text3);margin-top:6px;">งานที่ยังไม่ได้กรอกทุนอะไหล่ ' + _pNoCost + ' งาน — กำไรขึ้นแบบยังไม่หักทุนงานนั้น</div>' : '');
   }
