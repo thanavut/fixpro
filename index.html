@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=94">
+<link rel="manifest" href="manifest.webmanifest?v=95">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -1406,7 +1406,7 @@ body::after {
           </div>
           <div class="card" id="rpt-unpaid-card">
             <div class="card-header"><span class="card-title">รอเก็บเงิน <span class="badge badge-red" id="rpt-unpaid-cnt" style="font-size:10px;display:none;"></span></span></div>
-            <div class="card-body" id="report-unpaid-list" style="padding-top:0;"></div>
+            <div class="card-body" id="report-unpaid-list" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;padding-top:0;align-items:start;"></div> <!-- v95: รอเก็บเงิน = กริด 2 คอลัมน์เหมือนสถานะงาน (เดิมแถวเดียวทั้งความกว้าง) -->
           </div>
         </div>
         <div class="rpt-pane" id="rpane-types">
@@ -3776,7 +3776,7 @@ var _exitShownAt = 0;       // เวลาที่เปิดหน้าต�
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
 var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
-var APP_VERSION = 'v94';
+var APP_VERSION = 'v95';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -4739,20 +4739,20 @@ function renderReport() {
   var upEl = document.getElementById('report-unpaid-list');
   if (unpaidAll.length === 0) {
     cntBadge.style.display = 'none';
-    upEl.innerHTML = '<div style="color:var(--text3);text-align:center;padding:10px 0;font-size:12px;"><i class="fas fa-circle-check" style="color:var(--success);"></i> ไม่มียอดค้างชำระ เก็บเงินครบทุกงาน</div>';
+    upEl.innerHTML = '<div style="grid-column:1/-1;color:var(--text3);text-align:center;padding:10px 0;font-size:12px;"><i class="fas fa-circle-check" style="color:var(--success);"></i> ไม่มียอดค้างชำระ เก็บเงินครบทุกงาน</div>';
   } else {
     cntBadge.style.display = '';
     cntBadge.textContent = unpaidAll.length + ' รายการ';
     var upSorted = unpaidAll.slice().sort((a, b) => (b.serviceDate || '').localeCompare(a.serviceDate || ''));
     upEl.innerHTML = upSorted.map(j => {
       var c = DB.customers.find(c => c.phone === j.customerPhone);
-      return '<div class="rpt-row" style="cursor:pointer;" onclick="showCustomerDetail(\'' + escAttr(j.customerPhone) + '\')">' +
-        '<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;">' + esc(c ? (c.name || j.customerPhone) : j.customerPhone) + '</div>' +
-        '<div style="font-size:11px;color:var(--text3);">' + esc(typeLabel(j.serviceType)) + ' · ' + formatDate(j.serviceDate) + '</div></div>' +
+      return '<div class="rpt-statusbox" style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="showCustomerDetail(\'' + escAttr(j.customerPhone) + '\')">' + // v95: กล่องแบบเดียวกับกริดสถานะงาน — 2 ต่อแถว
+        '<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(c ? (c.name || j.customerPhone) : j.customerPhone) + '</div>' +
+        '<div style="font-size:11px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(typeLabel(j.serviceType)) + ' · ' + formatDate(j.serviceDate) + '</div></div>' +
         '<div style="text-align:right;flex-shrink:0;"><div style="font-weight:700;color:var(--danger);font-size:13.5px;">' + jobTotal(j).toLocaleString() + ' ฿</div>' +
         (j.deviceInfo ? '<div style="font-size:10px;color:var(--text3);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(j.deviceInfo) + '</div>' : '') + '</div></div>';
     }).join('') +
-      '<div class="rpt-row" style="border-top:1.5px solid var(--border);padding-top:8px;"><span style="flex:1;font-size:12.5px;font-weight:600;">รวมทั้งหมด</span><span style="font-weight:800;color:var(--danger);font-size:14px;">' + Math.round(unpaidSum).toLocaleString() + ' ฿</span></div>';
+      '<div class="rpt-row" style="grid-column:1/-1;border-top:1.5px solid var(--border);padding-top:8px;"><span style="flex:1;font-size:12.5px;font-weight:600;">รวมทั้งหมด</span><span style="font-weight:800;color:var(--danger);font-size:14px;">' + Math.round(unpaidSum).toLocaleString() + ' ฿</span></div>';
   }
 
   // ---- แท็บประเภทงาน ----
