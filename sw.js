@@ -1,10 +1,10 @@
 /* FixPro Service Worker — แคชไฟล์แอปไว้ใช้งานตอนออฟไลน์ */
-var CACHE = 'fixpro-v92';
+var CACHE = 'fixpro-v93';
 var CORE = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './manifest.webmanifest?v=92', // v56: URL เปลี่ยนบังคับ Chrome อ่าน manifest ใหม่ = เคลียร์สแปลชม่วงตกค้างยุค v49 (v92: bump ตามรอบแคช — เมนูงานแสดงทั้งหมด งานล่าสุดเรียงจริง)
+  './manifest.webmanifest?v=93', // v56: URL เปลี่ยนบังคับ Chrome อ่าน manifest ใหม่ = เคลียร์สแปลชม่วงตกค้างยุค v49 (v93: bump ตามรอบแคช — ส่งใบเสร็จเป็นไฟล์ภาพ)
   './icons/icon-192.png',
   './icons/icon-180.png',
   './icons/icon-512.png',

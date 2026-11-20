@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=92">
+<link rel="manifest" href="manifest.webmanifest?v=93">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -1868,6 +1868,7 @@ body::after {
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modal-receipt')">ปิด</button>
       <button class="btn btn-secondary" onclick="copyReceipt()"><i class="fas fa-copy"></i> คัดลอก</button>
+      <button class="btn btn-secondary" onclick="shareReceiptImage()"><i class="fas fa-file-image"></i> ส่งภาพ</button> <!-- v93: ส่งใบเสร็จเป็นไฟล์ภาพ PNG (แชร์เข้า LINE/บันทึกเป็นรูปได้) -->
       <button class="btn btn-line" onclick="shareReceiptLine()"><i class="fab fa-line"></i> ส่ง LINE</button>
     </div>
   </div>
@@ -3768,7 +3769,7 @@ var _exitShownAt = 0;       // เวลาที่เปิดหน้าต�
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
 var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
-var APP_VERSION = 'v92';
+var APP_VERSION = 'v93';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -4382,6 +4383,120 @@ function shareReceiptLine() {
   var j = DB.jobs.find(j => j.id === currentReceiptJobId);
   if (!j) return;
   window.open('https://line.me/R/msg/text/?' + encodeURIComponent(buildLineReceiptText(j)), '_blank');
+}
+
+// ===== v93: ส่งใบเสร็จเป็นไฟล์ภาพ (PNG) — วาดใบเสร็จลง canvas ข้อมูลชุดเดียวกับหน้าปก/LINE
+// แชร์ผ่าน share sheet ของเครื่อง (เลือก LINE/Messenger/บันทึกรูปได้) เครื่องที่แชร์ไฟล์ไม่ได้ = ดาวน์โหลด PNG
+function receiptImageCanvas(job) {
+  var c = DB.customers.find(function(x){ return x.phone === job.customerPhone; });
+  var cfg = loadConfig();
+  var W = 1080, PADX = 72, BOTTOM = 96;
+  var cv = document.createElement('canvas');
+  cv.width = W; cv.height = 400; // ขนาดชั่วคราวสำหรับ measureText — ตั้งจริงตอนวาด (เมตริกฟอนต์ไม่ขึ้นกับความสูง)
+  var ctx = cv.getContext('2d');
+  var FONT = '"Noto Sans Thai","Sarabun","Leelawadee UI",sans-serif';
+  var GREEN = '#2e7d32', DARK = '#1a1a1a', GRAY = '#8a8a8a', LIGHT = '#d5d5d5', RED = '#c62828', ORANGE = '#f57c00';
+  function wrapText(text, size, maxW) {
+    ctx.font = '400 ' + size + 'px ' + FONT;
+    var s = String(text === undefined || text === null || text === '' ? '-' : text);
+    var lines = [], cur = '';
+    s.split(/\r?\n/).forEach(function(par) {
+      var ws = par.split(/\s+/).filter(function(w){ return w !== ''; });
+      if (!ws.length) { lines.push(''); return; }
+      ws.forEach(function(wd) {
+        var t = cur ? cur + ' ' + wd : wd;
+        if (ctx.measureText(t).width <= maxW || !cur) cur = t;
+        else { lines.push(cur); cur = wd; }
+      });
+    });
+    if (cur) lines.push(cur);
+    return lines;
+  }
+  var ops = []; var y = 0;
+  function t(text, x, yy, size, weight, color, align) { ops.push({ k:'t', text:String(text), x:x, y:yy, size:size, w:weight||'400', c:color||DARK, a:align||'left' }); }
+  function dash() { ops.push({ k:'d', y:y }); y += 36; }
+  function row(label, value, vcolor, vbold, vsize) { // ป้ายซ้าย/ค่าขวา — ค่ายาวตัดบรรทัดขวาชิดขอบเหมือนหน้าปก
+    var size = vsize || 34, maxW = W - PADX*2 - 300;
+    var lines = wrapText(value, size, maxW);
+    t(label, PADX, y + size, size, '400', GRAY, 'left');
+    lines.forEach(function(ln, i){ t(ln, W - PADX, y + size + i * (size + 14), size, vbold ? '700' : '400', vcolor || DARK, 'right'); });
+    y += size + 30 + (lines.length - 1) * (size + 14);
+  }
+  // หัวใบเสร็จ
+  y = 84;
+  t(cfg.shopName || 'FixPro', W/2, y, 54, '700', GREEN, 'center'); y += 72;
+  t('ใบงาน / บันทึกการให้บริการ', W/2, y, 28, '400', '#999999', 'center'); y += 54;
+  dash();
+  // ข้อมูลลูกค้า/งาน — ฟิลด์เดียวกับ openReceipt
+  row('ลูกค้า', c?.name || '-', DARK, true);
+  row('เบอร์โทร', job.customerPhone);
+  row('ประเภทงาน', typeLabel(job.serviceType));
+  row('วันที่', formatDate(job.serviceDate));
+  if (job.deviceInfo) row('อุปกรณ์', job.deviceInfo);
+  if (job.symptom) row('อาการเสีย', job.symptom); // v61: อาการเสีย
+  if (job.description) { // v64: ขึ้นบรรทัดตามที่พิมพ์จริง ไม่เติม '- '
+    var dl = wrapText(job.description, 32, W - PADX*2);
+    t('รายละเอียด', PADX, y + 30, 28, '400', GRAY, 'left'); y += 48;
+    dl.forEach(function(ln, i){ t(ln, PADX, y + 32 + i * 46, 32, '400', DARK, 'left'); });
+    y += 48 + (dl.length - 1) * 46 + 26;
+  }
+  if (job.nextDate) row('นัดหมายถัดไป', formatDate(job.nextDate), ORANGE, true);
+  dash();
+  // รายการค่าใช้จ่าย — รูปแบบเดียวกับ buildLineReceiptText (มีรายการย่อย = แจกแจง / งานเก่า = ค่าบริการเดียว)
+  var its = jobItems(job);
+  if (its) {
+    t('🧾 รายการซ่อม', PADX, y + 30, 30, '700', DARK, 'left'); y += 48;
+    its.forEach(function(it){ row('   ' + (it.name || ''), (parseFloat(it.price) || 0).toLocaleString() + ' ฿'); });
+  } else {
+    row('ค่าบริการ', Number(job.cost || 0).toLocaleString() + ' ฿');
+  }
+  if (jobTravel(job) > 0) row('🚗 ค่าเดินทาง', jobTravel(job).toLocaleString() + ' ฿');
+  if (jobParts(job) > 0) row('📦 ค่าอะไหล่' + (jobPartsName(job) ? ' (' + jobPartsName(job) + ')' : ''), jobParts(job).toLocaleString() + ' ฿'); // v76: ชื่ออะไหล่
+  if (jobDiscount(job) > 0) row('🎁 ส่วนลด', '-' + jobDiscount(job).toLocaleString() + ' ฿', RED); // v59: ส่วนลด
+  // ยอดรวม
+  ops.push({ k:'l', y: y }); y += 24;
+  var totLabel = (jobTravel(job) > 0) ? 'ยอดรวมเก็บเงิน' : (its ? 'ยอดรวม' : 'ค่าบริการรวม');
+  t(totLabel, PADX, y + 44, 40, '700', DARK, 'left');
+  t(jobTotal(job).toLocaleString() + ' ฿', W - PADX, y + 50, 52, '700', GREEN, 'right');
+  y += 96;
+  dash();
+  // ท้ายใบเสร็จ
+  t(cfg.receiptFooter || 'ขอบคุณที่ใช้บริการครับ 🙏', W/2, y + 34, 30, '400', '#666666', 'center'); y += 60;
+  if (cfg.techPhone) { t('📱 ติดต่อ: ' + cfg.techPhone, W/2, y + 32, 28, '400', '#8a8a8a', 'center'); y += 52; }
+  // วาดจริง
+  cv.height = y + BOTTOM;
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, cv.height);
+  ctx.textBaseline = 'alphabetic';
+  ops.forEach(function(o){
+    if (o.k === 'd') { ctx.strokeStyle = LIGHT; ctx.setLineDash([12, 10]); ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(PADX, o.y); ctx.lineTo(W - PADX, o.y); ctx.stroke(); ctx.setLineDash([]); }
+    else if (o.k === 'l') { ctx.strokeStyle = '#eeeeee'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(PADX, o.y); ctx.lineTo(W - PADX, o.y); ctx.stroke(); }
+    else { ctx.font = o.w + ' ' + o.size + 'px ' + FONT; ctx.fillStyle = o.c; ctx.textAlign = o.a; ctx.fillText(o.text, o.x, o.y); }
+  });
+  return cv;
+}
+
+function shareReceiptImage() {
+  var j = DB.jobs.find(function(x){ return x.id === currentReceiptJobId; });
+  if (!j) return;
+  try {
+    var cv = receiptImageCanvas(j);
+    var b64 = cv.toDataURL('image/png').split(',')[1]; // ทำไฟล์แบบ synchronous — รักษา user gesture สำหรับ navigator.share
+    var bin = atob(b64), u8 = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+    var cust = DB.customers.find(function(x){ return x.phone === j.customerPhone; });
+    var fname = 'receipt-' + (j.serviceDate || '') + '-' + ((cust && cust.name || 'job').replace(/[^ก-๙a-zA-Z0-9-]+/g, '')) + '.png';
+    var file = new File([u8], fname, { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file], title: 'ใบเสร็จรับเงิน ' + fname }).catch(function(e){ if (e && e.name !== 'AbortError') toast('แชร์ภาพไม่สำเร็จ ลองใหม่อีกครั้ง', 'danger'); });
+    } else {
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([u8], { type: 'image/png' }));
+      a.download = fname;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); }, 5000);
+      toast('บันทึกภาพใบเสร็จเป็นไฟล์ PNG แล้ว', 'success');
+    }
+  } catch (e) { toast('สร้างภาพใบเสร็จไม่สำเร็จ: ' + (e && e.message || e), 'danger'); }
 }
 function copyReceipt() {
   var j = DB.jobs.find(j => j.id === currentReceiptJobId);
