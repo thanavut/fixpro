@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=98">
+<link rel="manifest" href="manifest.webmanifest?v=99">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -3468,6 +3468,7 @@ function renderJobCard(j) {
       jobItems(j).map(it => '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12.5px;color:var(--text2);margin-top:3px;"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">🧾 ' + esc(it.name) + '</span><span style="flex-shrink:0;font-weight:700;color:var(--text);">' + (parseFloat(it.price)||0).toLocaleString() + ' ฿</span></div>').join('') +
       (jobTravel(j) > 0 ? '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12.5px;color:var(--text2);margin-top:3px;"><span>🚗 ค่าเดินทาง</span><span style="flex-shrink:0;font-weight:700;color:var(--text);">' + jobTravel(j).toLocaleString() + ' ฿</span></div>' : '') +
       (jobParts(j) > 0 ? '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12.5px;color:var(--text2);margin-top:3px;"><span>📦 ค่าอะไหล่' + (jobPartsName(j) ? ' (' + esc(jobPartsName(j)) + ')' : '') + '</span><span style="flex-shrink:0;font-weight:700;color:var(--text);">' + jobParts(j).toLocaleString() + ' ฿</span></div>' : '') + // v76: ชื่ออะไหล่ + ค่าอะไหล่แต่ละงาน
+      (jobPartsCost(j) > 0 ? '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12.5px;color:var(--text2);margin-top:3px;"><span>🏷️ ทุนอะไหล่</span><span style="flex-shrink:0;font-weight:700;color:var(--danger);">' + jobPartsCost(j).toLocaleString() + ' ฿</span></div>' : '') + // v99: ทุนอะไหล่ต่องาน (เจ้าของเห็นในหน้าลูกค้าเท่านั้น — ใบเสร็จ/LINE ลูกค้าไม่โชว์)
       (jobDiscount(j) > 0 ? '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12.5px;color:var(--text2);margin-top:3px;"><span>🎁 ส่วนลด</span><span style="flex-shrink:0;font-weight:700;color:var(--danger);">-' + jobDiscount(j).toLocaleString() + ' ฿</span></div>' : '') + // v59: ส่วนลดแต่ละงาน
       '</div>' : '') +
     '<div style="display:flex;align-items:center;gap:8px;margin-top:6px;">' +
@@ -3909,7 +3910,7 @@ var _exitShownAt = 0;       // เวลาที่เปิดหน้าต�
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
 var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
-var APP_VERSION = 'v98';
+var APP_VERSION = 'v99';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -4898,13 +4899,24 @@ function renderReport() {
   if (_pDone.length === 0) {
     _pEl.innerHTML = '<div style="color:var(--text3);text-align:center;padding:8px 0;font-size:12px;">ยังไม่มีงานเสร็จในช่วงนี้</div>';
   } else {
+    var _pCostJobs = _pDone.filter(j => jobPartsCost(j) > 0).sort((a, b) => (b.serviceDate || '').localeCompare(a.serviceDate || '')); // v99: รายการงานที่จดทุนในช่วง — เห็นว่างานไหนเปลี่ยนอะไหล่/ทุนเท่าไร กดแถวเข้าหน้าลูกค้าได้
     _pEl.innerHTML =
       '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">' +
         '<div class="rpt-statusbox" style="text-align:center;"><div style="font-size:11.5px;color:var(--text2);">รายได้</div><div style="font-size:15px;font-weight:800;color:var(--text);margin-top:2px;">' + Math.round(revDone).toLocaleString() + ' ฿</div></div>' +
         '<div class="rpt-statusbox" style="text-align:center;"><div style="font-size:11.5px;color:var(--text2);">ทุนอะไหล่</div><div style="font-size:15px;font-weight:800;color:var(--danger);margin-top:2px;">' + Math.round(_pCost).toLocaleString() + ' ฿</div></div>' +
         '<div class="rpt-statusbox" style="text-align:center;border-left:3px solid var(--success);"><div style="font-size:11.5px;color:var(--text2);">กำไร</div><div style="font-size:15px;font-weight:800;color:var(--success);margin-top:2px;">' + Math.round(revDone - _pCost).toLocaleString() + ' ฿</div></div>' +
       '</div>' +
-      (_pNoCost === _pDone.length ? '<div style="font-size:11px;color:var(--text3);margin-top:6px;">ยังไม่มีงานที่กรอกทุนอะไหล่ — กำไรยังไม่หักทุนเลย (กรอกได้ในฟอร์มงาน ช่อง 🏷️ ทุนอะไหล่)</div>' :
+      (_pCostJobs.length ? '<div style="font-size:11.5px;font-weight:600;color:var(--text2);margin-top:8px;">งานที่จดทุนอะไหล่ในช่วงนี้ · ' + _pCostJobs.length + ' งาน</div>' + // v99: หัวรายการ + จำนวน
+      _pCostJobs.map(j => {
+        var c = DB.customers.find(c => c.phone === j.customerPhone);
+        var partLabel = jobPartsName(j) || jobItemsText(j) || j.deviceInfo || ''; // v99: โชว์ชื่ออะไหล่ → รายการซ่อม → อุปกรณ์ (อะไรก็ได้ที่บอกว่างานนี้เปลี่ยนอะไร)
+        return '<div class="rpt-statusbox" style="display:flex;align-items:center;gap:8px;cursor:pointer;border-left:3px solid var(--danger);" onclick="showCustomerDetail(\'' + escAttr(j.customerPhone) + '\')" title="กดเพื่อดูงานของลูกค้ารายนี้">' +
+          '<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(c ? (c.name || j.customerPhone) : j.customerPhone) + '</div>' +
+          '<div style="font-size:11px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(typeLabel(j.serviceType)) + ' · ' + formatDate(j.serviceDate) + (partLabel ? ' · ' + esc(partLabel) : '') + '</div></div>' +
+          '<div style="text-align:right;flex-shrink:0;"><div style="font-weight:700;color:var(--danger);font-size:13.5px;">' + jobPartsCost(j).toLocaleString() + ' ฿</div><div style="font-size:10px;color:var(--text3);">ทุนอะไหล่</div></div>' +
+          '</div>';
+      }).join('') : '') +
+      (_pNoCost === _pDone.length ? '<div style="font-size:11px;color:var(--text3);margin-top:6px;">ยังไม่มีงานที่กรอกทุนอะไหล่ — กำไรยังไม่หักทุนเลย (กรอกได้ในฟอร์มงาน ช่อง 🏷️ ทุนอะไหล่ · จดทุนแล้วรายชื่องานจะโผล่ที่นี่)</div>' :
        _pNoCost > 0 ? '<div style="font-size:11px;color:var(--text3);margin-top:6px;">งานที่ยังไม่ได้กรอกทุนอะไหล่ ' + _pNoCost + ' งาน — กำไรขึ้นแบบยังไม่หักทุนงานนั้น</div>' : '');
   }
 
