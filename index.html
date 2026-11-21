@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=103">
+<link rel="manifest" href="manifest.webmanifest?v=104">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -228,30 +228,30 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 .stat-card.red .stat-icon { background: #FEE2E2; color: var(--danger); }
 .stat-value { font-size: 15px; font-weight: 800; color: var(--text); margin-bottom: 1px; }
 .stat-label { font-size: 9.5px; color: var(--text2); line-height: 1.25; }
-/* v103: การ์ดสรุป 4 ใบหน้าแรก (#dash-stats เท่านั้น) = สไตล์ "3D + Glass Morphism" พื้นเข้มตามคลิป TikTok ที่เจ้าของร้านส่งมา —
-   การ์ดมืดขอบมน + ชิปไอคอนมีจุดสถานะมุม + ชี้/แตะแล้วการ์ดเรืองแสงสีตัวเอง + เอียง 3D เบาๆ (เดสก์ท็อป)
+/* v104: การ์ดสรุป 4 ใบหน้าแรก (#dash-stats เท่านั้น) = สไตล์ "3D + Glass Morphism" พื้นเข้มตามคลิป TikTok — **Desktop (≥1024px) เท่านั้นตามคำสั่งเจ้าของร้าน "Desktop เท่านั้นนะ mobile ไม่ยุ่ง" (v104)** —
+   มือถือ/แท็บเล็ต (<1024px) กลับสู่สไตล์เดิม v102 100% (การ์ดสว่าง ไอคอน chip gradient 22px เลข 15px ไม่มีจุดสถานะ/ป้ายเปิดดู) —
    หน้างาน/แจ้งเตือน/รายงานยังใช้การ์ดสไตล์เดิมทุกจุด · สี glow ยึดพาเลตเดิม v47 (เขียว/ส้ม/ฟ้า/ทอง) · ตัวเลขขาวใหญ่ยังอ่านง่ายตามกฎเหล็ก */
-#dash-stats .stat-card { background: linear-gradient(145deg, #1C1E22, #101114); border: 1px solid rgba(255,255,255,.08); border-radius: 16px; box-shadow: 0 10px 28px rgba(0,0,0,.22); padding: 13px 12px 12px; }
-#dash-stats .stat-card::before { display: none; } /* v103: ปิดลวดลายมุมโค้งสีเดิม — ใช้ glow ในการ์ดแทน */
-#dash-stats .stat-card::after { content: ''; position: absolute; top: -55%; right: -22%; width: 150px; height: 150px; border-radius: 50%; background: radial-gradient(circle, var(--glow) 0%, transparent 68%); opacity: 0; transition: opacity .35s ease; pointer-events: none; }
-#dash-stats .stat-card:hover, #dash-stats .stat-card:active { border-color: var(--glow-soft); box-shadow: 0 0 0 1px var(--glow-soft), 0 14px 34px rgba(0,0,0,.30); }
-#dash-stats .stat-card:hover::after, #dash-stats .stat-card:active::after { opacity: .55; }
-@media (hover: hover) { #dash-stats .stat-card:hover { transform: perspective(620px) rotateX(4deg) rotateY(-4deg) translateY(-3px); } }
-#dash-stats .stat-icon { position: relative; width: 36px; height: 36px; font-size: 15px; border-radius: 11px; margin-bottom: 10px; background: var(--chip); color: var(--ic); border: 1px solid rgba(255,255,255,.10); box-shadow: 0 4px 10px rgba(0,0,0,.35); }
-#dash-stats .stat-icon::after { content: ''; position: absolute; top: -4px; right: -4px; width: 10px; height: 10px; border-radius: 50%; background: var(--dot); border: 2px solid #15171A; } /* v103: จุดสถานะมุมชิป ตามคลิป */
-#dash-stats .stat-value { color: #fff; font-size: clamp(17px, 5.5vw, 26px); text-shadow: 0 1px 8px rgba(0,0,0,.4); }
-#dash-stats .stat-label { color: rgba(255,255,255,.62); font-weight: 600; }
-#dash-stats .stat-go { position: absolute; right: 11px; bottom: 9px; font-size: 9px; font-weight: 700; letter-spacing: .4px; color: rgba(255,255,255,.38); } /* v103: มุมล่างขวาแบบ VISIT ในคลิป */
-@media (max-width: 480px) { #dash-stats .stat-go { display: none; } } /* v103: จอแคบป้ายทับชื่อการ์ด — ซ่อน (มือถือเหลือไอคอน+เลข+ชื่อพอดี) */
-#dash-stats .stat-go i { font-size: 8px; margin-left: 2px; }
-#dash-stats .stat-card.green { --glow: rgba(94,227,140,.85); --glow-soft: rgba(94,227,140,.45); --chip: #1C3526; --ic: #5EE38C; --dot: #FACC15; }
-#dash-stats .stat-card.orange { --glow: rgba(255,138,101,.85); --glow-soft: rgba(255,138,101,.45); --chip: #3A241C; --ic: #FF8A65; --dot: #F87171; }
-#dash-stats .stat-card.blue { --glow: rgba(66,165,245,.85); --glow-soft: rgba(66,165,245,.45); --chip: #16283A; --ic: #64B5F6; --dot: #22D3EE; }
-#dash-stats .stat-card.amber { --glow: rgba(255,183,77,.85); --glow-soft: rgba(255,183,77,.45); --chip: #3A2F14; --ic: #FFB74D; --dot: #4ADE80; }
-@media (min-width: 1024px) { /* v103: เดสก์ท็อปการ์ดใหญ่ขึ้นเหมือนเดิม (ยืนยัน v101 ว่าเต็มแถว 4 ใบ — คงเลย์เอาต์เดิม) */
-  #dash-stats .stat-card { padding: 18px; }
-  #dash-stats .stat-icon { width: 42px; height: 42px; font-size: 17px; margin-bottom: 12px; }
+@media (min-width: 1024px) {
+  #dash-stats .stat-card { background: linear-gradient(145deg, #1C1E22, #101114); border: 1px solid rgba(255,255,255,.08); border-radius: 16px; box-shadow: 0 10px 28px rgba(0,0,0,.22); padding: 18px; }
+  #dash-stats .stat-card::before { display: none; } /* v103: ปิดลวดลายมุมโค้งสีเดิม — ใช้ glow ในการ์ดแทน */
+  #dash-stats .stat-card::after { content: ''; position: absolute; top: -55%; right: -22%; width: 150px; height: 150px; border-radius: 50%; background: radial-gradient(circle, var(--glow) 0%, transparent 68%); opacity: 0; transition: opacity .35s ease; pointer-events: none; }
+  #dash-stats .stat-card:hover, #dash-stats .stat-card:active { border-color: var(--glow-soft); box-shadow: 0 0 0 1px var(--glow-soft), 0 14px 34px rgba(0,0,0,.30); }
+  #dash-stats .stat-card:hover::after, #dash-stats .stat-card:active::after { opacity: .55; }
+  #dash-stats .stat-icon { position: relative; width: 42px; height: 42px; font-size: 17px; border-radius: 11px; margin-bottom: 12px; background: var(--chip); color: var(--ic); border: 1px solid rgba(255,255,255,.10); box-shadow: 0 4px 10px rgba(0,0,0,.35); }
+  #dash-stats .stat-icon::after { content: ''; position: absolute; top: -4px; right: -4px; width: 10px; height: 10px; border-radius: 50%; background: var(--dot); border: 2px solid #15171A; } /* v103: จุดสถานะมุมชิป ตามคลิป */
+  #dash-stats .stat-value { color: #fff; font-size: 26px; text-shadow: 0 1px 8px rgba(0,0,0,.4); }
+  #dash-stats .stat-label { color: rgba(255,255,255,.62); font-weight: 600; }
+  #dash-stats .stat-go { position: absolute; right: 11px; bottom: 9px; font-size: 9px; font-weight: 700; letter-spacing: .4px; color: rgba(255,255,255,.38); } /* v103: มุมล่างขวาแบบ VISIT ในคลิป */
+  #dash-stats .stat-go i { font-size: 8px; margin-left: 2px; }
+  #dash-stats .stat-card.green { --glow: rgba(94,227,140,.85); --glow-soft: rgba(94,227,140,.45); --chip: #1C3526; --ic: #5EE38C; --dot: #FACC15; }
+  #dash-stats .stat-card.orange { --glow: rgba(255,138,101,.85); --glow-soft: rgba(255,138,101,.45); --chip: #3A241C; --ic: #FF8A65; --dot: #F87171; }
+  #dash-stats .stat-card.blue { --glow: rgba(66,165,245,.85); --glow-soft: rgba(66,165,245,.45); --chip: #16283A; --ic: #64B5F6; --dot: #22D3EE; }
+  #dash-stats .stat-card.amber { --glow: rgba(255,183,77,.85); --glow-soft: rgba(255,183,77,.45); --chip: #3A2F14; --ic: #FFB74D; --dot: #4ADE80; }
 }
+@media (min-width: 1024px) and (hover: hover) { /* v104: รวมเงื่อนไข desktop+มีเมาส์ เดิม v103 แยกบล็อก hover:hover */
+  #dash-stats .stat-card:hover { transform: perspective(620px) rotateX(4deg) rotateY(-4deg) translateY(-3px); }
+}
+@media (max-width: 1023.98px) { #dash-stats .stat-go { display: none; } } /* v104: ป้าย "เปิดดู" ใน HTML เรนเดอร์ทุกจอ — จอที่ไม่ใช่ desktop ต้องซ่อน (มือถือเหมือน v102 ไม่มีป้ายนี้) */
 
 /* ===== BADGES ===== */
 .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; white-space: nowrap; }
@@ -3942,7 +3942,7 @@ var _exitShownAt = 0;       // เวลาที่เปิดหน้าต�
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
 var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
-var APP_VERSION = 'v103';
+var APP_VERSION = 'v104';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
