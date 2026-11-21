@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=101">
+<link rel="manifest" href="manifest.webmanifest?v=102">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -2266,7 +2266,7 @@ function jobItemsSummary(j) { var it = jobItems(j); return it ? it.map(function(
 // เก็บไว้รายการเดียว (อัปเดตใหม่กว่า/รูปเยอะกว่า) และลบตัวซ้ำออกจากคลาวด์ด้วย
 function dedupeJobs(list) {
   var out = [];
-  var keyOf = function(j) { return [j.customerPhone, j.serviceDate, j.serviceType, (j.deviceInfo||''), (j.symptom||''), (j.description||''), String(j.cost||'0'), String(j.travel||'0'), (j.status||''), (j.nextDate||''), JSON.stringify(j.photos||[])].join('||'); }; // v61: เพิ่มอาการเสียในเนื้อหาเปรียบเทียบ
+  var keyOf = function(j) { return [j.customerPhone, j.serviceDate, j.serviceType, (j.deviceInfo||''), (j.symptom||''), (j.description||''), String(j.cost||'0'), String(j.travel||'0'), String(parseFloat(j.discount)||0), String(parseFloat(j.parts)||0), (j.partsName||''), String(parseFloat(j.partsCost)||0), (j.status||''), (j.nextDate||''), JSON.stringify(j.photos||[])].join('||'); }; // v61: เพิ่มอาการเสียในเนื้อหาเปรียบเทียบ · v102: เพิ่มส่วนลด/ค่าอะไหล่/ชื่ออะไหล่/ทุนอะไหล่ — เดิมงานที่ต่างกันแค่ตัวเลขพวกนี้ถูกนับเป็นงานซ้ำแล้วตัวหลังโดนลบจากคลาวด์ (ให้เกณฑ์ตรงกับ dup-guard ตอนบันทึก v59/v98)
   var seen = {};
   for (var i = 0; i < list.length; i++) {
     var j = list[i];
@@ -2986,7 +2986,7 @@ function jumpToJob(jobId) {
   var stEl = document.getElementById('job-filter-status'); if (stEl) stEl.value = '';
   showPage('jobs');
   setTimeout(function() {
-    var row = document.querySelector('#jobs-table-wrap [data-jid="' + jobId + '"]') || document.querySelector('#jobs-mobile-list [data-jid="' + jobId + '"]'); // v83: scope เฉพาะหน้างาน — กันจับ data-jid ของแถวบนหน้าแรก (งานค้าง/งานล่าสุด) ที่ซ่อนอยู่
+    var row = document.querySelector('#jobs-table-wrap [data-jid="' + CSS.escape(jobId) + '"]') || document.querySelector('#jobs-mobile-list [data-jid="' + CSS.escape(jobId) + '"]'); // v83: scope เฉพาะหน้างาน — กันจับ data-jid ของแถวบนหน้าแรก (งานค้าง/งานล่าสุด) ที่ซ่อนอยู่ · v102: CSS.escape — id/ค่าจากคลาวด์ที่มี " เดิมทำ querySelector พัง (SyntaxError)
     if (!row) return;
     row.scrollIntoView({ block: 'center', behavior: 'smooth' });
     row.classList.add('flash-highlight');
@@ -3914,7 +3914,7 @@ var _exitShownAt = 0;       // เวลาที่เปิดหน้าต�
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
 var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
-var APP_VERSION = 'v101';
+var APP_VERSION = 'v102';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -4118,7 +4118,7 @@ function openEditJob(jobId) {
   document.getElementById('job-date').value = j.serviceDate || todayStr();
   document.getElementById('job-type').value = j.serviceType || 'repair';
   document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
-  document.querySelector('.type-card[data-type="' + (j.serviceType||'repair') + '"]')?.classList.add('selected');
+  document.querySelector('.type-card[data-type="' + CSS.escape(j.serviceType||'repair') + '"]')?.classList.add('selected'); // v102: CSS.escape — ประเภทงานจากคลาวด์ที่มี " เดิมทำโมดัลแก้ไขเปิดไม่ได้เลย (querySelector พัง)
   var _its = jobItems(j);
   if (_its) renderJobItemRows(_its); // งานใหม่ที่มีรายการย่อย — เปิดครบทุกแถว
   else if ((parseFloat(j.cost) || 0) > 0) renderJobItemRows([{ name: 'ค่าซ่อม', price: Number(j.cost) }]); // v53: งานเก่าแสดงเป็นรายการเดียวชื่อ ค่าซ่อม (ไม่เขียนกลับข้อมูลจริง เปลี่ยนจริงเมื่อกดบันทึก)
@@ -4379,6 +4379,7 @@ function openPhotoViewer(ev, url) {
   } catch (eList) { PV_LIST = []; }
   PV_IDX = PV_LIST.indexOf(PV_URL);
   if (PV_IDX < 0) { PV_LIST = PV_URL ? [PV_URL] : []; PV_IDX = 0; }
+  if (!PV_URL && PV_LIST.length === 0) { toast('รูปนี้ยังไม่ถูกอัปขึ้นคลาวด์ — ดูได้จากตัวอย่างในฟอร์ม'); return; } // v102: รูปที่เพิ่งถ่าย (blob: ยังไม่อัป) เดิมเปิดหน้าต่างดูรูปดำเปล่า — ตอนนี้แจ้งแล้วไม่เปิด
   var v = document.getElementById('photo-viewer');
   _pvApply();
   v.classList.add('open');
@@ -5229,6 +5230,9 @@ function restoreData(e) {
       DB.jobs = jobsArr;
       lsSaveCustomers(DB.customers);
       lsSaveJobs(DB.jobs);
+      // v102: เบอร์ที่กู้กลับมาต้องปลด tombstone ทั้งเครื่อง+คลาวด์ (removeTombstone เขียน shop/deleted_phones ให้ด้วย)
+      // เดิมปล่อย tombstone ค้าง → รอบซิงค์ถัดไป loadAllData ลบลูกค้าที่เพิ่งกู้ทิ้งซ้ำ = กู้ไม่ขึ้นเงียบๆ
+      for (var tI = 0; tI < DB.customers.length; tI++) removeTombstone(DB.customers[tI].phone);
       if (db) {
         try {
           for (var i = 0; i < DB.customers.length; i++) await db.collection('customers').doc(DB.customers[i].phone).set(DB.customers[i]);

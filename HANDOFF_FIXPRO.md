@@ -10,8 +10,9 @@
 - **สิทธิ์ push**: ดูข้อ 3 — ทำ Device Flow เองในแชทของตัวเอง ห้ามขอ/ส่ง token ผ่านข้อความแชทเด็ดขาด
 
 ## 0.1) สถานะล่าสุด ณ ส่งมอบ 2026-11-21 — แชทใหม่เริ่มตรงนี้
-- **งานถึง v101 เสร็จหมดแล้ว ไม่มีงานค้าง** — เวอร์ชันถัดไปที่ต้อง bump คือ **v102** (ครบ 3 จุดตามข้อ 4: sw.js + APP_VERSION + manifest?v=)
-- สรุปรอบล่าสุด: v100 = โมดัลงานแถวอะไหล่ 3 ช่อง (อะไหล่อะไร / จำนวนเงิน / ต้นทุนพื้นแดงไม่รวมยอดเก็บเงิน) + เลย์เอาต์ 2 คอลัมน์หน้าแรก/รายงาน + รายการทุนพับได้ → เจ้าของร้านขอแก้กลับ 2 จุด → **v101 = การ์ดสรุปตัวเลขบนสุดทั้งหน้าแรก/รายงานกลับเต็มแถวเหมือนเดิม + รายการ "งานที่จดทุนอะไหล่ในช่วงนี้" โชว์เสมอ (ลบพับ)** — กฎเหล็กฉบับสมบูรณ์ = bullet v100/v101 ในข้อ 5 และรายละเอียด+ผลทดสอบในข้อ 8
+- **งานถึง v102 เสร็จหมดแล้ว ไม่มีงานค้าง** — เวอร์ชันถัดไปที่ต้อง bump คือ **v103** (ครบ 3 จุดตามข้อ 4: sw.js + APP_VERSION + manifest?v=)
+- สรุปรอบล่าสุด: **v102 = แก้ของที่ audit โค้ดทั้ง repo วันที่ 21 พ.ย. พบ (7 จุด + คืนไฟล์ที่หาย)**: ① SW แคชหน้าแอปเฉพาะ path ของแอป (/ หรือ /index.html) — เดิมเปิดไฟล์อื่นบนโดเมนเดียวกัน (เช่น /HANDOFF_FIXPRO.md) ครั้งเดียว แล้วเปิดแอปตอนออฟไลน์จะเจอหน้านั้นแทนแอป (แคชพิษ) ② querySelector ครอบ CSS.escape — งานที่ประเภท/id มีตัวอักษรพิเศษเช่น `"` (ข้อมูลจากคลาวด์/restore) เดิมโมดัลแก้ไขเปิดไม่ได้เลย ③ dedupeJobs เทียบ ส่วนลด/ค่าอะไหล่/ชื่ออะไหล่/ทุนอะไหล่ เพิ่ม — เดิมงานต่างกันแค่ตัวเลขพวกนี้ถูกนับเป็นของซ้ำแล้วตัวหลังโดนลบจากคลาวด์ตอนซิงค์ (ให้เกณฑ์ตรงกับ dup-guard ตอนบันทึก) ④ restore ไฟล์ backup ปลด tombstone ของลูกค้าที่กู้กลับทั้งเครื่อง+คลาวด์ (removeTombstone) — เดิมโดนลบซ้ำเงียบๆ ตอนซิงค์ถัดไป ⑤ กดรูปที่ยังไม่อัปขึ้นคลาวด์ (blob ในฟอร์ม) ไม่เปิดหน้าดูรูปดำเปล่า แจ้ง toast แทน ⑥ CSP ตัดโดเมนที่แอปไม่เรียกแล้ว (gstatic / google fonts / nominatim) + sw.js ตัดแคช gstatic ⑦ workflow pin SHA FirebaseExtended/action-hosting-deploy v0.9.0 (0cbcac4) — **ข้อนี้แก้ในเครื่องแล้วแต่ยังไม่ push เพราะ token ปัจจุบัน scope=repo ไม่มี workflow (GitHub ปฏิเญชการแก้ไฟล์ .github/workflows) เมื่อได้ token ใหม่จาก gh_device_poll.py (scope repo,workflow) ให้ commit+push ไฟล์นี้เพิ่ม** + คืน `scripts/gh_device_poll.py` เข้า repo (handoff เคยอ้างไว้แต่ repo ไม่เคยมีโฟลเดอร์นี้) — ก่อนหน้านั้น: v100 = โมดัลงานแถวอะไหล่ 3 ช่อง (อะไหล่อะไร / จำนวนเงิน / ต้นทุนพื้นแดงไม่รวมยอดเก็บเงิน) + เลย์เอาต์ 2 คอลัมน์หน้าแรก/รายงาน + รายการทุนพับได้ → เจ้าของร้านขอแก้กลับ 2 จุด → **v101 = การ์ดสรุปตัวเลขบนสุดทั้งหน้าแรก/รายงานกลับเต็มแถวเหมือนเดิม + รายการ "งานที่จดทุนอะไหล่ในช่วงนี้" โชว์เสมอ (ลบพับ)** — กฎเหล็กฉบับสมบูรณ์ = bullet v100/v101 ในข้อ 5 และรายละเอียด+ผลทดสอบในข้อ 8
+- ช่องโหว่ค้างให้เจ้าของตัดสินใจ (จาก audit 21 พ.ย. — แก้ไม่ได้ด้วยโค้ดล้วนๆ): ข้อมูล Firestore เปิดอ่าน/เขียนสาธารณะตามกติกา "ไม่ล็อกอิน" (firestore.rules v20: customers/jobs/shop = read,write true — ใครรู้ project id ใช้ REST API แก้/ลบข้อมูลได้) + Cloudinary preset แบบ unsigned (ใครมี cloudName+preset อัปไฟล์เข้าบัญชีร้านได้) — ทางแก้ที่ไม่ต้องคืนล็อกอิน = เปิด Firebase App Check (ต้องตั้งค่าใน Firebase Console ด้วยบัญชี Google เจ้าของ แล้วให้แชทเพิ่มโค้ด init App Check ในแอปพร้อมกัน — ห้ามเปิด enforcement ก่อนมีโค้ดในแอป ไม่งั้นแอปโดนบล็อกทั้งเว็บ)
 - ยืนยันบน production แล้ว (อ่านอย่างเดียว): sw.js = fixpro-v101, เลย์เอาต์/รายการทุนตรงตาม v101, ไฟล์นี้เปิดได้ที่ https://fixpro-7b397.web.app/HANDOFF_FIXPRO.md
 - **ทำงานจากไฟล์นี้เท่านั้น ห้ามทำงานจากความจำ** — เจ้าของร้านย้ำ "ครั้งหน้าจะไม่จำเองแน่นอน": ก่อนแก้โค้ดทุกครั้งให้อ่านกฎเหล็กข้อ 5 ซ้ำ และตรวจว่างานใหม่ไม่ขัดกับกฎข้อใดก่อนลงมือ
 
@@ -19,7 +20,7 @@
 - แอปจัดการงานช่าง FixPro (ลูกค้า / งานซ่อม / ค่าเดินทาง / ใบเสร็จ / LINE / รายงาน / แจ้งเตือน) UI ภาษาไทยทั้งหมด ติดตั้งเป็น PWA บนมือถือได้
 - เจ้าของร้าน: บรรยุฐ พรหมทัศน์ (อีเมล thanavutp@gmail.com) — GitHub account: **thanavut**
 - เข้าใช้จริง: https://fixpro-7b397.web.app
-- โครงสร้าง: ไฟล์เดียว `index.html` (~3,880 บรรทัด: HTML+CSS+JS ทั้งหมด) + `sw.js` (offline cache) + manifest + icons + firestore.rules + `.github/workflows/deploy-firebase.yml`
+- โครงสร้าง: ไฟล์เดียว `index.html` (~5,740 บรรทัด: HTML+CSS+JS ทั้งหมด) + `sw.js` (offline cache) + manifest + icons + firestore.rules + `.github/workflows/deploy-firebase.yml`
 
 ## 2) วิธีทำงานกับเจ้าของร้าน (โปรโตคอลที่ใช้มาตลอด)
 1. เจ้าของสั่งเป็นข้อ ๆ ภาษาไทยทางแชท (สั้น ตรงประเด็น)
@@ -30,7 +31,7 @@
 ## 3) สิทธิ์ GitHub — ทำเองในแชทของตัวเองด้วย Device Flow (สำคัญ)
 - โค้ดบน repo public → clone/ดึงไฟล์ไม่ต้องใช้ token แต่ **push ต้องมี token ของตัวเอง**
 - **ห้าม**ให้ใครพิมพ์/วาง token ลงข้อความแชท และห้ามบันทึก token ที่ปรากฏในข้อความ — ตามนโยบายความปลอดภัย
-- ขอสิทธิ์เองแบบ Device Flow: ใช้สคริปต์ใน repo นี้ `scripts/gh_device_poll.py` (CLIENT_ID = `178c6fc778ccc68e1d6a`, scope = `repo`) → ได้รหัส 8 หลักให้เจ้าของเปิด https://github.com/login/device แล้วกดยืนยันครั้งเดียว → ได้ token
+- ขอสิทธิ์เองแบบ Device Flow: ใช้สคริปต์ใน repo นี้ `scripts/gh_device_poll.py` (CLIENT_ID `178c6fc778ccc68e1d6a` ฝังในไฟล์แล้ว; scope = `repo,workflow` — v102 เพิ่ม workflow เพราะ token ที่มีแต่ scope repo จะแก้ไฟล์ .github/workflows ไม่ได้) → ได้รหัส 8 หลักให้เจ้าของเปิด https://github.com/login/device แล้วกดยืนยันครั้งเดียว → ได้ token
 - เก็บ token ใน workspace ของแชทตัวเอง เช่น `.secrets/gh_token.json` (chmod 600) แล้วตั้ง remote: `git remote set-url origin "https://thanavut:<token>@github.com/thanavut/fixpro.git"` (ถ้าต้องดู remote ให้ mask: `git remote -v | sed -E 's#https://[^@]+@#https://***@#'`)
 - เช็ค token ใช้ได้ (แสดงเฉพาะ HTTP code): `curl -s -o /dev/null -w "%{http_code}" -H "Authorization: token $TOKEN" https://api.github.com/user` → 200 = ใช้ได้ (token แบบนี้ไม่มีวันหมดอายุถ้าไม่ถูก revoke)
 - ห้าม: commit token/ค่า config ลง repo, พิมพ์ token ลงเอกสาร, ส่ง token ข้ามแชท
@@ -61,7 +62,7 @@
 - **รายการงานที่จดทุน + ไทม์ไลน์โชว์ทุน (v99)**: ต่อยอดการ์ดกำไร v98 — (1) ใน `#rpt-profit-body` หลัง 3 กล่อง เพิ่มหัวรายการ "งานที่จดทุนอะไหล่ในช่วงนี้ · N งาน" + แถว rpt-statusbox ต่องาน (border-left แดง, คลิก → `showCustomerDetail(phone)` net-zero): ชื่อลูกค้า/เบอร์ + บรรทัดรอง `typeLabel · formatDate · partLabel` โดย partLabel = partsName → jobItemsText → deviceInfo (อะไรก็ได้ที่บอกว่าเปลี่ยนอะไร), ขวา = ทุน (แดง) + ป้าย "ทุนอะไหล่"; เฉพาะงาน partsCost>0 ใน pJobs เรียงวันที่ desc; (2) ไทม์ไลน์หน้าลูกค้า (renderJobCard) เพิ่มบรรทัด "🏷️ ทุนอะไหล่ | X ฿ (แดง)" ต่องาน ต่อจากบรรทัด 📦 ค่าอะไหล่ (v76) — **เจ้าของเห็นเท่านั้น ห้ามใส่ในใบเสร็จ/LINE งานลูกค้า** (grep ยืนยัน buildLineReceiptText/openReceipt/receiptImageCanvas ไม่อ้าง jobPartsCost)
 - **แถวอะไหล่ 3 ช่อง + กฎเหล็ก 2 คอลัมน์ + รายการทุนพับได้ (v100 — (2)(3) ถูกแก้กลับใน v101 ดู bullet ถัดไป)**: (1) โมดัลงาน — ย้ายช่องทุน `#job-parts-cost` (v98) จากหลังยอดรวมมาไว้**แถวเดียวกับ 📦 ค่าอะไหล่ = กริด 2fr:1fr:1fr 3 ช่อง** (อะไหล่อะไร / จำนวนเงิน / ต้นทุน — ช่องเงินยัง = 1/4 แถวตาม v78) + ช่องต้นทุนคลาส `.fc-cost` **พื้นแดงอ่อน rgba(239,83,80,.09) ขอบแดง (dark .16)** สื่อว่า "เงินออกของร้าน ไม่ถูกเอาไปคำนวณยอดเก็บเงิน" + hint ใต้แถว — id คงเดิม saveJob/openEditJob/resetJobModal/updateJobTotalPreview ไม่ต้องแก้ ยอดยังไม่รวมทุน
 - **กฎเหล็ก 2 คอลัมน์ ฉบับสมบูรณ์ + รายการทุนโชว์เสมอ (v101 — เจ้าของร้านขอแก้กลับจาก v100)**: (1) **กฎ 2 คอลัมน์ไม่ได้แตะการ์ดสรุปตัวเลขบนสุด** — คำขอเจ้าของร้าน "ที่บอกว่าต้องเป็น 2 คอลัมน์ไม่ได้ให้แก้การ์ดสรุปที่อยู่บนสุด แก้การ์ดสรุปกลับเหมือนเดิม" → `#rpane-overview .stats-grid` (#report-stats) และ `#page-dashboard .stats-grid` (#dash-stats) **กลับ grid-column:1/-1 เต็มแถวเหมือนเดิมเสมอ** (การ์ดสรุปบนสุด = 4 การ์ดตัวเลขเรียงแถวเดียวเต็มจอ — ห้ามเอาลงกริด 2 คอลัมน์อีกเด็ดขาด) — ส่วนการ์ดอื่นคงกฎ 2 คอลัมน์เท่านั้น (กราฟ/donut/สถานะ/รอเก็บเงิน/กำไร ไหลคู่, `#rpt-profit-card` ไม่เต็มแถว, `#dash-unpaid` ไม่เต็มแถว — ยกเว้นเดียว `#install-banner` = แถบระบบติดตั้งแอป); (2) รายการ "งานที่จดทุนอะไหล่ในช่วงนี้ · N งาน" **โชว์รายการเสมอ ไม่ซ่อน/ไม่พับ** (คำขอ "แสดงเลยไม่ต้องซ่อนแต่ให้เป็นรายการที่กระชับ") — ลบ `toggleProfitList`/`window._profitListOpen` (v100) ทิ้ง คงหัวข้อ + แถว padding 5px 9px กระชับ กดแถว = เปิดหน้าลูกค้าเหมือนเดิม
-- SW แคช: ไฟล์ใน repo + CDN (cdnjs, fonts.googleapis, fonts.gstatic, cdn.jsdelivr) cache-first; หน้าเว็บหลัก network-first; googleapis/firestore ไม่แคช
+- SW แคช: ไฟล์ใน repo + CDN (cdnjs, cdn.jsdelivr) cache-first; หน้าเว็บหลัก network-first แต่**แคชเฉพาะ path ของแอป** (/ หรือ /index.html — v102); googleapis/firestore/cloudinary ไม่แคช
 
 ## 6) กติกาทดสอบ — ห้ามพังข้อมูลจริงของร้าน
 - Production มีข้อมูลจริง (ลูกค้า/งาน/ตั้งค่า) — **ห้ามสร้าง-ลบข้อมูลทดสอบบน production ทุกชนิด** (ลูกค้า งาน ประเภทงาน ค่าตั้งค่า)
@@ -75,7 +76,7 @@
 ## 7) ไฟล์/โฟลเดอร์อื่นที่เกี่ยว
 - `firestore.rules` — กฎ Firestore v20 (ไม่มี auth: เปิดเฉพาะ customers/jobs/shop ให้แอปเขียนได้ อื่นปิด)
 - `assets/fontawesome/`, `icons/`, `firebase/` — แพ็กใน repo (SW แคช)
-- `scripts/` — เครื่องมือที่เคยใช้ (รวม `gh_device_poll.py` = ขอสิทธิ์ GitHub, `poll_deploy_v42.py` = รอ deploy)
+- `scripts/` — `gh_device_poll.py` = ขอสิทธิ์ GitHub ด้วย Device Flow (CLIENT_ID ฝังในไฟล์; คืนไฟล์เข้า repo รอบ v102 — ก่อนหน้านี้ handoff อ้างไว้แต่ repo ไม่เคยมีโฟลเดอร์นี้; `poll_deploy_v42.py` ยุค deploy แบบ GitHub Pages ยกเลิกไปนานแล้ว ไม่ต้องหา)
 - `firebase.json` — hosting public "." + headers/CSP; เว้นแต่ไฟล์ ignore ไฟล์ใน repo จะถูกเสิร์ฟบนเว็บจริงด้วย (HANDOFF_FIXPRO.md ก็เลยเปิดได้ที่เว็บ)
 
 ## 8) ประวัติเวอร์ชันล่าสุด (บริบท)

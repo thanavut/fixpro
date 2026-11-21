@@ -1,10 +1,10 @@
 /* FixPro Service Worker — แคชไฟล์แอปไว้ใช้งานตอนออฟไลน์ */
-var CACHE = 'fixpro-v101';
+var CACHE = 'fixpro-v102';
 var CORE = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './manifest.webmanifest?v=101', // v56: URL เปลี่ยนบังคับ Chrome อ่าน manifest ใหม่ = เคลียร์สแปลชม่วงตกค้างยุค v49 (v101: bump ตามรอบแคช — การ์ดสรุปกลับเต็มแถวเหมือนเดิม + รายการงานทุนโชว์เสมอแบบกระชับ)
+  './manifest.webmanifest?v=102', // v56: URL เปลี่ยนบังคับ Chrome อ่าน manifest ใหม่ = เคลียร์สแปลชม่วงตกค้างยุค v49 (v102: bump ตามรอบแคช — แก้ audit: SW หน้าอื่นเขียนทับแคช, selector พัง, restore โดน tombstone ลบซ้ำ, dedupe ตัดส่วนลด/อะไหล่, viewer รูป blob)
   './icons/icon-192.png',
   './icons/icon-180.png',
   './icons/icon-512.png',
@@ -83,12 +83,17 @@ self.addEventListener('fetch', function (e) {
 
   // หน้าเว็บหลัก: network-first (ได้เวอร์ชันใหม่เสมอเมื่อออนไลน์) fallback เป็นแคช
   // cache:'no-cache' = บังคับ revalidate กับเซิร์ฟเวอร์ทุกครั้ง ไม่ติดแคช HTTP ที่ยังไม่หมดอายุ
+  // v102: แคชเฉพาะหน้าแอปจริง (path = / หรือ /index.html) — เดิมเปิดหน้าอื่นบนโดเมนเดียวกัน (เช่น /HANDOFF_FIXPRO.md)
+  // ครั้งเดียว หน้านั้นถูกเขียนทับแคช ./index.html เปิดแอปออฟไลน์ครั้งถัดไปเจอหน้านั้นแทนแอป (แคชพิษ)
   if (e.request.mode === 'navigate') {
+    var isAppPage = url.pathname === '/' || url.pathname === '/index.html';
     e.respondWith(
       fetch(e.request, { cache: 'no-cache' })
         .then(function (r) {
-          var copy = r.clone();
-          caches.open(CACHE).then(function (c) { c.put('./index.html', copy); });
+          if (isAppPage && r && r.ok) {
+            var copy = r.clone();
+            caches.open(CACHE).then(function (c) { c.put('./index.html', copy); });
+          }
           return r;
         })
         .catch(function () { return caches.match('./index.html'); })
@@ -99,12 +104,11 @@ self.addEventListener('fetch', function (e) {
   // API/ข้อมูล (firebase, cloudinary) — ไม่แคช
   if (url.hostname.indexOf('googleapis.com') !== -1 || url.hostname.indexOf('firebaseio.com') !== -1 || url.hostname.indexOf('cloudinary.com') !== -1) return;
 
-  // ไฟล์ static: cache-first
+  // ไฟล์ static: cache-first (v102: ตัด gstatic/firebasejs — SDK อยู่ในแอปเองตั้งแต่ v40 ไม่มีทางเรียก gstatic อีก)
   var cacheable =
     url.origin === location.origin ||
     url.hostname.indexOf('cdnjs.cloudflare.com') !== -1 ||
-    url.hostname.indexOf('cdn.jsdelivr.net') !== -1 ||
-    (url.hostname === 'www.gstatic.com' && url.pathname.indexOf('/firebasejs/') === 0);
+    url.hostname.indexOf('cdn.jsdelivr.net') !== -1;
   if (!cacheable) return;
 
   e.respondWith(
