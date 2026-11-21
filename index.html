@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=105">
+<link rel="manifest" href="manifest.webmanifest?v=106">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -1314,6 +1314,15 @@ body::after {
   #page-settings div:has(> input#jt-edit-bell) { background: rgba(255,183,77,.10) !important; border: 1px solid rgba(255,183,77,.30) !important; }
   #page-settings div:has(> input#jt-edit-bell) > span { color: #FFD88A !important; }
   #page-settings div:has(> input#jt-edit-bell) span span { color: rgba(255,216,138,.72) !important; }
+
+  /* 12) v106 (ตรวจซ้ำตามคำสั่งเจ้าของ "ตรวจสอบอีกครั้ง...desktop เท่านั้น"): native widget บนพื้นแก้วเข้ม
+        ① color-scheme dark = ไอคอนปฏิทินในช่องวันที่/ลูกศร select/popup เลือกวันที่ เปลี่ยนเป็นสว่าง
+          (เดิมเข้มบนพื้นเข้มมองแทบไม่เห็น — เจอตอนตรวจภาพจริงโมดัล 1024/1280/1440px)
+        ② placeholder เทา #757575 เดิมมัวเกินบนแก้วเข้ม → ขาวจางอ่านชัด
+        ③ accent-color เขียวแบรนด์ = checkbox/radio เนทีฟ (หน้าตั้งค่า) ให้โทนเดิม ไม่หลุดเป็นสีเทา OS */
+  :root { color-scheme: dark; }
+  ::placeholder { color: rgba(242,247,244,.42); opacity: 1; }
+  input[type="checkbox"], input[type="radio"] { accent-color: #66BB6A; }
 }
 </style>
 </head>
@@ -4046,7 +4055,7 @@ var _exitShownAt = 0;       // เวลาที่เปิดหน้าต�
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
 var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
-var APP_VERSION = 'v105';
+var APP_VERSION = 'v106';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
