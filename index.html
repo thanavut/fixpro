@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=104">
+<link rel="manifest" href="manifest.webmanifest?v=105">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -1210,6 +1210,110 @@ body::after {
 .stat-card:hover::after { transform: translateX(300%); }
 .photo-thumb img { transition: transform .3s ease; }
 .photo-thumb:hover img { transform: scale(1.07); }
+}
+</style>
+
+<!-- ============================================================
+     v105 — GLASS UI ทุกหน้า (เจ้าของร้านส่งคลิป "Admin Dashboard V2" ของ @paulcodes4 พร้อมคำสั่ง
+     "พิจารณาทำแอปทุกหน้าเป็น UI กระจกแบบนี้ได้ไหม Desktop เท่านั้นก่อนทำ backup ก่อนเสมอ")
+     · เฉพาะเดสก์ท็อป ≥1024px เท่านั้น — มือถือ/แท็บเล็ตยังเดิม v104/v47 ทุกพิกเซล (กฎข้อ 5 v51/v104)
+     · backup ก่อนแก้จริง: git tag backup-v104-glass-ui (push แล้ว) + สำเนา /home/z/my-project/backup-v104/
+     · หลักการ: พื้นหลังเขียวเข้มอมฟ้า gradient แบบคลิป + ทับตัวแปรธีมให้ทุกพื้นผิวเป็นแก้วขุ่นโปร่งแสง
+       (ตัวแปรชุดเดิม ทุกหน้าเปลี่ยนตามอัตโนมัติ) + เขียว Material ตระกูลเดิมแต่สว่างขึ้นเพื่อ contrast
+       บนพื้นเข้ม (#66BB6A/#4CAF50 = เขียว 400/500 ของชุดเดิม #43A047/#2E7D32) — ฟอนต์ Kanit คงเดิม
+     · ธีมสลับ (พระจันทร์) บนเดสก์ท็อปจะให้หน้าตาเดียวกันคือแก้วเข้ม — มือถือยังสลับสว่าง/มืดได้ปกติ
+     ============================================================ -->
+<style id="glass-style">
+@media (min-width: 1024px) {
+  /* 1) ตัวแปรธีมชุดแก้ว (ทับทั้งธีมสว่างและ [data-theme="dark"] เพราะมาทีหลังสุด) */
+  :root {
+    --bg: rgba(255,255,255,.045);
+    --surface: rgba(255,255,255,.055);
+    --surface2: rgba(255,255,255,.09);
+    --border: rgba(255,255,255,.12);
+    --text: #F2F7F4;
+    --text2: rgba(242,247,244,.72);
+    --text3: rgba(242,247,244,.5);
+    --primary: #66BB6A; --primary-l: #81C784; --primary-d: #43A047;
+    --primary-bg: rgba(102,187,106,.15);
+    --accent: #FF8A65; --accent-l: #FFAB91;
+    --amber: #FFB74D;
+    --info: #42A5F5;
+    --danger: #EF5350;
+    --success: #66BB6A; --warning: #FFB74D; --purple: #BA68C8;
+    --btn2-bg: rgba(255,255,255,.07); --btn2-border: rgba(255,255,255,.16); --btn2-text: #DCE7DF;
+    --shadow-sm: 0 2px 10px rgba(0,0,0,.22);
+    --shadow: 0 8px 26px rgba(0,0,0,.30);
+    --shadow-lg: 0 18px 50px rgba(0,0,0,.45);
+  }
+
+  /* 2) พื้นหลังแอปทั้งจอ = เขียวเข้มอมฟ้าไล่เฉดแบบคลิป (fixed กันรอยต่อตอนเลื่อน) — aurora เดิมยังเรืองทับ */
+  body { background: linear-gradient(148deg, #0B2014 0%, #10301F 34%, #0B2A22 62%, #0B2233 100%) fixed; }
+  ::-webkit-scrollbar-thumb { background: #2E4A3C; background-clip: padding-box; }
+  ::-webkit-scrollbar-thumb:hover { background: #3D5C4C; background-clip: padding-box; }
+  [data-theme="dark"] ::-webkit-scrollbar-thumb { background: #2E4A3C; background-clip: padding-box; }
+
+  /* 3) แถบหัว + เมนูซ้าย = แก้วเข้ม (ทับค่าขาวขุ่นเดิมของ modern-style ทั้งสองธีม) */
+  .app-header, [data-theme="dark"] .app-header { background: rgba(8,22,15,.62); border-bottom-color: rgba(255,255,255,.09); }
+  .mobile-nav, [data-theme="dark"] .mobile-nav { background: rgba(8,22,15,.55); border-right-color: rgba(255,255,255,.09); }
+  .mobile-nav-item:hover, .header-btn:hover, #sidebar-toggle-btn:hover { background: rgba(255,255,255,.07); }
+  .mobile-nav-item.active { background: linear-gradient(90deg, rgba(102,187,106,.20), rgba(67,160,71,.10)); }
+
+  /* 4) การ์ดทุกหน้า = แก้วขุ่นโปร่งแสง + เบลอ + เงาลึก */
+  .card {
+    background: rgba(255,255,255,.055);
+    -webkit-backdrop-filter: blur(14px) saturate(1.25);
+    backdrop-filter: blur(14px) saturate(1.25);
+    border-color: rgba(255,255,255,.11);
+    box-shadow: 0 10px 30px rgba(0,0,0,.28);
+  }
+  .cust-table { background: rgba(255,255,255,.055); }
+  .customer-card:hover, .stat-card:hover { box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+
+  /* 5) โมดัล + toast + popup = แก้วเข้มทึบขึ้นให้อ่านง่าย + เบลอฉากหลังแรงขึ้น */
+  .modal-overlay { background: rgba(4,12,8,.55); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+  .modal {
+    background: rgba(13,30,21,.92);
+    -webkit-backdrop-filter: blur(22px) saturate(1.3);
+    backdrop-filter: blur(22px) saturate(1.3);
+    border: 1px solid rgba(255,255,255,.13);
+  }
+  .toast, [data-theme="dark"] .toast { background: rgba(10,26,18,.88); }
+
+  /* 6) แถวหัวเรื่อง sticky (หน้าแรก/รายงาน/ตั้งค่า) + ช่องกรอก/ค้นหา = แก้ว ไม่ทะลุเห็นเนื้อหาเลื่อน */
+  #page-dashboard.active > div:first-child,
+  #page-reports.active > div:first-child,
+  #page-settings.active > div:first-child { background: rgba(9,25,17,.82); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+  #page-dashboard.active > div:first-child { grid-column: 1 / -1; } /* v105: พื้นเข้มแล้วเห็นขอบกล่อง sticky ครึ่งจอ — ให้กินเต็มแถว (banner/การ์ดสรุปเต็มแถวอยู่แล้ว เลย์เอาต์เท่าเดิม) */
+  .form-control { background: rgba(255,255,255,.07); }
+  .form-control.fc-cost { background: rgba(239,83,80,.14); }
+  .search-bar { background: rgba(255,255,255,.07); }
+  .btn-primary { background: linear-gradient(135deg, #43A047, #2E7D32); }
+
+  /* 7) badge ทุกสี = แก้วโปร่งโทนเดิม (เขียวใช้ var อยู่แล้ว) */
+  .badge-red { background: rgba(239,83,80,.16); color: #FF8A80; }
+  .badge-amber { background: rgba(255,183,77,.16); color: #FFD180; }
+  .badge-blue { background: rgba(66,165,245,.16); color: #90CAF9; }
+  .badge-purple { background: rgba(186,104,200,.16); color: #CE93D8; }
+
+  /* 8) ชิปไอคอนการ์ดสรุป (หน้าลูกค้า/งาน/แจ้งเตือน) เปลี่ยนจากพาสเทลขาว → แก้วโปร่งโทนเดิม */
+  .cust-stat.v-green .cust-stat-icon { background: rgba(102,187,106,.16); }
+  .cust-stat.v-orange .cust-stat-icon { background: rgba(255,138,101,.16); }
+  .cust-stat.v-blue .cust-stat-icon { background: rgba(66,165,245,.16); }
+  .cust-stat.v-amber .cust-stat-icon { background: rgba(255,183,77,.16); }
+
+  /* 9) จุดอื่นที่เคย hardcode สีขาวบนเดสก์ท็อป */
+  .cust-table .ct-actions button:hover { background: rgba(102,187,106,.16); }
+  #info-bar { background: rgba(66,43,10,.85); color: #FFD180; border-bottom-color: rgba(255,183,77,.35); }
+
+  /* 10) การ์ด "รอเก็บเงิน" (#dash-unpaid) เขียนสี inline ไว้ใน JS — เดสก์ท็อปต้อง !important ทับ inline */
+  #dash-unpaid > .card { background: rgba(239,83,80,.10) !important; border: 1.5px solid rgba(239,83,80,.35) !important; }
+  #dash-unpaid > .card > div:first-of-type { background: rgba(239,83,80,.20) !important; }
+
+  /* 11) กล่อง "แจ้งเตือนลูกค้าทุกปี" ในหน้าตั้งค่า (HTML สี inline #FFF8E1) — desktop ทับด้วย :has */
+  #page-settings div:has(> input#jt-edit-bell) { background: rgba(255,183,77,.10) !important; border: 1px solid rgba(255,183,77,.30) !important; }
+  #page-settings div:has(> input#jt-edit-bell) > span { color: #FFD88A !important; }
+  #page-settings div:has(> input#jt-edit-bell) span span { color: rgba(255,216,138,.72) !important; }
 }
 </style>
 </head>
@@ -3942,7 +4046,7 @@ var _exitShownAt = 0;       // เวลาที่เปิดหน้าต�
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
 var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
-var APP_VERSION = 'v104';
+var APP_VERSION = 'v105';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง

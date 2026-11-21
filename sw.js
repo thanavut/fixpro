@@ -1,10 +1,10 @@
 /* FixPro Service Worker — แคชไฟล์แอปไว้ใช้งานตอนออฟไลน์ */
-var CACHE = 'fixpro-v104';
+var CACHE = 'fixpro-v105';
 var CORE = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './manifest.webmanifest?v=104', // v56: URL เปลี่ยนบังคับ Chrome อ่าน manifest ใหม่ = เคลียร์สแปลชม่วงตกค้างยุค v49 (v104: bump ตามรอบแคช — การ์ด glass เหลือเฉพาะ desktop ตามคำสั่งเจ้าของร้าน mobile กลับสไตล์เดิม 100%)
+  './manifest.webmanifest?v=105', // v56: URL เปลี่ยนบังคับ Chrome อ่าน manifest ใหม่ = เคลียร์สแปลชม่วงตกค้างยุค v49 (v105: bump ตามรอบแคช — UI กระจกทุกหน้า desktop ตามคลิป Admin Dashboard V2 ที่เจ้าของร้านส่งมา + backup tag backup-v104-glass-ui ก่อนแก้)
   './icons/icon-192.png',
   './icons/icon-180.png',
   './icons/icon-512.png',
