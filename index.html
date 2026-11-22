@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=113">
+<link rel="manifest" href="manifest.webmanifest?v=114">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -1045,11 +1045,12 @@ body, .card, .app-header, .mobile-nav, .modal {
   .mobile-nav-item span { white-space: nowrap; } /* คงจาก v110: กันชื่อเมนูตก 2 บรรทัด (ป้ายตัวเลขแจ้งเตือน) */
   .mobile-nav-item:hover { background: var(--bg); color: var(--text); }
 }
-/* v113: พื้นหลังสีเดียวกันทั้งหมดบน desktop ตามคำสั่งเจ้าของร้าน "เปลี่ยนสีพื้นหลังให้เหมือนกันทั้งหมด (เหมือนภาพที่ 3) และ เพิ่มความเข้มอีกเล็กน้อย" (ภาพ 1 = แถบเมนูซ้าย, ภาพ 2 = แถบบน, ภาพ 3 = พื้นเนื้อหา = ตัวอ้างอิง) — พื้นแถบบน + แถบเมนูซ้าย = สีเดียวกับพื้นเนื้อหา (--bg) และเข้มขึ้นจาก #F5F6FA → #ECEFF5 (โทนเทาอมฟ้าเดิม ขยับเข้ม ~9 จุด/ช่อง) — เฉพาะ desktop ≥1024px + ธีมสว่างเท่านั้น (html:not([data-theme="dark"]) เพราะตัวแปร dark อยู่บน <html> ต้องไม่โดนทับ) · "อย่ายุ่ง Mobile เด็ดขาดถ้าผมไม่สั่ง" (มือถือใช้ --bg/#F5F6FA + header ขาว frosted เดิม 100%) */
+/* v113: พื้นหลังสีเดียวกันทั้งหมดบน desktop ตามคำสั่งเจ้าของร้าน "เปลี่ยนสีพื้นหลังให้เหมือนกันทั้งหมด (เหมือนภาพที่ 3) และ เพิ่มความเข้มอีกเล็กน้อย" (ภาพ 1 = แถบเมนูซ้าย, ภาพ 2 = แถบบน, ภาพ 3 = พื้นเนื้อหา = ตัวอ้างอิง) — พื้นแถบบน + แถบเมนูซ้าย = สีเดียวกับพื้นเนื้อหา (--bg) — เฉพาะ desktop ≥1024px + ธีมสว่างเท่านั้น (html:not([data-theme="dark"]) เพราะตัวแปร dark อยู่บน <html> ต้องไม่โดนทับ) · "อย่ายุ่ง Mobile เด็ดขาดถ้าผมไม่สั่ง" (มือถือใช้ --bg/#F5F6FA + header ขาว frosted เดิม 100%) ·
+   v114: ตามคำสั่งเจ้าของร้าน "ลบเส้นออก (ตามภาพ) แล้วทำพื้นหลังเข้มกว่านี้ให้การ์ดเด่น" — ลบเส้นแบ่งที่ลอยบนพื้นเดียวกัน: border-bottom แถบบน + box-shadow แถบบน + border-right แถบเมนูซ้าย = transparent (ขอบ/เงาการ์ดทุกใบคงเดิม) และเข้มขึ้นอีกขั้น #ECEFF5 → #E1E5EE (~11 จุด/ช่อง โทนเทาอมฟ้าเดิม) ให้การ์ดขาวเด่นขึ้น */
 @media (min-width: 1024px) {
-  html:not([data-theme="dark"]) body { --bg: #ECEFF5; }
-  html:not([data-theme="dark"]) .app-header { background: rgba(236,239,245,0.72); }
-  html:not([data-theme="dark"]) .mobile-nav { background: var(--bg); }
+  html:not([data-theme="dark"]) body { --bg: #E1E5EE; }
+  html:not([data-theme="dark"]) .app-header { background: rgba(225,229,238,0.72); border-bottom-color: transparent; box-shadow: none; }
+  html:not([data-theme="dark"]) .mobile-nav { background: var(--bg); border-right-color: transparent; }
 }
 
 /* 7) เปลี่ยนหน้า: เข้าแบบสปริงนุ่ม (มือถือยังใช้ fadeUp เดิมของ v47) */
@@ -3930,7 +3931,7 @@ var _exitShownAt = 0;       // เวลาที่เปิดหน้าต�
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
 var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
-var APP_VERSION = 'v113';
+var APP_VERSION = 'v114';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง

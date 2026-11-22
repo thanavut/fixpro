@@ -1,10 +1,10 @@
 /* FixPro Service Worker — แคชไฟล์แอปไว้ใช้งานตอนออฟไลน์ */
-var CACHE = 'fixpro-v113';
+var CACHE = 'fixpro-v114';
 var CORE = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './manifest.webmanifest?v=113', // v56: URL เปลี่ยนบังคับ Chrome อ่าน manifest ใหม่ = เคลียร์สแปลชม่วงตกค้างยุค v49 (v113: bump ตามรอบแคช — พื้นหลังสีเดียวกันทั้งหมดบน desktop (แถบบน+เมนูซ้าย = สีเดียวกับพื้นเนื้อหา) + เพิ่มความเข้ม #F5F6FA → #ECEFF5 ตามคำสั่งเจ้าของร้าน "เปลี่ยนสีพื้นหลังให้เหมือนกันทั้งหมด (เหมือนภาพที่ 3) และ เพิ่มความเข้มอีกเล็กน้อย" — scope html:not([data-theme=dark]) ธีมมืดไม่พัง — Desktop เท่านั้น อย่ายุ่ง Mobile เด็ดขาดถ้าผมไม่สั่ง)
+  './manifest.webmanifest?v=114', // v56: URL เปลี่ยนบังคับ Chrome อ่าน manifest ใหม่ = เคลียร์สแปลชม่วงตกค้างยุค v49 (v114: bump ตามรอบแคช — ลบเส้นแบ่งบน desktop (เส้นใต้แถบบน+เงา+เส้นขอบเมนูซ้าย = transparent) + พื้นเข้มขึ้นอีกขั้น #ECEFF5 → #E1E5EE ให้การ์ดเด่น ตามคำสั่งเจ้าของร้าน "ลบเส้นออก (ตามภาพ) แล้วทำพื้นหลังเข้มกว่านี้ให้การ์ดเด่น" — scope html:not([data-theme=dark]) ธีมมืดไม่พัง — Desktop เท่านั้น อย่ายุ่ง Mobile เด็ดขาดถ้าผมไม่สั่ง)
   './icons/icon-192.png',
   './icons/icon-180.png',
   './icons/icon-512.png',
