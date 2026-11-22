@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=114">
+<link rel="manifest" href="manifest.webmanifest?v=115">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -1051,6 +1051,15 @@ body, .card, .app-header, .mobile-nav, .modal {
   html:not([data-theme="dark"]) body { --bg: #E1E5EE; }
   html:not([data-theme="dark"]) .app-header { background: rgba(225,229,238,0.72); border-bottom-color: transparent; box-shadow: none; }
   html:not([data-theme="dark"]) .mobile-nav { background: var(--bg); border-right-color: transparent; }
+}
+
+/* v115: จัดระยะห่างของบรรทัดทุกหน้า desktop ให้เป็นแบบเดียวกับหน้า "รายชื่อลูกค้า" (ภาพอ้างอิงเจ้าของร้าน: หัวเรื่อง → ช่องค้นหา 460px → เนื้อหา) ตามคำสั่ง "รูปแบบระยะห่างของบรรทัดของทุกหน้าให้อิงตามภาพในหน้า 'รายชื่อลูกค้า' ความยาวของช่องค้นหาก็เหมือนกัน" — ค่าอ้างอิงหน้าลูกค้า (วัดยืนยัน): แถวหัวเรื่อง mb 10px + ช่องค้นหา/แถวตัวกรอง mb 8px + ช่องค้นหายาว 460px สูง 30px ฟอนต์ 12px — แก้ 4 จุดที่วัดแล้วต่าง: หน้างาน ช่องค้นหา flex เต็มบรรทัด 842px → จำกัด 460px + .filter-bar mb 16px → 8px / หน้าแจ้งเตือน แถวปุ่ม mb 10px → 8px (!important ชนะ inline style) / หน้ารายงาน .rpt-periods mb 10px → 8px / หน้าแรก แถวหัวเรื่อง mb 6px → 10px — หน้าลูกค้า/ตั้งค่า/รายละเอียดลูกค้า เข้าเงื่อนไขอยู่แล้วไม่แตะ — เฉพาะ desktop ≥1024px ("อย่ายุ่ง Mobile เด็ดขาดถ้าผมไม่สั่ง" — มือถือคง inline เดิม 100%) — ระยะห่างเป็น layout ธีมสว่าง/มืดได้ค่าเดียวกัน */
+@media (min-width: 1024px) {
+  #page-jobs .filter-bar { margin-bottom: 8px; }
+  #page-jobs .filter-bar .search-input { max-width: 460px; }
+  #page-reminders > div:nth-child(2) { margin-bottom: 8px !important; }
+  #page-reports .rpt-periods { margin-bottom: 8px; }
+  #page-dashboard > div:first-child { margin-bottom: 10px !important; }
 }
 
 /* 7) เปลี่ยนหน้า: เข้าแบบสปริงนุ่ม (มือถือยังใช้ fadeUp เดิมของ v47) */
@@ -3931,7 +3940,7 @@ var _exitShownAt = 0;       // เวลาที่เปิดหน้าต�
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
 var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
-var APP_VERSION = 'v114';
+var APP_VERSION = 'v115';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
