@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=111">
+<link rel="manifest" href="manifest.webmanifest?v=112">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -1035,9 +1035,11 @@ body, .card, .app-header, .mobile-nav, .modal {
 .mobile-nav-item.active { background: linear-gradient(90deg, rgba(46,125,50,0.16), rgba(27,94,32,0.09)); box-shadow: inset 3px 0 0 var(--primary); }
 .mobile-nav-item i { transition: transform .22s cubic-bezier(.34,1.56,.64,1); }
 .mobile-nav-item.active i { transform: translateY(-2px) scale(1.08); }
-/* v111: เมนูซ้าย desktop = การ์ดใหญ่ใบเดียวครอบรายการเมนูทั้งหมด ตามคำชี้แจงเจ้าของร้าน "หมายถึงให้ทำเป็นการ์ดใหญ่แล้วมีเมนูอยู่ด้ายใน ไม่ใช่แยกการ์ดแต่ละเมนู" (v110 แยกการ์ดรายการ = ไม่ตรง) — ป้าย "เมนูหลัก" อยู่ในการ์ด · รายการข้างใน = แถวธรรมดาแบบเดิม (hover เทาอ่อน · active ใช้แคปซูลเขียวไล่สี+แถบตั้งจากกฎ 6 ด้านบนตามเดิม จึงไม่เขียนทับ active) · เฉพาะ desktop ≥1024px มือถือเดิม 100% */
+/* v111: เมนูซ้าย desktop = การ์ดใหญ่ใบเดียวครอบรายการเมนูทั้งหมด ตามคำชี้แจงเจ้าของร้าน "หมายถึงให้ทำเป็นการ์ดใหญ่แล้วมีเมนูอยู่ด้ายใน ไม่ใช่แยกการ์ดแต่ละเมนู" (v110 แยกการ์ดรายการ = ไม่ตรง) — ป้าย "เมนูหลัก" อยู่ในการ์ด · รายการข้างใน = แถวธรรมดาแบบเดิม (hover เทาอ่อน · active ใช้แคปซูลเขียวไล่สี+แถบตั้งจากกฎ 6 ด้านบนตามเดิม จึงไม่เขียนทับ active) ·
+   v112: การ์ดยาวถึงล่าง ตามคำสั่งเจ้าของร้าน "แล้วด้านล่างเหลือไว้ทำไม ทำเป็นการ์ดยาวถึงด้านล่างไปเลย แล้วพื้นหลังเป็นสีเดียวกัน" — sidebar = flex column การ์ดยืดเต็มความสูง พื้นการ์ด var(--surface) = พื้น sidebar สีเดียวกัน ไม่มีพื้นว่างใต้การ์ด · Desktop เท่านั้น "อย่ายุ่ง Mobile เด็ดขาดถ้าผมไม่สั่ง" (มือถือใช้กฎ base เดิม 100%) */
 @media (min-width: 1024px) {
-  .mobile-nav-items { gap: 2px; padding: 5px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-sm); }
+  .mobile-nav { display: flex; flex-direction: column; }
+  .mobile-nav-items { flex: 1 1 auto; min-height: 0; gap: 2px; padding: 5px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-sm); }
   .mobile-nav-items::before { padding: 5px 8px 3px; }
   .mobile-nav-item { padding: 8px 10px; border-radius: var(--radius-sm); background: transparent; border: none; box-shadow: none; transition: var(--transition); }
   .mobile-nav-item span { white-space: nowrap; } /* คงจาก v110: กันชื่อเมนูตก 2 บรรทัด (ป้ายตัวเลขแจ้งเตือน) */
@@ -3922,7 +3924,7 @@ var _exitShownAt = 0;       // เวลาที่เปิดหน้าต�
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
 var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
-var APP_VERSION = 'v111';
+var APP_VERSION = 'v112';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
