@@ -1,10 +1,10 @@
 /* FixPro Service Worker — แคชไฟล์แอปไว้ใช้งานตอนออฟไลน์ */
-var CACHE = 'fixpro-v106';
+var CACHE = 'fixpro-v107';
 var CORE = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './manifest.webmanifest?v=106', // v56: URL เปลี่ยนบังคับ Chrome อ่าน manifest ใหม่ = เคลียร์สแปลชม่วงตกค้างยุค v49 (v106: bump ตามรอบแคช — ตรวจซ้ำ glass v106: color-scheme dark ให้ไอคอนปฏิทิน/popup วันที่สว่าง + placeholder ขาวจาง + accent เขียว checkbox เฉพาะ desktop)
+  './manifest.webmanifest?v=107', // v56: URL เปลี่ยนบังคับ Chrome อ่าน manifest ใหม่ = เคลียร์สแปลชม่วงตกค้างยุค v49 (v107: bump ตามรอบแคช — เขียนพาเลต glass ใหม่จากสีที่วัดจากพิกเซลคลิปตัวอย่างจริง: พื้น navy-teal + การ์ด/เนื้อหาแก้วขาวเทาตัวหนังสือเข้ม + เมนูข้าง navy + active pill teal + การ์ดสรุปเลิกดำ)
   './icons/icon-192.png',
   './icons/icon-180.png',
   './icons/icon-512.png',

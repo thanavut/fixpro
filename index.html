@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=106">
+<link rel="manifest" href="manifest.webmanifest?v=107">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -1225,104 +1225,141 @@ body::after {
      ============================================================ -->
 <style id="glass-style">
 @media (min-width: 1024px) {
-  /* 1) ตัวแปรธีมชุดแก้ว (ทับทั้งธีมสว่างและ [data-theme="dark"] เพราะมาทีหลังสุด) */
+  /* 1) ตัวแปรธีมชุดแก้วสว่าง v107 — เนื้อหาทุกชิ้นเป็นแก้วขาวเทา ตัวหนังสือเข้ม navy ตามคลิป Admin Dashboard V2
+        (v107 = วัดสีจริงจากพิกเซลคลิป: การ์ด #B3C2CF/#AAC2DA = ขาวโปร่ง ~65% ทับพื้น navy-teal, ตัวหนังสือเกือบดำ,
+         เมนูข้างแก้ว navy #1C4156, active pill teal อ่อน #74A7B5 = ขาว ~.35 ทับพื้น, ปุ่มดองดำ #2B3033 — เจ้าของร้าน
+         ติด "ไม่เอากระจกสีเขียว การ์ดต้องเทาๆ เมนูบาร์ยังไม่เหมือน การ์ดสรุปห้ามดำ" จึงเขียนพาเลตใหม่จากค่าที่วัด) */
   :root {
-    --bg: rgba(255,255,255,.045);
-    --surface: rgba(255,255,255,.055);
-    --surface2: rgba(255,255,255,.09);
-    --border: rgba(255,255,255,.12);
-    --text: #F2F7F4;
-    --text2: rgba(242,247,244,.72);
-    --text3: rgba(242,247,244,.5);
-    --primary: #66BB6A; --primary-l: #81C784; --primary-d: #43A047;
-    --primary-bg: rgba(102,187,106,.15);
-    --accent: #FF8A65; --accent-l: #FFAB91;
-    --amber: #FFB74D;
-    --info: #42A5F5;
-    --danger: #EF5350;
-    --success: #66BB6A; --warning: #FFB74D; --purple: #BA68C8;
-    --btn2-bg: rgba(255,255,255,.07); --btn2-border: rgba(255,255,255,.16); --btn2-text: #DCE7DF;
-    --shadow-sm: 0 2px 10px rgba(0,0,0,.22);
-    --shadow: 0 8px 26px rgba(0,0,0,.30);
-    --shadow-lg: 0 18px 50px rgba(0,0,0,.45);
+    --bg: rgba(255,255,255,.40);
+    --surface: rgba(255,255,255,.52);
+    --surface2: rgba(255,255,255,.66);
+    --border: rgba(15,48,66,.14);
+    --text: #16303F;
+    --text2: rgba(22,48,63,.78);
+    --text3: rgba(22,48,63,.55);
+    --primary: #2E7D32; --primary-l: #4CAF50; --primary-d: #1B5E20;
+    --primary-bg: rgba(67,160,71,.12);
+    --accent: #D84315; --accent-l: #FF8A65;
+    --amber: #C77700;
+    --info: #1565C0;
+    --danger: #C62828;
+    --success: #2E7D32; --warning: #B26A00; --purple: #8E24AA;
+    --btn2-bg: rgba(27,35,44,.92); --btn2-border: rgba(27,35,44,.92); --btn2-text: #F2F7FA;
+    --shadow-sm: 0 2px 10px rgba(4,20,30,.18);
+    --shadow: 0 8px 26px rgba(4,20,30,.22);
+    --shadow-lg: 0 18px 50px rgba(4,20,30,.30);
   }
 
-  /* 2) พื้นหลังแอปทั้งจอ = เขียวเข้มอมฟ้าไล่เฉดแบบคลิป (fixed กันรอยต่อตอนเลื่อน) — aurora เดิมยังเรืองทับ */
-  body { background: linear-gradient(148deg, #0B2014 0%, #10301F 34%, #0B2A22 62%, #0B2233 100%) fixed; }
-  ::-webkit-scrollbar-thumb { background: #2E4A3C; background-clip: padding-box; }
-  ::-webkit-scrollbar-thumb:hover { background: #3D5C4C; background-clip: padding-box; }
-  [data-theme="dark"] ::-webkit-scrollbar-thumb { background: #2E4A3C; background-clip: padding-box; }
+  /* 2) พื้นหลังทั้งจอ = navy→teal gradient ตามคลิป (วัดจริง: #082231 ล่างซ้าย → #103E50 บน → #19566B ขวา)
+        + aurora ทับเป็นโทน teal/cyan เดิมเขียว (ทั้งธีมสว่างและ dark ต้องเหมือนกันบน desktop) */
+  body { background: linear-gradient(52deg, #082231 0%, #103E50 42%, #175C70 76%, #1E6E80 100%) fixed; }
+  body::after {
+    background:
+      radial-gradient(1100px 480px at 82% -6%, rgba(77,208,225,0.10), transparent 62%),
+      radial-gradient(900px 420px at -8% 8%, rgba(38,166,154,0.08), transparent 58%),
+      radial-gradient(760px 400px at 55% 108%, rgba(33,150,243,0.06), transparent 58%);
+  }
+  [data-theme="dark"] body::after {
+    background:
+      radial-gradient(1100px 480px at 82% -6%, rgba(77,208,225,0.10), transparent 62%),
+      radial-gradient(900px 420px at -8% 8%, rgba(38,166,154,0.08), transparent 58%),
+      radial-gradient(760px 400px at 55% 108%, rgba(33,150,243,0.06), transparent 58%);
+  }
+  ::-webkit-scrollbar-thumb { background: #3D6377; background-clip: padding-box; }
+  ::-webkit-scrollbar-thumb:hover { background: #4E7A8F; background-clip: padding-box; }
+  [data-theme="dark"] ::-webkit-scrollbar-thumb { background: #3D6377; background-clip: padding-box; }
 
-  /* 3) แถบหัว + เมนูซ้าย = แก้วเข้ม (ทับค่าขาวขุ่นเดิมของ modern-style ทั้งสองธีม) */
-  .app-header, [data-theme="dark"] .app-header { background: rgba(8,22,15,.62); border-bottom-color: rgba(255,255,255,.09); }
-  .mobile-nav, [data-theme="dark"] .mobile-nav { background: rgba(8,22,15,.55); border-right-color: rgba(255,255,255,.09); }
-  .mobile-nav-item:hover, .header-btn:hover, #sidebar-toggle-btn:hover { background: rgba(255,255,255,.07); }
-  .mobile-nav-item.active { background: linear-gradient(90deg, rgba(102,187,106,.20), rgba(67,160,71,.10)); }
+  /* 3) แถบหัว + เมนูซ้าย = แก้ว navy เข้มลอยเหนือพื้น ตามคลิป (ตัวหนังสือ/ไอคอนบนพื้นเข้มยังสว่าง)
+        active เมนู = pill แก้วขาว ~.34 (ทับพื้น teal แล้วได้ #74A7B5 ตามที่วัด) */
+  .app-header, [data-theme="dark"] .app-header { background: rgba(5,22,33,.60); border-bottom-color: rgba(255,255,255,.09); }
+  .app-header .header-brand h2 { color: #81C784; }
+  .app-header .header-btn { color: rgba(230,244,250,.85); }
+  .header-btn:active { background: rgba(255,255,255,.12); }
+  .mobile-nav, [data-theme="dark"] .mobile-nav { background: rgba(5,22,33,.58); border-right-color: rgba(255,255,255,.09); }
+  .mobile-nav-item { color: rgba(214,236,244,.75); }
+  .mobile-nav-item:hover, .header-btn:hover, #sidebar-toggle-btn:hover { background: rgba(255,255,255,.09); }
+  #sidebar-toggle-btn { color: rgba(214,236,244,.75); }
+  .mobile-nav-item.active { background: rgba(255,255,255,.34); color: #FFFFFF; }
 
-  /* 4) การ์ดทุกหน้า = แก้วขุ่นโปร่งแสง + เบลอ + เงาลึก */
+  /* 4) การ์ดทุกหน้า = แก้วขาวเทาโปร่งแสง (สีเทาๆ ตามคลิป — ตัวหนังสือเข้มผ่าน var ทั้งหมด) */
   .card {
-    background: rgba(255,255,255,.055);
-    -webkit-backdrop-filter: blur(14px) saturate(1.25);
-    backdrop-filter: blur(14px) saturate(1.25);
-    border-color: rgba(255,255,255,.11);
-    box-shadow: 0 10px 30px rgba(0,0,0,.28);
+    background: rgba(255,255,255,.68);
+    -webkit-backdrop-filter: blur(16px) saturate(1.15);
+    backdrop-filter: blur(16px) saturate(1.15);
+    border-color: rgba(255,255,255,.55);
+    box-shadow: 0 10px 30px rgba(4,20,30,.20);
   }
-  .cust-table { background: rgba(255,255,255,.055); }
-  .customer-card:hover, .stat-card:hover { box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+  .cust-table { background: rgba(255,255,255,.5); }
+  .customer-card:hover, .stat-card:hover { box-shadow: 0 10px 30px rgba(4,20,30,.26); }
 
-  /* 5) โมดัล + toast + popup = แก้วเข้มทึบขึ้นให้อ่านง่าย + เบลอฉากหลังแรงขึ้น */
-  .modal-overlay { background: rgba(4,12,8,.55); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+  /* 5) โมดัล = แผงแก้วสว่างทึบขึ้นเหมือนแผงเนื้อหาในคลิป + toast คงเข้ม navy (ตัวอักษรสว่าง) */
+  .modal-overlay { background: rgba(3,14,22,.55); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
   .modal {
-    background: rgba(13,30,21,.92);
-    -webkit-backdrop-filter: blur(22px) saturate(1.3);
-    backdrop-filter: blur(22px) saturate(1.3);
-    border: 1px solid rgba(255,255,255,.13);
+    background: rgba(244,250,253,.90);
+    -webkit-backdrop-filter: blur(22px) saturate(1.15);
+    backdrop-filter: blur(22px) saturate(1.15);
+    border: 1px solid rgba(255,255,255,.6);
   }
-  .toast, [data-theme="dark"] .toast { background: rgba(10,26,18,.88); }
+  .toast, [data-theme="dark"] .toast { background: rgba(6,24,34,.92); color: #EAF4F8; }
 
-  /* 6) แถวหัวเรื่อง sticky (หน้าแรก/รายงาน/ตั้งค่า) + ช่องกรอก/ค้นหา = แก้ว ไม่ทะลุเห็นเนื้อหาเลื่อน */
+  /* 6) แถบหัวเรื่อง sticky (หน้าแรก/รายงาน/ตั้งค่า) = แผงแก้วขาวใส + ช่องกรอก/ค้นหาแก้วขาว */
   #page-dashboard.active > div:first-child,
   #page-reports.active > div:first-child,
-  #page-settings.active > div:first-child { background: rgba(9,25,17,.82); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
-  #page-dashboard.active > div:first-child { grid-column: 1 / -1; } /* v105: พื้นเข้มแล้วเห็นขอบกล่อง sticky ครึ่งจอ — ให้กินเต็มแถว (banner/การ์ดสรุปเต็มแถวอยู่แล้ว เลย์เอาต์เท่าเดิม) */
-  .form-control { background: rgba(255,255,255,.07); }
-  .form-control.fc-cost { background: rgba(239,83,80,.14); }
-  .search-bar { background: rgba(255,255,255,.07); }
-  .btn-primary { background: linear-gradient(135deg, #43A047, #2E7D32); }
+  #page-settings.active > div:first-child { background: rgba(255,255,255,.5); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+  #page-dashboard.active > div:first-child { grid-column: 1 / -1; } /* v105: sticky กินเต็มแถว (เลย์เอาต์เท่าเดิม) */
+  /* v107: หัวเรื่อง 3 หน้าตาราง (ลูกค้า/งาน/แจ้งเตือน) ลอยบนพื้น navy โดยตรง → ตัวหนังสือขาวตามเขตเข้มของคลิป
+        (ตัวเข้มทับเข้มมองไม่ออก — เจอจากภาพเต็มความคม) */
+  #page-customers > div:first-child div[style*="font-size:18px"],
+  #page-jobs > div:first-child div[style*="font-size:18px"],
+  #page-reminders > div:first-child div[style*="font-size:18px"] { color: rgba(238,246,250,.95); }
+  .form-control { background: rgba(255,255,255,.55); }
+  .form-control.fc-cost { background: rgba(198,40,40,.10); }
+  .search-bar { background: rgba(255,255,255,.55); }
+  .btn-primary { background: linear-gradient(135deg, #43A047, #2E7D32); } /* ปุ่มลงมือคงเขียวแบรนด์ — ปุ่มรอง = ดำ slate ผ่าน --btn2-* ตามคลิป */
 
-  /* 7) badge ทุกสี = แก้วโปร่งโทนเดิม (เขียวใช้ var อยู่แล้ว) */
-  .badge-red { background: rgba(239,83,80,.16); color: #FF8A80; }
-  .badge-amber { background: rgba(255,183,77,.16); color: #FFD180; }
-  .badge-blue { background: rgba(66,165,245,.16); color: #90CAF9; }
-  .badge-purple { background: rgba(186,104,200,.16); color: #CE93D8; }
+  /* 7) badge ทุกสี = ชิปพาสเทลอ่อน ตัวหนังสือโทนเข้มเดียวกัน (อ่านชัดบนแก้วสว่าง ตามคลิป) */
+  .badge-red { background: rgba(239,83,80,.14); color: #B3261E; }
+  .badge-amber { background: rgba(255,183,77,.20); color: #8C5A00; }
+  .badge-blue { background: rgba(66,165,245,.16); color: #0F5AA8; }
+  .badge-purple { background: rgba(171,71,188,.14); color: #7B1FA2; }
 
-  /* 8) ชิปไอคอนการ์ดสรุป (หน้าลูกค้า/งาน/แจ้งเตือน) เปลี่ยนจากพาสเทลขาว → แก้วโปร่งโทนเดิม */
-  .cust-stat.v-green .cust-stat-icon { background: rgba(102,187,106,.16); }
-  .cust-stat.v-orange .cust-stat-icon { background: rgba(255,138,101,.16); }
-  .cust-stat.v-blue .cust-stat-icon { background: rgba(66,165,245,.16); }
-  .cust-stat.v-amber .cust-stat-icon { background: rgba(255,183,77,.16); }
+  /* 8) ชิปไอคอนการ์ดสรุป (หน้าลูกค้า/งาน/แจ้งเตือน) = tint อ่อนบนแก้วขาว */
+  .cust-stat.v-green .cust-stat-icon { background: rgba(67,160,71,.14); }
+  .cust-stat.v-orange .cust-stat-icon { background: rgba(216,67,21,.12); }
+  .cust-stat.v-blue .cust-stat-icon { background: rgba(21,101,192,.12); }
+  .cust-stat.v-amber .cust-stat-icon { background: rgba(255,160,0,.16); }
 
-  /* 9) จุดอื่นที่เคย hardcode สีขาวบนเดสก์ท็อป */
-  .cust-table .ct-actions button:hover { background: rgba(102,187,106,.16); }
-  #info-bar { background: rgba(66,43,10,.85); color: #FFD180; border-bottom-color: rgba(255,183,77,.35); }
+  /* 9) จุดอื่นที่เคย hardcode สี — ปรับให้เข้าโลกแก้วสว่าง */
+  .cust-table .ct-actions button:hover { background: rgba(67,160,71,.14); }
+  #info-bar { background: rgba(255,193,88,.30); color: #6B3E00; border-bottom-color: rgba(255,183,77,.45); }
 
-  /* 10) การ์ด "รอเก็บเงิน" (#dash-unpaid) เขียนสี inline ไว้ใน JS — เดสก์ท็อปต้อง !important ทับ inline */
-  #dash-unpaid > .card { background: rgba(239,83,80,.10) !important; border: 1.5px solid rgba(239,83,80,.35) !important; }
-  #dash-unpaid > .card > div:first-of-type { background: rgba(239,83,80,.20) !important; }
+  /* 10) การ์ด "รอเก็บเงิน" (#dash-unpaid เขียนสี inline ใน JS) = แก้วขาวอมแดง + ตัวหนังสือแดงเข้ม */
+  #dash-unpaid > .card { background: rgba(255,235,238,.72) !important; border: 1.5px solid rgba(198,40,40,.30) !important; color: #8E1B1B !important; }
+  #dash-unpaid > .card > div:first-of-type { background: rgba(198,40,40,.10) !important; }
 
-  /* 11) กล่อง "แจ้งเตือนลูกค้าทุกปี" ในหน้าตั้งค่า (HTML สี inline #FFF8E1) — desktop ทับด้วย :has */
-  #page-settings div:has(> input#jt-edit-bell) { background: rgba(255,183,77,.10) !important; border: 1px solid rgba(255,183,77,.30) !important; }
-  #page-settings div:has(> input#jt-edit-bell) > span { color: #FFD88A !important; }
-  #page-settings div:has(> input#jt-edit-bell) span span { color: rgba(255,216,138,.72) !important; }
+  /* 11) กล่อง "แจ้งเตือนลูกค้าทุกปี" ในหน้าตั้งค่า (HTML สี inline #FFF8E1) = ขาวอมเหลือง */
+  #page-settings div:has(> input#jt-edit-bell) { background: rgba(255,183,77,.16) !important; border: 1px solid rgba(255,183,77,.40) !important; }
+  #page-settings div:has(> input#jt-edit-bell) > span { color: #7A4D00 !important; }
+  #page-settings div:has(> input#jt-edit-bell) span span { color: rgba(122,77,0,.72) !important; }
 
-  /* 12) v106 (ตรวจซ้ำตามคำสั่งเจ้าของ "ตรวจสอบอีกครั้ง...desktop เท่านั้น"): native widget บนพื้นแก้วเข้ม
-        ① color-scheme dark = ไอคอนปฏิทินในช่องวันที่/ลูกศร select/popup เลือกวันที่ เปลี่ยนเป็นสว่าง
-          (เดิมเข้มบนพื้นเข้มมองแทบไม่เห็น — เจอตอนตรวจภาพจริงโมดัล 1024/1280/1440px)
-        ② placeholder เทา #757575 เดิมมัวเกินบนแก้วเข้ม → ขาวจางอ่านชัด
-        ③ accent-color เขียวแบรนด์ = checkbox/radio เนทีฟ (หน้าตั้งค่า) ให้โทนเดิม ไม่หลุดเป็นสีเทา OS */
-  :root { color-scheme: dark; }
-  ::placeholder { color: rgba(242,247,244,.42); opacity: 1; }
-  input[type="checkbox"], input[type="radio"] { accent-color: #66BB6A; }
+  /* 12) การ์ดสรุปหน้าแรก (#dash-stats — v103/v104 เคยดำ) = แก้วขาวเทา ตัวเลขเข้ม ตามคลิป (วัด: #B3C2CF)
+        ชิปไอคอน = tint อ่อน + ไอคอนโทนเข้มของสีตัวเอง, จุดสถานะขอบขาว, hover เรืองโทนเดิม */
+  #dash-stats .stat-card { background: rgba(255,255,255,.68); border: 1px solid rgba(255,255,255,.55); box-shadow: 0 10px 28px rgba(4,20,30,.18); }
+  #dash-stats .stat-card.green { --chip: rgba(46,125,50,.10); --ic: #2E7D32; }
+  #dash-stats .stat-card.orange { --chip: rgba(216,67,21,.10); --ic: #D84315; }
+  #dash-stats .stat-card.blue { --chip: rgba(21,101,192,.10); --ic: #1565C0; }
+  #dash-stats .stat-card.amber { --chip: rgba(178,106,0,.12); --ic: #9E6300; }
+  #dash-stats .stat-icon { border-color: rgba(15,48,66,.10); box-shadow: 0 4px 10px rgba(4,20,30,.12); }
+  #dash-stats .stat-icon::after { border-color: rgba(255,255,255,.9); }
+  #dash-stats .stat-value { color: #16303F; text-shadow: none; }
+  #dash-stats .stat-label { color: rgba(22,48,63,.62); }
+  #dash-stats .stat-go { color: rgba(22,48,63,.40); }
+
+  /* 13) v107 native widget บนแก้วสว่าง: color-scheme light (ไอคอนปฏิทิน/ลูกศร select เข้มเห็นชัดบนช่องขาว)
+        + placeholder เทาเข้มนุ่ม + accent เขียวแบรนด์ checkbox/radio */
+  :root { color-scheme: light; }
+  ::placeholder { color: rgba(22,48,63,.45); opacity: 1; }
+  input[type="checkbox"], input[type="radio"] { accent-color: #43A047; }
 }
 </style>
 </head>
@@ -4055,7 +4092,7 @@ var _exitShownAt = 0;       // เวลาที่เปิดหน้าต�
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
 var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
-var APP_VERSION = 'v106';
+var APP_VERSION = 'v107';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
