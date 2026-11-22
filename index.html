@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=115">
+<link rel="manifest" href="manifest.webmanifest?v=116">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -971,10 +971,11 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
   .cust-table { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
   .cust-table > .table-wrap-scrollable { flex: 1; min-height: 0; }
   #reminders-container { padding: 0; border: none; background: transparent; box-shadow: none; }
-  /* v71: หน้าอื่น (หน้าหลัก/รายงาน/ตั้งค่า) — แถวหัวเรื่องติดอยู่ด้านบนตอนเลื่อน (sticky) เหมือนหัวหน้าของ EBED */
+  /* v71: หน้าอื่น (หน้าหลัก/รายงาน/ตั้งค่า) — แถวหัวเรื่องติดอยู่ด้านบนตอนเลื่อน (sticky) เหมือนหัวหน้าของ EBED ·
+     v116: แผ่ padding 6px บน-ล่างออก (เดิมทำหัวเรื่อง 3 หน้านี้สูงเกินหน้าอื่น +12px: 47 เทียบ 35) — top/margin คุมเป็น 0 (app-body padding 0px วัดยืนยันแล้ว พื้น sticky ยังทึบคลุมเต็มกล่องหัวเรื่อง ปลอดภัย) */
   #page-dashboard.active > div:first-child,
   #page-reports.active > div:first-child,
-  #page-settings.active > div:first-child { position: sticky; top: -6px; z-index: 20; background: var(--bg); padding: 6px 10px 6px 0; margin: -6px -10px 8px 0; }
+  #page-settings.active > div:first-child { position: sticky; top: 0; z-index: 20; background: var(--bg); padding: 0 10px 0 0; margin: 0 -10px 0 0; }
   .cust-foot { padding: 5px 14px; border-top: 1px solid var(--border); background: var(--surface2); border-radius: 0 0 var(--radius) var(--radius); font-size: 11px; color: var(--text2); }
   .btn-ghost { background: transparent; color: var(--text2); }
   /* ใช้ selector คู่ .btn.btn-icon-sm ชนะ min 34px ของมือถือ (บรรทัด 146) ด้วยลำดับที่อยู่ทีหลัง — EBED จริง = 28px */
@@ -1060,6 +1061,13 @@ body, .card, .app-header, .mobile-nav, .modal {
   #page-reminders > div:nth-child(2) { margin-bottom: 8px !important; }
   #page-reports .rpt-periods { margin-bottom: 8px; }
   #page-dashboard > div:first-child { margin-bottom: 10px !important; }
+}
+
+/* v116: ตรวจระยะห่าง/ความสูงทุกหน้าให้ครบ ตามคำสั่งเจ้าของร้าน "ช่องระยะห่างบรรทัดตรงนี้ทำไมไม่มี (หน้าประวัติงาน) บางหน้าระยะแคบบางหน้าสูงไม่เท่ากันอีกตรวจสอบให้ครบ" (ภาพ = หน้างาน ช่องระหว่างการ์ดสถิติกับตารางเกือบชิดกัน) — วัด computed ทั้ง 6 หน้า desktop 1280 เทียบมาตรฐานหน้าลูกค้า พบ 4 ความต่าง: (1) ช่องการ์ดสถิติ→ตาราง "ข้างใน" การ์ดรวมงาน: ลูกค้า 18px แต่งาน 9px (โครงต่างกัน: ลูกค้า = สถิติเป็นพี่น้องของตาราง, งาน = สถิติ+ตารางอยู่ใน #jobs-list-card ใบเดียว ห้าม margin-top ที่การ์ดเพราะดันทั้งใบ) → #page-jobs .cust-stats mb 17px (วัดได้ 18px เท่าลูกค้า) (2) หัวเรื่องหน้าแรก/รายงาน/ตั้งค่า สูงเกิน +12px จาก padding 6+6 ของกฎ sticky v71 (47px เทียบ 35px) → แผ่ padding เป็น 0 ในกฎ v71 (แก้ที่ต้นทาง บล็อกด้านบน) (3) รายงาน tabs→เนื้อหา 14px → mb 4px (ช่องจริง 8px ตามมาตรฐาน) (4) งาน bar→การ์ดสถิติ 9px → mb 7px ให้ช่องจริง = 8px เท่าหน้าลูกค้า — เฉพาะ desktop ≥1024px ("อย่ายุ่ง Mobile เด็ดขาดถ้าผมไม่สั่ง") */
+@media (min-width: 1024px) {
+  #page-jobs .cust-stats { margin-bottom: 17px; }
+  #page-jobs .filter-bar { margin-bottom: 7px; }
+  #page-reports .report-tabs { margin-bottom: 4px; }
 }
 
 /* 7) เปลี่ยนหน้า: เข้าแบบสปริงนุ่ม (มือถือยังใช้ fadeUp เดิมของ v47) */
@@ -3940,7 +3948,7 @@ var _exitShownAt = 0;       // เวลาที่เปิดหน้าต�
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
 var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
-var APP_VERSION = 'v115';
+var APP_VERSION = 'v116';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
