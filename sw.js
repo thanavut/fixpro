@@ -1,10 +1,10 @@
 /* FixPro Service Worker — แคชไฟล์แอปไว้ใช้งานตอนออฟไลน์ */
-var CACHE = 'fixpro-v107';
+var CACHE = 'fixpro-v108';
 var CORE = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './manifest.webmanifest?v=107', // v56: URL เปลี่ยนบังคับ Chrome อ่าน manifest ใหม่ = เคลียร์สแปลชม่วงตกค้างยุค v49 (v107: bump ตามรอบแคช — เขียนพาเลต glass ใหม่จากสีที่วัดจากพิกเซลคลิปตัวอย่างจริง: พื้น navy-teal + การ์ด/เนื้อหาแก้วขาวเทาตัวหนังสือเข้ม + เมนูข้าง navy + active pill teal + การ์ดสรุปเลิกดำ)
+  './manifest.webmanifest?v=108', // v56: URL เปลี่ยนบังคับ Chrome อ่าน manifest ใหม่ = เคลียร์สแปลชม่วงตกค้างยุค v49 (v108: bump ตามรอบแคช — ยกเลิก UI กระจกทั้งหมดคืนหน้าตา v104 ตามคำสั่งเจ้าของร้าน "รูปแบบกระจกไม่เป็นที่น่าพอใจ ยกเลิกแก้กลับทั้งหมด อย่าให้กระทบส่วนอื่นๆ" — เลขเดินหน้ากันชนแคชเก่า)
   './icons/icon-192.png',
   './icons/icon-180.png',
   './icons/icon-512.png',
