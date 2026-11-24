@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=119">
+<link rel="manifest" href="manifest.webmanifest?v=120">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -1441,7 +1441,7 @@ body::after {
         <div class="rpt-pane active" id="rpane-overview">
           <div class="stats-grid" id="report-stats"></div>
           <div class="card">
-            <div class="card-header"><span class="card-title">รายได้แยกตามเดือน (12 เดือนล่าสุด)</span></div>
+            <div class="card-header"><span class="card-title">ยอดเก็บเงินแยกตามเดือน (12 เดือนล่าสุด)</span></div>
             <!-- v87: กราฟจริง Chart.js — โหลด lib ไม่ได้ = กลับไปใช้แท่ง CSS เดิม (#report-bar-chart) -->
             <div class="card-body" style="padding:10px 14px;">
               <div id="rpt-chart-monthly-wrap" style="height:200px;position:relative;display:none;"><canvas id="chart-monthly"></canvas></div>
@@ -1449,7 +1449,7 @@ body::after {
             </div>
           </div>
           <div class="card" id="rpt-types-chart-card">
-            <div class="card-header"><span class="card-title">สัดส่วนรายได้ตามประเภทงานในช่วง</span></div>
+            <div class="card-header"><span class="card-title">สัดส่วนยอดเก็บเงินตามประเภทงานในช่วง</span></div>
             <div class="card-body" style="padding:10px 14px;">
               <div id="rpt-chart-types-wrap" style="height:200px;position:relative;display:none;"><canvas id="chart-types"></canvas></div>
               <div id="chart-types-empty" style="display:none;text-align:center;color:var(--text3);font-size:12px;padding:10px 0;">ยังไม่มีงานในช่วงนี้</div>
@@ -1464,13 +1464,13 @@ body::after {
             <div class="card-body" id="report-unpaid-list" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;padding-top:0;align-items:start;"></div> <!-- v95: รอเก็บเงิน = กริด 2 คอลัมน์เหมือนสถานะงาน (เดิมแถวเดียวทั้งความกว้าง) -->
           </div>
           <div class="card" id="rpt-profit-card"> <!-- v98: รายงานกำไร = รายได้(งานเสร็จ) − ทุนอะไหล่ที่จดไว้ (ช่องทุนไม่บังคับ — งานที่ไม่กรอกทุนนับกำไรแบบยังไม่หัก + โน้ตบอกจำนวน) -->
-            <div class="card-header"><span class="card-title" id="rpt-profit-title">กำไร</span></div>
+            <div class="card-header"><span class="card-title" id="rpt-profit-title">รายได้ (หักทุนอะไหล่แล้ว)</span></div>
             <div class="card-body" id="rpt-profit-body" style="padding-top:0;"></div>
           </div>
         </div>
         <div class="rpt-pane" id="rpane-types">
           <div class="card">
-            <div class="card-header"><span class="card-title" id="rpt-types-title">รายได้ตามประเภทงาน</span></div>
+            <div class="card-header"><span class="card-title" id="rpt-types-title">ยอดเก็บเงินตามประเภทงาน</span></div>
             <div class="card-body" id="report-type-breakdown"></div>
           </div>
           <div class="card" id="rpt-items-card"> <!-- v97: รายการซ่อมยอดนิยม (ข้อ E จากแผน v53 ที่ยังไม่ได้ทำ) -->
@@ -1766,7 +1766,7 @@ body::after {
         <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;align-items:end;">
           <input type="text" class="form-control" id="job-parts-name" placeholder="อะไหล่อะไร เช่น คอมเพรสเซอร์">
           <input type="number" class="form-control" id="job-parts" placeholder="จำนวนเงิน" min="0" inputmode="decimal" oninput="updateJobTotalPreview()">
-          <input type="number" class="form-control fc-cost" id="job-parts-cost" placeholder="ต้นทุน" min="0" inputmode="decimal">
+          <input type="number" class="form-control fc-cost" id="job-parts-cost" placeholder="ต้นทุน" min="0" inputmode="decimal" oninput="updateJobTotalPreview()">
         </div>
         <div style="font-size:11px;color:var(--text3);margin-top:4px;">🏷️ ต้นทุน = ราคาที่ร้านซื้ออะไหล่มา (ไม่บังคับ เว้นว่างได้) · ใช้คำนวณกำไรในหน้ารายงาน · <span style="color:var(--success);font-weight:600;">ไม่รวมในยอดเก็บเงิน</span></div>
       </div>
@@ -1783,6 +1783,10 @@ body::after {
       <div class="form-group">
         <label class="form-label">🧮 ยอดรวมเก็บเงิน</label>
         <div id="job-total-preview" style="min-height:38px;padding:7px 11px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--primary-bg);color:var(--primary-d);font-weight:800;font-size:15px;display:flex;align-items:center;">0 ฿</div>
+        <!-- v120: รายได้หลังหักทุนอะไหล่ — โชว์คู่กับยอดรวมเก็บเงินเมื่อจดทุนไว้ (ตามคำสั่งเจ้าของร้าน) -->
+        <div id="job-net-preview" style="display:none;margin-top:6px;padding:7px 11px;border:1.5px dashed #FCA5A5;border-radius:var(--radius-sm);background:#FFF5F5;color:var(--danger);font-weight:700;font-size:13px;display:none;"></div>
+        <!-- v120: รายได้หลังหักทุนอะไหล่ — โชว์คู่กับยอดรวมเก็บเงินเมื่อจดทุนไว้ (ตามคำสั่งเจ้าของร้าน) -->
+        <div id="job-net-preview" style="display:none;margin-top:6px;padding:7px 11px;border:1.5px dashed #FCA5A5;border-radius:var(--radius-sm);background:#FFF5F5;color:var(--danger);font-weight:700;font-size:13px;display:none;"></div>
       </div>
       <!-- v100: ช่องทุนอะไหล่ (v98) ย้ายไปแถวเดียวกับ 📦 ค่าอะไหล่ด้านบนแล้ว (id #job-parts-cost คงเดิม — saveJob/openEditJob/resetJobModal/updateJobTotalPreview ไม่ต้องแก้) -->
       <!-- v84: แสดงทุกช่องตั้งแต่เปิดฟอร์ม · v85: ลบป้ายหัวข้อ "รายละเอียดเพิ่มเติม (ไม่บังคับ)" ออกตามคำขอเจ้าของร้าน — เหลือแต่ช่องกรอกล้วน -->
@@ -2926,6 +2930,10 @@ function renderDashboard() {
     return d && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   });
   var thisMonthRev = thisMonthJobs.reduce((s,j) => s+jobTotal(j), 0);
+  var thisMonthCost = thisMonthJobs.reduce((s,j) => s+jobPartsCost(j), 0); // v120
+  var thisMonthNet = thisMonthRev - thisMonthCost; // v120: ป้าย "รายได้" = หักทุนอะไหล่เสมอ (ตามคำสั่งเจ้าของร้าน) — ยอดเก็บเงินเดือนนี้ดูในหน้ารายงาน
+  var thisMonthCost = thisMonthJobs.reduce((s,j) => s+jobPartsCost(j), 0); // v120
+  var thisMonthNet = thisMonthRev - thisMonthCost; // v120: ป้าย "รายได้" = หักทุนอะไหล่เสมอ (ตามคำสั่งเจ้าของร้าน) — ยอดเก็บเงินเดือนนี้ดูในหน้ารายงาน
   var greeting = now.getHours() < 12 ? 'สวัสดีตอนเช้า' : now.getHours() < 17 ? 'สวัสดีตอนบ่าย' : 'สวัสดีตอนเย็น'; // v85: ตัดอิโมจิหลังคำทักทายออกตามคำขอเจ้าของร้าน
   document.getElementById('dash-greeting').textContent = greeting;
   document.getElementById('dash-date').textContent = dateLabel;
@@ -2947,9 +2955,9 @@ function renderDashboard() {
       <div class="stat-value">${thisMonthJobs.length}</div>
       <div class="stat-label">งานเดือนนี้</div>
     </div>
-    <div class="stat-card amber" onclick="showPage('reports')">
+    <div class="stat-card amber" onclick="showPage('reports')" title="ยอดเก็บเงินเดือนนี้ ${thisMonthRev.toLocaleString()} ฿ − ทุนอะไหล่ ${thisMonthCost.toLocaleString()} ฿ = รายได้ ${thisMonthNet.toLocaleString()} ฿ (ละเอียดในหน้ารายงาน)">
       <div class="stat-icon"><i class="fas fa-money-bill"></i></div>
-      <div class="stat-value">${thisMonthRev>=10000?(thisMonthRev/1000).toFixed(1)+'k':thisMonthRev.toLocaleString()}</div>
+      <div class="stat-value">${thisMonthNet>=10000?(thisMonthNet/1000).toFixed(1)+'k':thisMonthNet.toLocaleString()}</div>
       <div class="stat-label">รายได้เดือนนี้</div>
     </div>
   `;
@@ -3008,7 +3016,7 @@ function renderDashboard() {
           return '<div class="reminder-item" data-jid="' + escAttr(j.id) + '" onclick="jumpToJob(\'' + escAttr(j.id) + '\')">' + // v83: กดการ์ดงานล่าสุด = เด้งไปงานนั้น (เดิมเปิดประวัติลูกค้า)
             '<div style="flex:1;min-width:0;"><div class="reminder-name">' + esc(cust?.name||j.customerPhone) + '</div>' +
             '<div class="reminder-detail">' + formatDate(j.serviceDate) + (j.deviceInfo ? ' · 📦 ' + esc(j.deviceInfo) : '') + '</div></div>' +
-            '<div style="text-align:right;flex-shrink:0;"><div style="font-weight:700;color:var(--success);">' + (jobTotal(j)||jobNet(j)?jobNet(j).toLocaleString()+' ฿':'-') + '</div></div></div>'; // v119: ยอด = สุทธิหลังหักทุน
+            '<div style="text-align:right;flex-shrink:0;"><div style="font-weight:700;color:var(--success);">' + (jobTotal(j)?jobTotal(j).toLocaleString()+' ฿':'-') + '</div>' + (jobPartsCost(j) > 0 ? '<div style="font-size:10.5px;color:var(--text2);">รายได้ ' + jobNet(j).toLocaleString() + ' ฿</div>' : '') + '</div></div>'; // v120: เลขหลัก = ยอดเก็บเงิน + แถวเสริมรายได้หลังหักทุน
         }).join('');
   }
 }
@@ -3251,7 +3259,7 @@ function renderJobs() {
       // v84: ย้ายคอลัมน์ "ประเภทงาน" ขึ้นหน้า "ยี่ห้อ" + เปลี่ยนชื่อคอลัมน์จาก "ประเภท" เป็น "ประเภทงาน" (ตรงลำดับ CSV: วันที่→ลูกค้า→ประเภทงาน→อุปกรณ์) — สถานะยังเป็น td[7] เท่าเดิม
       container.innerHTML = statsHTML + '<div class="cust-table"><div class="table-wrap table-wrap-scrollable" id="jobs-table-wrap"><table>' +
         '<thead><tr><th data-sort="cust">ลูกค้า</th><th data-sort="type">ประเภทงาน</th><th data-sort="brand">ยี่ห้อ</th><th data-sort="model">รุ่น</th><th data-sort="desc">อาการ/รายละเอียด</th><th data-sort="date">วันที่</th><th data-sort="amount" data-sort-type="num" style="text-align:right;">ยอด (บาท)</th><th data-sort="status">สถานะ</th><th style="text-align:right;">จัดการ</th></tr></thead><tbody>' +
-        _fpSortRows(list, 'jobs', { cust: function(j) { return custMap[j.customerPhone] ? custMap[j.customerPhone].name : ''; }, type: function(j) { return typeLabel(j.serviceType); }, brand: function(j) { return j.brand || j.deviceInfo || ''; }, model: function(j) { return j.model || ''; }, desc: function(j) { return ((j.symptom || '') + ' ' + (j.description || '')).trim(); }, date: function(j) { return j.serviceDate || ''; }, amount: function(j) { return jobTotal(j) - jobPartsCost(j); }, status: function(j) { return j.status || 'done'; } }).map(function(j) { // v87: เรียงคอลัมน์ได้ · v119: amount เรียงตามเลขที่โชว์ (สุทธิหลังหักทุน)
+        _fpSortRows(list, 'jobs', { cust: function(j) { return custMap[j.customerPhone] ? custMap[j.customerPhone].name : ''; }, type: function(j) { return typeLabel(j.serviceType); }, brand: function(j) { return j.brand || j.deviceInfo || ''; }, model: function(j) { return j.model || ''; }, desc: function(j) { return ((j.symptom || '') + ' ' + (j.description || '')).trim(); }, date: function(j) { return j.serviceDate || ''; }, amount: function(j) { return jobTotal(j); }, status: function(j) { return j.status || 'done'; } }).map(function(j) { // v87: เรียงคอลัมน์ได้ · v120: amount = ยอดเก็บเงิน (เลขหลักที่โชว์)
         var cust = custMap[j.customerPhone];
         var st = j.status || 'done';
         var desc = String(j.symptom || j.description || '-');
@@ -3264,7 +3272,7 @@ function renderJobs() {
           '<td style="font-size:12px;color:var(--text2);max-width:120px;overflow:hidden;text-overflow:ellipsis;"' + (model ? ' title="' + esc(model) + '"' : '') + '>' + (model ? esc(model) : '<span style="color:var(--text3);">-</span>') + '</td>' +
           '<td style="font-size:12px;color:var(--text2);max-width:340px;overflow:hidden;text-overflow:ellipsis;" title="' + esc(desc) + '">' + esc(desc) + '</td>' +
           '<td style="font-size:12px;color:var(--text2);">' + formatDate(j.serviceDate) + '</td>' +
-          '<td style="font-size:12px;font-weight:700;color:var(--success);text-align:right;">' + (jobTotal(j) || jobNet(j) ? jobNet(j).toLocaleString() : '0') + '</td>' + // v119: ยอด = สุทธิหลังหักทุนอะไหล่ (ตรงกับการ์ดหน้าลูกค้า)
+          '<td style="font-size:12px;text-align:right;"><div style="font-weight:700;color:var(--success);">' + (jobTotal(j) ? jobTotal(j).toLocaleString() : '0') + '</div>' + (jobPartsCost(j) > 0 ? '<div style="font-size:10.5px;color:var(--text2);">รายได้ ' + jobNet(j).toLocaleString() + '</div>' : '') + '</td>' + // v120: เลขหลัก = ยอดเก็บเงิน (รวมอะไหล่) + แถวเสริม "รายได้ x" เมื่อจดทุน — เลขคู่พร้อมป้ายทุกที่ตามคำสั่งเจ้าของร้าน
           '<td><span class="badge ' + (STATUS_COLORS[st] || 'badge-gray') + ' tb-badge" style="font-size:12px;">' + esc(STATUS_LABELS[st] || st) + '</span></td>' +
           '<td><div class="table-actions" onclick="event.stopPropagation()"><button type="button" class="btn btn-ghost btn-icon-sm" title="ดูข้อมูล/ประวัติงาน" onclick="showCustomerDetail(\'' + escAttr(j.customerPhone) + '\')"><i class="fas fa-eye"></i></button>' +
           '<button type="button" class="btn btn-ghost btn-icon-sm" title="แก้ไขงาน" onclick="openEditJob(\'' + escAttr(j.id) + '\')"><i class="fas fa-edit"></i></button>' +
@@ -3282,7 +3290,7 @@ function renderJobs() {
         (j.status === 'unpaid' ? ' <button type="button" class="paid-quick-btn" title="ตั้งสถานะเสร็จ + จดวันที่เก็บเงินวันนี้" onclick="event.stopPropagation();markJobPaid(\'' + escAttr(j.id) + '\')">✓ เก็บเงิน</button>' : '') + '</div>' + // v97: ปุ่มเก็บเงินเร็ว เฉพาะงาน unpaid
         (j.deviceInfo ? '<div style="font-size:11px;color:var(--text3);">📦 ' + esc(j.deviceInfo) + '</div>' : '') +
         '</div>' +
-        '<div class="customer-meta"><div class="job-count" style="font-size:16px;color:var(--success);">' + (jobTotal(j)||jobNet(j)?jobNet(j).toLocaleString():'0') + '</div><div class="job-label">บาท</div></div></div>'; // v119: ยอด = สุทธิหลังหักทุน
+        '<div class="customer-meta"><div style="text-align:right;"><div class="job-count" style="font-size:16px;color:var(--success);">' + (jobTotal(j)?jobTotal(j).toLocaleString():'0') + '</div>' + (jobPartsCost(j) > 0 ? '<div style="font-size:10.5px;color:var(--text2);">รายได้ ' + jobNet(j).toLocaleString() + '</div>' : '') + '</div><div class="job-label">บาท</div></div></div>'; // v120: เลขหลัก = ยอดเก็บเงิน + แถวเสริมรายได้หลังหักทุน (งานไม่จดทุนโชว์เลขเดียวเหมือนเดิม)
     }).join('');
     }
   }
@@ -3514,11 +3522,12 @@ function renderJobCard(j) {
       jobItems(j).map(it => '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12.5px;color:var(--text2);margin-top:3px;"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">🧾 ' + esc(it.name) + '</span><span style="flex-shrink:0;font-weight:700;color:var(--text);">' + (parseFloat(it.price)||0).toLocaleString() + ' ฿</span></div>').join('') +
       (jobTravel(j) > 0 ? '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12.5px;color:var(--text2);margin-top:3px;"><span>🚗 ค่าเดินทาง</span><span style="flex-shrink:0;font-weight:700;color:var(--text);">' + jobTravel(j).toLocaleString() + ' ฿</span></div>' : '') +
       (jobParts(j) > 0 ? '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12.5px;color:var(--text2);margin-top:3px;"><span>📦 ค่าอะไหล่' + (jobPartsName(j) ? ' (' + esc(jobPartsName(j)) + ')' : '') + '</span><span style="flex-shrink:0;font-weight:700;color:var(--text);">' + jobParts(j).toLocaleString() + ' ฿</span></div>' : '') + // v76: ชื่ออะไหล่ + ค่าอะไหล่แต่ละงาน
-      (jobPartsCost(j) > 0 ? '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12.5px;color:var(--text2);margin-top:3px;"><span>🏷️ หัก ทุนอะไหล่</span><span style="flex-shrink:0;font-weight:700;color:var(--danger);">-' + jobPartsCost(j).toLocaleString() + ' ฿</span></div>' : '') + // v99: ทุนอะไหล่ต่องาน · v119: เปลี่ยนจากแถวข้อมูลเป็น "ขั้นตอนหัก" จริง (-240) เพราะยอดรวมด้านล่างถูกหักทุนแล้ว (เจ้าของเห็นในหน้าลูกค้าเท่านั้น — ใบเสร็จ/LINE ลูกค้าไม่โชว์)
-      (jobDiscount(j) > 0 ? '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12.5px;color:var(--text2);margin-top:3px;"><span>🎁 ส่วนลด</span><span style="flex-shrink:0;font-weight:700;color:var(--danger);">-' + jobDiscount(j).toLocaleString() + ' ฿</span></div>' : '') + // v59: ส่วนลดแต่ละงาน
+      (jobDiscount(j) > 0 ? '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12.5px;color:var(--text2);margin-top:3px;"><span>🎁 ส่วนลด</span><span style="flex-shrink:0;font-weight:700;color:var(--danger);">-' + jobDiscount(j).toLocaleString() + ' ฿</span></div>' : '') + // v59: ส่วนลดแต่ละงาน · v120: ย้ายมาก่อนยอดเก็บเงิน (สูตรไล่บนลงล่าง: รายการ → ยอดเก็บเงิน → หักทุน → รายได้)
+      (jobPartsCost(j) > 0 ? '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12.5px;color:var(--text2);margin-top:3px;"><span style="font-weight:600;">💰 ยอดเก็บเงิน (รวมค่าอะไหล่)</span><span style="flex-shrink:0;font-weight:700;color:var(--success);">' + jobTotal(j).toLocaleString() + ' ฿</span></div>' : '') + // v120: โชว์ยอดเก็บเงินเต็มที่เรียกเก็บจากลูกค้าก่อน ตามคำสั่ง "ตอนเรียกเก็บเงินลูกค้าต้องแสดงราคารวมค่าอะไหล่ด้วย แต่รายได้รวมต้องหักออก" — งานที่ไม่จดทุนไม่โชว์แถวนี้ (เลขเดียวกับด้านล่าง ไม่ซ้ำซ้อน)
+      (jobPartsCost(j) > 0 ? '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12.5px;color:var(--text2);margin-top:3px;"><span>🏷️ หัก ทุนอะไหล่</span><span style="flex-shrink:0;font-weight:700;color:var(--danger);">-' + jobPartsCost(j).toLocaleString() + ' ฿</span></div>' : '') + // v99: ทุนอะไหล่ต่องาน · v119: ขั้นตอนหักจริง (-240) · v120: ย้ายมาหลังยอดเก็บเงิน = สูตรอ่านไล่บรรทัดได้ (เจ้าของเห็นเท่านั้น — ใบเสร็จ/LINE ลูกค้าไม่โชว์)
       '</div>' : '') +
     '<div style="display:flex;align-items:center;gap:8px;margin-top:6px;">' +
-    ((jobTotal(j) || jobNet(j)) ? '<span class="timeline-cost">' + jobNet(j).toLocaleString() + ' ฿</span>' : '') + // v119: ยอดรวม = ยอดเก็บ − ทุนอะไหล่ (jobNet) — ถ้าหักแล้วลบเป็นศูนย์แต่ยอดเก็บ > 0 ยังโชว์ 0 ให้เห็นว่างานได้ 0 จริง
+    ((jobTotal(j) || jobNet(j)) ? '<span class="timeline-cost">' + (jobPartsCost(j) > 0 ? '<span style="font-size:11px;font-weight:600;color:var(--text3);margin-right:6px;">รายได้</span>' : '') + jobNet(j).toLocaleString() + ' ฿</span>' : '') + // v119: ยอด = ยอดเก็บ − ทุน (jobNet) · v120: งานที่จดทุน = ติดป้าย "รายได้" ให้ต่างชัดจากยอดเก็บเงิน 590 ในบล็อกด้านบน (แก้ "รายการเดียวกันแต่ยอดรวมไม่เหมือนกัน") — งานไม่มีทุนโชว์เลขเดียวเหมือนเดิม
     '<span class="badge ' + (STATUS_COLORS[j.status] || (j.status ? 'badge-gray' : 'badge-green')) + '">' + esc(STATUS_LABELS[j.status] || (j.status ? j.status : '✅ เสร็จ')) + '</span>' +
     (isRemindType(j.serviceType) && j.nextDate ? '<span class="badge badge-amber"><i class="fas fa-bell"></i> ' + formatDate(j.nextDate) + '</span>' : '') +
     '</div>' +
@@ -3757,6 +3766,13 @@ function updateJobTotalPreview() {
   var t = parseFloat(tEl ? tEl.value : 0) || 0;
   var p = parseFloat(pEl ? pEl.value : 0) || 0; // v75: ค่าอะไหล่รวมในยอดเก็บเงิน
   var d = parseFloat(dEl ? dEl.value : 0) || 0; // v59: ส่วนลดหักออกจากยอดเก็บเงิน
+  var cEl = document.getElementById('job-parts-cost');
+  var pc = parseFloat(cEl ? cEl.value : 0) || 0; // v120: ทุนอะไหล่ (ร้านซื้อมา — ไม่รวมในยอดเก็บเงิน) เอามาโชว์รายได้หลังหักทุนคู่กับยอดเก็บเงิน
+  var nel = document.getElementById('job-net-preview');
+  if (nel) {
+    if (pc > 0) { nel.style.display = 'flex'; nel.textContent = '🏷️ รายได้ (หักทุนอะไหล่แล้ว) ' + (sum + t + p - d - pc).toLocaleString() + ' ฿'; }
+    else { nel.style.display = 'none'; nel.textContent = ''; }
+  }
   el.textContent = (sum + t + p - d).toLocaleString() + ' ฿';
 }
 // ---------- v53: กล่องรายการซ่อมในโมดัลบันทึกงาน (1 แถว = ชื่อ + ราคา) — v54: ถอนปุ่มชื่อด่วนจากประเภทงานออก (ซ้ำซ้อนกับประเภทด้านบน พิมพ์ชื่อเองได้) ----------
@@ -3957,7 +3973,7 @@ var _exitShownAt = 0;       // เวลาที่เปิดหน้าต�
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
 var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
-var APP_VERSION = 'v119';
+var APP_VERSION = 'v120';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -4823,7 +4839,7 @@ function renderReport() {
   var unpaidSum = unpaidAll.reduce((s, j) => s + jobTotal(j), 0);
   var stuck = pJobs.filter(j => j.status === 'pending' || j.status === 'followup').length;
 
-  var revLabel = RPT_PERIOD === 'all' ? 'รายได้รวม' : 'รายได้' + word;
+  var revLabel = RPT_PERIOD === 'all' ? 'ยอดเก็บเงินรวม (รวมค่าอะไหล่)' : 'ยอดเก็บเงิน' + word + ' (รวมค่าอะไหล่)'; // v120: เลขรวมที่เก็บจากลูกค้า ใช้ชื่อ "ยอดเก็บเงิน" — "รายได้" จองให้เลขหักทุนแล้ว (กล่องข้าง ๆ)
   var revSub = '';
   if (RPT_PERIOD !== 'all') {
     var pr = rptPrevRange(range);
@@ -4861,7 +4877,7 @@ function renderReport() {
     mwM.style.display = 'block'; fwM.style.display = 'none';
     _rptCharts.monthly = new Chart(document.getElementById('chart-monthly'), {
       type: 'bar',
-      data: { labels: months.map(m => m.label), datasets: [{ label: 'รายได้', data: months.map(m => m.rev), backgroundColor: months.map(m => m.isCur ? '#2E7D32' : 'rgba(46,125,50,0.45)'), borderRadius: 4, maxBarThickness: 38 }] },
+      data: { labels: months.map(m => m.label), datasets: [{ label: 'ยอดเก็บเงิน', data: months.map(m => m.rev), backgroundColor: months.map(m => m.isCur ? '#2E7D32' : 'rgba(46,125,50,0.45)'), borderRadius: 4, maxBarThickness: 38 }] },
       options: { responsive: true, maintainAspectRatio: false,
         plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(c) { return ' ' + (c.parsed.y || 0).toLocaleString() + ' บาท'; } } } },
         scales: { y: { beginAtZero: true, ticks: { font: { family: 'Kanit', size: 10 }, callback: function(v) { return v >= 1000 ? (v / 1000) + 'k' : v; } }, grid: { color: 'rgba(128,134,158,0.18)' } }, x: { ticks: { font: { family: 'Kanit', size: 10 } }, grid: { display: false } } } }
@@ -4942,7 +4958,7 @@ function renderReport() {
   }
 
   // ---- กำไร (v98: รายได้งานเสร็จในช่วง − ทุนอะไหล่ที่จดไว้ — งานที่ไม่กรอกทุนนับกำไรแบบยังไม่หัก พร้อมโน้ตบอกจำนวน) ----
-  document.getElementById('rpt-profit-title').textContent = 'กำไร · ' + word;
+  document.getElementById('rpt-profit-title').textContent = 'รายได้ (หักทุนอะไหล่แล้ว) · ' + word; // v120: "รายได้" = เลขหลังหักทุน ตามคำสั่งเจ้าของร้าน
   var _pDone = pJobs.filter(isDone);
   var _pCost = _pDone.reduce((s, j) => s + jobPartsCost(j), 0);
   var _pNoCost = _pDone.filter(j => jobPartsCost(j) <= 0).length;
@@ -4953,9 +4969,9 @@ function renderReport() {
     var _pCostJobs = _pDone.filter(j => jobPartsCost(j) > 0).sort((a, b) => (b.serviceDate || '').localeCompare(a.serviceDate || '')); // v99: รายการงานที่จดทุนในช่วง — เห็นว่างานไหนเปลี่ยนอะไหล่/ทุนเท่าไร กดแถวเข้าหน้าลูกค้าได้
     _pEl.innerHTML =
       '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">' +
-        '<div class="rpt-statusbox" style="text-align:center;"><div style="font-size:11.5px;color:var(--text2);">รายได้</div><div style="font-size:15px;font-weight:800;color:var(--text);margin-top:2px;">' + Math.round(revDone).toLocaleString() + ' ฿</div></div>' +
+        '<div class="rpt-statusbox" style="text-align:center;"><div style="font-size:11.5px;color:var(--text2);">ยอดเก็บเงิน</div><div style="font-size:15px;font-weight:800;color:var(--text);margin-top:2px;">' + Math.round(revDone).toLocaleString() + ' ฿</div></div>' +
         '<div class="rpt-statusbox" style="text-align:center;"><div style="font-size:11.5px;color:var(--text2);">ทุนอะไหล่</div><div style="font-size:15px;font-weight:800;color:var(--danger);margin-top:2px;">' + Math.round(_pCost).toLocaleString() + ' ฿</div></div>' +
-        '<div class="rpt-statusbox" style="text-align:center;border-left:3px solid var(--success);"><div style="font-size:11.5px;color:var(--text2);">กำไร</div><div style="font-size:15px;font-weight:800;color:var(--success);margin-top:2px;">' + Math.round(revDone - _pCost).toLocaleString() + ' ฿</div></div>' +
+        '<div class="rpt-statusbox" style="text-align:center;border-left:3px solid var(--success);"><div style="font-size:11.5px;color:var(--text2);">รายได้ (หักทุนแล้ว)</div><div style="font-size:15px;font-weight:800;color:var(--success);margin-top:2px;">' + Math.round(revDone - _pCost).toLocaleString() + ' ฿</div></div>' +
       '</div>' +
       (_pCostJobs.length ? '<div style="font-size:11.5px;font-weight:600;color:var(--text2);margin-top:9px;">งานที่จดทุนอะไหล่ในช่วงนี้ · ' + _pCostJobs.length + ' งาน</div>' + // v101: โชว์รายการเสมอ ไม่ซ่อน/ไม่พับ (เจ้าของร้านขอแก้กลับจาก v100) — แถวกระชับให้หลายงานไม่ยาวเกิน
       _pCostJobs.map(j => {
@@ -4967,12 +4983,12 @@ function renderReport() {
           '<div style="text-align:right;flex-shrink:0;"><div style="font-weight:700;color:var(--danger);font-size:13.5px;">' + jobPartsCost(j).toLocaleString() + ' ฿</div><div style="font-size:10px;color:var(--text3);">ทุนอะไหล่</div></div>' +
           '</div>';
       }).join('') : '') +
-      (_pNoCost === _pDone.length ? '<div style="font-size:11px;color:var(--text3);margin-top:6px;">ยังไม่มีงานที่กรอกทุนอะไหล่ — กำไรยังไม่หักทุนเลย (กรอกได้ในฟอร์มงาน แถว 📦 ค่าอะไหล่ ช่อง 🏷️ ต้นทุน · จดทุนแล้วรายชื่องานจะโผล่ที่นี่)</div>' :
-       _pNoCost > 0 ? '<div style="font-size:11px;color:var(--text3);margin-top:6px;">งานที่ยังไม่ได้กรอกทุนอะไหล่ ' + _pNoCost + ' งาน — กำไรขึ้นแบบยังไม่หักทุนงานนั้น</div>' : '');
+      (_pNoCost === _pDone.length ? '<div style="font-size:11px;color:var(--text3);margin-top:6px;">ยังไม่มีงานที่กรอกทุนอะไหล่ — รายได้ยังไม่หักทุนเลย (กรอกได้ในฟอร์มงาน แถว 📦 ค่าอะไหล่ ช่อง 🏷️ ต้นทุน · จดทุนแล้วรายชื่องานจะโผล่ที่นี่)</div>' :
+       _pNoCost > 0 ? '<div style="font-size:11px;color:var(--text3);margin-top:6px;">งานที่ยังไม่ได้กรอกทุนอะไหล่ ' + _pNoCost + ' งาน — รายได้ขึ้นแบบยังไม่หักทุนงานนั้น</div>' : '');
   }
 
   // ---- แท็บประเภทงาน ----
-  document.getElementById('rpt-types-title').textContent = 'รายได้ตามประเภทงาน · ' + word;
+  document.getElementById('rpt-types-title').textContent = 'ยอดเก็บเงินตามประเภทงาน · ' + word; // v120
   var _knownTypes = getJobTypes(true);
   var typeData = _knownTypes.map(t => {
     var list = pJobs.filter(j => j.serviceType === t.id);
@@ -5103,10 +5119,10 @@ function shareReportLine() {
   lines.push('📊 สรุปรายงาน' + (RPT_PERIOD === 'all' ? ' (ทั้งหมด)' : ' ' + word));
   lines.push('🏠 ' + (cfg.shopName || 'FixPro'));
   lines.push(sep);
-  lines.push('💵 รายได้เก็บแล้ว: ' + Math.round(revDone).toLocaleString() + ' บาท');
+  lines.push('💵 ยอดเก็บเงินเก็บแล้ว: ' + Math.round(revDone).toLocaleString() + ' บาท');
   if (costSum > 0) { // v98: มีงานที่จดทุน = รายงานทุน+กำไรใน LINE ด้วย (ไม่จดทุน = ข้อความเดิมเป๊ะ)
     lines.push('🏷️ ทุนอะไหล่: ' + Math.round(costSum).toLocaleString() + ' บาท');
-    lines.push('📈 กำไร: ' + Math.round(revDone - costSum).toLocaleString() + ' บาท');
+    lines.push('📈 รายได้หลังหักทุนอะไหล่: ' + Math.round(revDone - costSum).toLocaleString() + ' บาท');
   }
   lines.push('🔧 งานทั้งหมด: ' + pJobs.length + ' งาน');
   if (unpaidAll.length) lines.push('⚠️ รอเก็บเงิน: ' + unpaidAll.length + ' รายการ รวม ' + Math.round(unpaidSum).toLocaleString() + ' บาท');
