@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=117">
+<link rel="manifest" href="manifest.webmanifest?v=118">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -1075,6 +1075,103 @@ body, .card, .app-header, .mobile-nav, .modal {
   #jobs-list-card { background: transparent; border-color: transparent; box-shadow: none; margin-bottom: 0; }
 }
 
+/* v118: ธีมที่ 3 "Canopy" — หน้าตาแบบตัวอย่าง TikTok @settigation (CRM dashboard V10) เฉพาะ desktop ≥1024px ตามคำสั่งเจ้าของร้าน "Desktop เท่านั้น...ทำให้เหมือนกับตัวอย่าง 100% ส่วน font ใช้ font เดิมของเรา" (ฟอนต์ Kanit เดิมทุกที่ ไม่เปลี่ยน font-family แม้แต่บรรทัดเดียว) —
+   โครงจากตัวอย่าง: พื้นนอกเขียวเข้มเกือบดำ + แสงเขียวระยิบ → กรอบแอปลอยมุมโค้ง 24px ขอบขาวจาง → เมนูซ้ายเขียวเข้มไล่สี (active = แคปซูลขาว) → เนื้อหาพื้นเขียวเข้ม → การ์ด/ตาราง/ฟอร์ม = แก้วขาวโปร่ง (backdrop blur) ตัวหนังสือในการ์ดเข้ม → หัวเรื่องหน้า = ขาวบนพื้นเข้ม → accent เขียว emerald #10B981 → การ์ด hover ยกนิด (y -2/-3px เลียน framer-motion whileHover y:-5 ของตัวอย่าง) —
+   ทุกกฎครอบด้วย html[data-theme="canopy"] + @media 1024px = ธีมสว่าง/มืด และมือถือไม่ถูกกระทบแม้แต่ px เดียว ("ห้ามยุ่งโมบายเวอร์ชั่นเด็ดขาด") — สีจับจากเฟรมวิดีโอ 720p (ประเมิน ~95%) · ไม่มีระบบโควต้า/เป้ายอดตามข้อ 2 */
+@media (min-width: 1024px) {
+  html[data-theme="canopy"] {
+    --bg: #0C1710;
+    --surface: rgba(255, 255, 255, 0.92);
+    --surface2: rgba(255, 255, 255, 0.62);
+    --border: #D8E5DB;
+    --text: #13211A;
+    --text2: #5E7266;
+    --text3: #8FA394;
+    --primary: #10B981;
+    --primary-l: #34D399;
+    --primary-d: #059669;
+    --primary-bg: rgba(16, 185, 129, 0.14);
+    --btn2-bg: rgba(255, 255, 255, 0.85);
+    --btn2-border: rgba(255, 255, 255, 0.35);
+    --btn2-text: #17301F;
+    --shadow-sm: 0 1px 2px rgba(3, 10, 6, 0.28);
+    --shadow: 0 12px 32px rgba(3, 10, 6, 0.35);
+    --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.50);
+    --radius: 16px;
+  }
+  html[data-theme="canopy"] body { --bg: #0C1710; }
+  html[data-theme="canopy"] body { background: radial-gradient(1100px 520px at 72% -8%, rgba(16, 185, 129, 0.18), transparent 60%), linear-gradient(155deg, #0B140E 0%, #0A1911 55%, #081109 100%) !important; }
+  /* v118 แก้บั๊กวัดเจอ: (1) กฎ v114 ตั้ง --bg #E1E5EE บน body เงื่อนไข :not(dark) ซึ่ง canopy ไม่โดนเข้า → ทับตัวแปร canopy ที่ตั้งบน html (แถบ sticky หัวเรื่องสว่างผิด) → ประกาศ --bg บน body ซ้ำให้ชนะตามลำดับกฎ (2) หน้าแรก desktop เดิม = grid 2 คอลัมน์ (537×2px วัดยืนยัน) canopy-dash จึงตกครึ่งจอ → บังคับ 1 คอลัมน์เฉพาะ canopy (การ์ดเดิมซ่อนอยู่แล้ว ธีมอื่นคง grid เดิม 100%) (3) banner ติดตั้งมือถือซ่อนใน canopy ตามหน้าตาตัวอย่าง (ธีมอื่นคงเดิม) */
+  html[data-theme="canopy"] #page-dashboard.active { display: block; }
+  html[data-theme="canopy"] .install-banner { display: none !important; }
+  html[data-theme="canopy"] .screen.active { height: calc(var(--app-vh, 100dvh) - 20px); margin: 10px; border-radius: 24px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.10); box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55); background: linear-gradient(180deg, #0E1C13, #0A130D); }
+  html[data-theme="canopy"] .app-header { background: transparent; border-bottom-color: transparent; box-shadow: none; }
+  html[data-theme="canopy"] .header-brand h2 { color: #F2F8F3; }
+  html[data-theme="canopy"] .header-btn { color: #C9DFCF; background: rgba(255, 255, 255, 0.08); border-radius: 12px; }
+  html[data-theme="canopy"] .header-btn:hover { background: rgba(255, 255, 255, 0.16); }
+  html[data-theme="canopy"] #info-bar { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.08); color: #C7DACE; }
+  html[data-theme="canopy"] .mobile-nav { background: linear-gradient(180deg, rgba(18, 35, 23, 0.92), rgba(11, 22, 15, 0.92)); border-right-color: transparent; }
+  html[data-theme="canopy"] .mobile-nav-items { background: transparent; border-color: transparent; box-shadow: none; }
+  html[data-theme="canopy"] .mobile-nav-items::before { color: rgba(255, 255, 255, 0.42); }
+  html[data-theme="canopy"] .mobile-nav-item { color: #AECBB8; }
+  html[data-theme="canopy"] .mobile-nav-item:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+  html[data-theme="canopy"] .mobile-nav-item.active { background: #F4FAF6; color: #0E2417; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35); }
+  html[data-theme="canopy"] .nav-badge { background: #F97316; color: #fff; }
+  html[data-theme="canopy"] .nav-toggle-row button { background: rgba(255, 255, 255, 0.10); color: #C9DFCF; border-color: rgba(255, 255, 255, 0.14); }
+  html[data-theme="canopy"] .page > div:first-child { color: #E9F2EB; }
+  html[data-theme="canopy"] #dash-greeting { color: #fff; font-size: 21px; letter-spacing: 0.01em; }
+  html[data-theme="canopy"] #dash-date { color: rgba(255, 255, 255, 0.52); }
+  html[data-theme="canopy"] .card { background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+  html[data-theme="canopy"] .cust-stat { background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-color: rgba(255, 255, 255, 0.55); transition: transform 0.18s ease, box-shadow 0.18s ease; }
+  html[data-theme="canopy"] .cust-stat:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(3, 10, 6, 0.35); }
+  html[data-theme="canopy"] .search-input { border-radius: 999px; background: rgba(255, 255, 255, 0.92); }
+  html[data-theme="canopy"] .cust-table { background: rgba(255, 255, 255, 0.94); }
+  html[data-theme="canopy"] .cust-table thead th { color: #5E7266; font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; }
+  html[data-theme="canopy"] .cust-table tbody tr:hover { background: rgba(16, 185, 129, 0.06); }
+  html[data-theme="canopy"] .btn-primary { background: linear-gradient(135deg, #10B981, #059669); border-color: transparent; }
+  /* v118 แก้บั๊กวัดเจอ: กฎ desktop L904 ทับ .btn-secondary ให้พื้น = var(--bg) ซึ่งใน canopy = เขียวเข้ม → ปุ่มเข้มบนเข้มอ่านไม่ออก (การ์ด Backup/ปุ่มยกเลิก) → คืนเป็นแก้วขาวตามตัวแปร btn2 ของ canopy */
+  html[data-theme="canopy"] .btn-secondary { background: var(--btn2-bg); color: var(--btn2-text); border-color: var(--btn2-border); }
+  html[data-theme="canopy"] ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.22); background-clip: padding-box; }
+  /* หน้าแรกโหมด Canopy: ซ่อนการ์ดเดิม แสดงชุด KPI + Insight + กราฟ (ธีมสว่าง/มืด = หน้าแรกเดิม 100%) */
+  html[data-theme="canopy"] #canopy-dash { display: block !important; }
+  html[data-theme="canopy"] #dash-stats, html[data-theme="canopy"] #dash-unpaid, html[data-theme="canopy"] #page-dashboard > .card { display: none !important; }
+  .cp-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 12px; }
+  .cp-kpi { background: rgba(255, 255, 255, 0.92); border: 1px solid rgba(255, 255, 255, 0.55); border-radius: 16px; padding: 14px 16px 10px; box-shadow: 0 1px 2px rgba(3, 10, 6, 0.28); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transition: transform 0.18s ease, box-shadow 0.18s ease; }
+  .cp-kpi:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(3, 10, 6, 0.35); }
+  .cp-kpi-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .cp-kpi-label { font-size: 12px; color: #5E7266; font-weight: 500; }
+  .cp-kpi-label i { color: #10B981; margin-right: 6px; }
+  .cp-chip { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+  .cp-chip.up { color: #059669; background: rgba(16, 185, 129, 0.14); }
+  .cp-chip.down { color: #DC2626; background: rgba(239, 68, 68, 0.12); }
+  .cp-kpi-value { font-size: 22px; font-weight: 700; color: #13211A; line-height: 1.15; }
+  .cp-kpi-sub { font-size: 11px; color: #8FA394; margin-top: 2px; }
+  .cp-kpi-spark { margin-top: 6px; height: 34px; }
+  .cp-kpi-spark svg { width: 100%; height: 34px; display: block; }
+  .cp-insights { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 12px; }
+  .cp-insight { display: flex; align-items: center; gap: 10px; background: rgba(255, 255, 255, 0.92); border: 1px solid rgba(255, 255, 255, 0.55); border-radius: 16px; padding: 10px 12px; box-shadow: 0 1px 2px rgba(3, 10, 6, 0.28); cursor: pointer; transition: transform 0.18s ease; }
+  .cp-insight:hover { transform: translateY(-2px); }
+  .cp-ic { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 14px; color: #fff; }
+  .cp-ic.amber { background: linear-gradient(135deg, #F59E0B, #D97706); }
+  .cp-ic.red { background: linear-gradient(135deg, #EF4444, #DC2626); }
+  .cp-ic.blue { background: linear-gradient(135deg, #3B82F6, #2563EB); }
+  .cp-ic.green { background: linear-gradient(135deg, #10B981, #059669); }
+  .cp-itext { flex: 1; min-width: 0; font-size: 12px; color: #2A3B30; line-height: 1.35; }
+  .cp-itext b { color: #13211A; }
+  .cp-ilink { font-size: 12px; font-weight: 700; color: #059669; flex-shrink: 0; }
+  .cp-charts { display: grid; grid-template-columns: 1.6fr 1fr; gap: 12px; }
+  .cp-chart-card .card-header { border-bottom: none; }
+  .cp-sub { font-size: 11px; color: #8FA394; }
+  .cp-chart-body { padding: 4px 14px 12px; }
+  .cp-chart-body > svg { width: 100%; height: 230px; display: block; }
+  .cp-legend { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; min-width: 0; }
+  .cp-legend-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #2A3B30; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cp-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .cp-legend-row b { margin-left: auto; color: #13211A; flex-shrink: 0; }
+}
+/* v118 กฎฐาน (ทุกธีม/ทุกขนาดจอ): ชุดหน้าแรก Canopy ซ่อนเสมอ — แสดงเฉพาะกฎ canopy desktop ด้านบน (กัน inline display ค้างจากการสลับธีม) */
+#canopy-dash { display: none; }
+
 /* 7) เปลี่ยนหน้า: เข้าแบบสปริงนุ่ม (มือถือยังใช้ fadeUp เดิมของ v47) */
 .page { animation: pageIn .32s cubic-bezier(.22,1,.36,1); }
 @keyframes pageIn { from { opacity: 0; transform: translateY(12px) scale(0.996); } to { opacity: 1; transform: none; } }
@@ -1322,6 +1419,21 @@ body::after {
           </div>
           <button class="btn" style="background:#fff;color:var(--primary);min-height:36px;padding:7px 16px;font-size:13px;flex-shrink:0;" onclick="doInstallApp()">ติดตั้ง</button>
           <button class="ib-close" onclick="dismissInstallBanner()" aria-label="ปิด"><i class="fas fa-xmark"></i></button>
+        </div>
+        <!-- v118: หน้าแรกโหมด "Canopy" (ธีมที่ 3 เขียวเข้ม desktop เท่านั้น ตามตัวอย่าง TikTok @settigation) — KPI พร้อม sparkline + แจ้งเตือนพร้อมทำ + กราฟรายได้/สัดส่วนประเภทงาน คำนวณจากข้อมูลจริงของร้าน · แสดงเฉพาะ desktop + ธีม canopy (ธีมสว่าง/มืด = หน้าแรกเดิม 100%) · ไม่มีระบบโควต้า/เป้ายอดตามคำสั่งเจ้าของร้าน ข้อ 2 -->
+        <div id="canopy-dash" style="display:none;">
+          <div class="cp-kpis" id="cp-kpis"></div>
+          <div class="cp-insights" id="cp-insights"></div>
+          <div class="cp-charts">
+            <div class="card cp-chart-card">
+              <div class="card-header"><span class="card-title"><i class="fas fa-chart-line" style="color:var(--primary);margin-right:6px;"></i>รายได้รายเดือน</span><span class="cp-sub">6 เดือนล่าสุด · จากงานจริง</span></div>
+              <div class="cp-chart-body" id="cp-chart-revenue"></div>
+            </div>
+            <div class="card cp-chart-card">
+              <div class="card-header"><span class="card-title"><i class="fas fa-chart-pie" style="color:var(--primary);margin-right:6px;"></i>สัดส่วนประเภทงาน</span><span class="cp-sub" id="cp-donut-sub"></span></div>
+              <div class="cp-chart-body" id="cp-chart-types"></div>
+            </div>
+          </div>
         </div>
         <div id="dash-unpaid" style="display:none;"></div>
       <div class="stats-grid" id="dash-stats"></div>
@@ -2896,6 +3008,7 @@ function updateReminderBadge() {
 // DASHBOARD
 // ============================================================
 function renderDashboard() {
+  renderCanopyDashboard(); // v118: หน้าแรกโหมด Canopy — วาดเฉพาะธีม canopy + desktop (ธีมอื่น/มือถือ = ซ่อนอยู่แล้ว หน้าแรกเดิมไม่กระทบ)
   var now = new Date();
   var isDesk = window.matchMedia && window.matchMedia('(min-width: 1024px)').matches; // v82: การ์ดงานค้าง desktop เท่านั้น
   var dayNames = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัส','ศุกร์','เสาร์'];
@@ -3953,7 +4066,7 @@ var _exitShownAt = 0;       // เวลาที่เปิดหน้าต�
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
 var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
-var APP_VERSION = 'v117';
+var APP_VERSION = 'v118';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -5497,15 +5610,162 @@ function toast(msg, type, action) {
 }
 
 // ============================================================
+// v118: หน้าแรกโหมด "Canopy" (ธีมที่ 3 desktop เท่านั้น) — ทุกตัวเลขคำนวณจากข้อมูลจริงของร้าน (DB.jobs) ไม่มีข้อมูลปลอม ไม่มีระบบโควต้า
+// เรนเดอร์เฉพาะเมื่อธีม = canopy และจอ ≥1024px — ธีมอื่น/มือถือ = #canopy-dash คง display:none เดิม หน้าแรกเดิม 100%
+// ============================================================
+var _cpGid = 0;
+var CP_MONTHS = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+function _cpLastMonths(n) {
+  var out = [], now = new Date();
+  for (var i = n - 1; i >= 0; i--) {
+    var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    out.push({ key: d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'), label: CP_MONTHS[d.getMonth()] });
+  }
+  return out;
+}
+function _cpSpark(values, w, h, color) { // เส้น sparkline SVG แบบตัวอย่าง (polyline + พื้นไล่สี)
+  if (!values || values.length < 2) return '';
+  var id = 'cpg' + (++_cpGid);
+  var max = Math.max.apply(null, values), min = Math.min.apply(null, values);
+  if (max === min) max = min + 1;
+  var pts = values.map(function (v, i) {
+    var x = 2 + (i / (values.length - 1)) * (w - 4);
+    var y = h - 4 - ((v - min) / (max - min)) * (h - 8);
+    return [Math.round(x * 10) / 10, Math.round(y * 10) / 10];
+  });
+  var line = pts.map(function (p) { return p[0] + ',' + p[1]; }).join(' ');
+  var area = line + ' ' + pts[pts.length - 1][0] + ',' + h + ' ' + pts[0][0] + ',' + h;
+  return '<svg viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none">' +
+    '<defs><linearGradient id="' + id + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + color + '" stop-opacity="0.28"/><stop offset="1" stop-color="' + color + '" stop-opacity="0"/></linearGradient></defs>' +
+    '<polygon points="' + area + '" fill="url(#' + id + ')"/>' +
+    '<polyline points="' + line + '" fill="none" stroke="' + color + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+}
+function _cpFmtB(n) { return '฿' + Math.round(n).toLocaleString('th-TH'); }
+function _cpPct(cur, prev) {
+  if (!prev || prev <= 0) return null;
+  var p = Math.round((cur - prev) / prev * 100);
+  if (!p) return null;
+  return { txt: (p > 0 ? '+' : '') + p + '%', up: p > 0 };
+}
+function _cpAreaChart(labels, vals) { // กราฟพื้นที่รายได้ 6 เดือน แบบ "Revenue vs target" ของตัวอย่าง (ไม่มีเส้นเป้า — ไม่ทำโควต้า)
+  var W = 560, H = 210, padT = 18, padB = 24;
+  var max = Math.max.apply(null, vals.concat([1]));
+  var pts = vals.map(function (v, i) {
+    var x = 8 + (i / Math.max(vals.length - 1, 1)) * (W - 18);
+    var y = padT + (1 - v / max) * (H - padT - padB);
+    return [Math.round(x), Math.round(y)];
+  });
+  var line = pts.map(function (p) { return p[0] + ',' + p[1]; }).join(' ');
+  var area = line + ' ' + pts[pts.length - 1][0] + ',' + (H - padB) + ' ' + pts[0][0] + ',' + (H - padB);
+  var dots = pts.map(function (p) { return '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="3.5" fill="#fff" stroke="#10B981" stroke-width="2"/>'; }).join('');
+  var lbls = labels.map(function (l, i) { return '<text x="' + pts[i][0] + '" y="' + (H - 6) + '" font-size="11" fill="#8FA394" text-anchor="middle" font-family="Kanit, sans-serif">' + labels[i] + '</text>'; }).join('');
+  return '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none">' +
+    '<defs><linearGradient id="cpAreaG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#10B981" stop-opacity="0.30"/><stop offset="1" stop-color="#10B981" stop-opacity="0.02"/></linearGradient></defs>' +
+    '<polygon points="' + area + '" fill="url(#cpAreaG)"/>' +
+    '<polyline points="' + line + '" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>' + dots + lbls +
+    '<text x="6" y="13" font-size="11" fill="#5E7266" font-family="Kanit, sans-serif">สูงสุด ' + _cpFmtB(max) + '</text></svg>';
+}
+function _cpDonut(items) { // โดนัทสัดส่วนประเภทงาน แบบ "Lead sources" ของตัวอย่าง — ใช้ประเภทงานจริงของร้าน
+  var total = items.reduce(function (s, x) { return s + x.n; }, 0);
+  if (!total) return '<div style="color:#8FA394;font-size:12px;padding:20px 0;text-align:center;">ยังไม่มีข้อมูลงาน</div>';
+  items = items.slice().sort(function (a, b) { return b.n - a.n; });
+  var top = items.slice(0, 6);
+  var rest = items.slice(6).reduce(function (s, x) { return s + x.n; }, 0);
+  if (rest > 0) top.push({ label: 'อื่นๆ', n: rest });
+  var colors = ['#10B981', '#34D399', '#059669', '#6EE7B7', '#047857', '#94A3B8'];
+  var R = 62, C = 2 * Math.PI * R, off = 0, segs = '';
+  top.forEach(function (x, i) {
+    var len = (x.n / total) * C;
+    segs += '<circle r="' + R + '" cx="80" cy="80" fill="none" stroke="' + colors[i % colors.length] + '" stroke-width="17" stroke-dasharray="' + Math.max(len - 2, 0.5).toFixed(2) + ' ' + Math.max(C - len + 2, 0).toFixed(2) + '" stroke-dashoffset="' + (-off).toFixed(2) + '" transform="rotate(-90 80 80)"/>';
+    off += len;
+  });
+  var legend = top.map(function (x, i) {
+    return '<div class="cp-legend-row"><span class="cp-dot" style="background:' + colors[i % colors.length] + '"></span>' + esc(x.label) + '<b>' + x.n + ' · ' + Math.round(x.n / total * 100) + '%</b></div>';
+  }).join('');
+  return '<div style="display:flex;align-items:center;gap:14px;min-width:0;">' +
+    '<svg viewBox="0 0 160 160" style="width:150px;height:150px;flex-shrink:0;">' + segs +
+    '<text x="80" y="77" text-anchor="middle" font-size="24" font-weight="700" fill="#13211A" font-family="Kanit, sans-serif">' + total + '</text>' +
+    '<text x="80" y="95" text-anchor="middle" font-size="10" fill="#8FA394" font-family="Kanit, sans-serif">งานทั้งหมด</text></svg>' +
+    '<div class="cp-legend">' + legend + '</div></div>';
+}
+function renderCanopyDashboard() {
+  var wrap = document.getElementById('canopy-dash');
+  if (!wrap) return;
+  var isDesk = window.matchMedia && window.matchMedia('(min-width: 1024px)').matches;
+  if (document.documentElement.getAttribute('data-theme') !== 'canopy' || !isDesk) { wrap.style.display = 'none'; return; }
+  wrap.style.display = '';
+  var months = _cpLastMonths(6);
+  var curKey = months[months.length - 1].key, prevKey = months[months.length - 2].key;
+  var revByMonth = {}, doneByMonth = {}, newByMonth = {};
+  DB.jobs.forEach(function (j) {
+    if (!j) return;
+    var k = j.serviceDate ? String(j.serviceDate).slice(0, 7) : '';
+    if (!k) return;
+    revByMonth[k] = (revByMonth[k] || 0) + jobTotal(j);
+    newByMonth[k] = (newByMonth[k] || 0) + 1;
+    if ((j.status || 'done') === 'done') doneByMonth[k] = (doneByMonth[k] || 0) + 1;
+  });
+  var openJobs = DB.jobs.filter(function (j) { return j && (j.status || 'done') !== 'done'; });
+  var rev = revByMonth[curKey] || 0, revPrev = revByMonth[prevKey] || 0;
+  var done = doneByMonth[curKey] || 0, donePrev = doneByMonth[prevKey] || 0;
+  var nw = newByMonth[curKey] || 0, nwPrev = newByMonth[prevKey] || 0;
+  var kpis = [
+    { icon: 'fa-baht-sign', label: 'รายได้เดือนนี้', value: _cpFmtB(rev), sub: 'เดือนก่อน ' + _cpFmtB(revPrev), change: _cpPct(rev, revPrev), spark: months.map(function (m) { return revByMonth[m.key] || 0; }), color: '#10B981' },
+    { icon: 'fa-circle-check', label: 'งานเสร็จเดือนนี้', value: done + ' งาน', sub: 'เดือนก่อน ' + donePrev + ' งาน', change: _cpPct(done, donePrev), spark: months.map(function (m) { return doneByMonth[m.key] || 0; }), color: '#10B981' },
+    { icon: 'fa-hourglass-half', label: 'งานยังไม่เสร็จ', value: openJobs.length + ' งาน', sub: 'สะสมทั้งหมด', change: null, spark: null, color: '#F59E0B' },
+    { icon: 'fa-file-circle-plus', label: 'งานใหม่เดือนนี้', value: nw + ' งาน', sub: 'เดือนก่อน ' + nwPrev + ' งาน', change: _cpPct(nw, nwPrev), spark: months.map(function (m) { return newByMonth[m.key] || 0; }), color: '#3B82F6' }
+  ];
+  var kp = document.getElementById('cp-kpis');
+  if (kp) kp.innerHTML = kpis.map(function (k) {
+    return '<div class="cp-kpi"><div class="cp-kpi-top"><span class="cp-kpi-label"><i class="fas ' + k.icon + '"></i>' + k.label + '</span>' +
+      (k.change ? '<span class="cp-chip ' + (k.change.up ? 'up' : 'down') + '">' + k.change.txt + '</span>' : '') + '</div>' +
+      '<div class="cp-kpi-value">' + k.value + '</div><div class="cp-kpi-sub">' + k.sub + '</div>' +
+      (k.spark && k.spark.some(function (v) { return v > 0; }) ? '<div class="cp-kpi-spark">' + _cpSpark(k.spark, 160, 34, k.color) + '</div>' : '') + '</div>';
+  }).join('');
+  // แถว Insight จากระบบจริง (แทนแถวแจ้งเตือนของตัวอย่าง — ข้อมูลของเรา)
+  var insights = [];
+  var allR = getUpcomingReminders('all');
+  var od = allR.filter(function (r) { return r.status === 'overdue'; }).length;
+  var sn = allR.filter(function (r) { return r.status === 'soon'; }).length;
+  if (od + sn > 0) insights.push({ ic: od > 0 ? 'red' : 'amber', icon: 'fa-bell', html: '<b>' + od + ' งานเกินกำหนด</b>' + (sn ? ' · ใกล้ครบอีก ' + sn + ' งาน' : '') + ' — ต้องติดต่อลูกค้า', act: 'ดูแจ้งเตือน', fn: "showPage('reminders')" });
+  if (openJobs.length > 0) insights.push({ ic: 'blue', icon: 'fa-hourglass-half', html: '<b>' + openJobs.length + ' งานยังไม่เสร็จ</b> — ตามงานต่อในหน้าประวัติงาน', act: 'เปิดหน้างาน', fn: 'gotoJobs()' });
+  if (typeof touchOfCust === 'object' && touchOfCust) {
+    var stale = 0, cut = Date.now() - 30 * 86400000;
+    Object.keys(touchOfCust).forEach(function (ph) { if (touchOfCust[ph] < cut) stale++; });
+    if (stale > 0) insights.push({ ic: 'amber', icon: 'fa-user-clock', html: '<b>' + stale + ' ลูกค้า</b> ไม่มีงานต่อมากว่า 30 วัน — ควรตามงาน', act: 'ดูลูกค้า', fn: "showPage('customers')" });
+  }
+  if (!insights.length) insights.push({ ic: 'green', icon: 'fa-circle-check', html: '<b>ทุกอย่างเรียบร้อย</b> — ไม่มีงานเกินกำหนดและงานค้าง', act: 'ดูงาน', fn: 'gotoJobs()' });
+  var ip = document.getElementById('cp-insights');
+  if (ip) ip.innerHTML = insights.slice(0, 3).map(function (x) {
+    return '<div class="cp-insight" onclick="' + x.fn + '"><div class="cp-ic ' + x.ic + '"><i class="fas ' + x.icon + '"></i></div><div class="cp-itext">' + x.html + '</div><div class="cp-ilink">' + x.act + ' <i class="fas fa-arrow-right" style="font-size:9px;"></i></div></div>';
+  }).join('');
+  var cr = document.getElementById('cp-chart-revenue');
+  if (cr) cr.innerHTML = _cpAreaChart(months.map(function (m) { return m.label; }), months.map(function (m) { return revByMonth[m.key] || 0; }));
+  var tc = {}, order = [];
+  DB.jobs.forEach(function (j) { if (!j) return; var raw = j.serviceType || ''; var t = (raw && typeof typeLabel === 'function' && typeLabel(raw)) || raw || 'อื่นๆ'; if (t && tc[t] === undefined) { tc[t] = 0; order.push(t); } tc[t]++; }); // v118 แก้บั๊ก: เดิมโชว์ id ประเภทงานดิบ (t_...) — แปลงเป็นชื่อที่อ่านออกด้วย typeLabel เหมือนตารางหน้างาน
+  var ds = document.getElementById('cp-donut-sub');
+  if (ds) ds.textContent = 'รวม ' + DB.jobs.length + ' งาน';
+  var ct = document.getElementById('cp-chart-types');
+  if (ct) ct.innerHTML = _cpDonut(order.map(function (t) { return { label: t, n: tc[t] }; }));
+}
+
+// ============================================================
 // THEME
 // ============================================================
 function toggleTheme() {
-  var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-  var newTheme = isDark ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', newTheme);
-  localStorage.setItem('fixpro_theme', newTheme);
+  // v118: สลับ 3 ธีม สว่าง → มืด → canopy (เขียวเข้มแบบตัวอย่าง TikTok) → สว่าง ตามคำสั่งเจ้าของร้านข้อ 3 "ทำเป็นทีมที่ 3 สามารถกดสลับได้" — canopy เป็นธีม desktop-only (มือถือจะแสดงธีมสว่างเดิม 100% เพราะกฎ canopy ครอบ @media ≥1024px ทั้งหมด)
+  var order = ['light', 'dark', 'canopy'];
+  var cur = document.documentElement.getAttribute('data-theme') || 'light';
+  var idx = order.indexOf(cur);
+  var next = order[(idx < 0 ? 0 : idx + 1) % order.length];
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('fixpro_theme', next);
+  setThemeIcon(next);
+  if (typeof currentPage !== 'undefined' && currentPage === 'dashboard' && typeof renderCanopyDashboard === 'function') renderCanopyDashboard();
+}
+function setThemeIcon(theme) { // v118: ไอคอนตามธีม — มืด=พระอาทิตย์, canopy=ใบไม้, สว่าง=พระจันทร์
   var icon = document.getElementById('theme-icon');
-  if (icon) icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+  if (icon) icon.className = theme === 'dark' ? 'fas fa-sun' : (theme === 'canopy' ? 'fas fa-leaf' : 'fas fa-moon');
 }
 
 // ============================================================
@@ -5654,9 +5914,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     var theme = localStorage.getItem('fixpro_theme') || 'light';
     document.documentElement.setAttribute('data-theme', theme);
-    if (theme === 'dark') {
-      document.getElementById('theme-icon').className = 'fas fa-sun';
-    }
+    setThemeIcon(theme); // v118: ตั้งไอคอนปุ่มธีมตามธีมที่เก็บไว้ (สว่าง/มืด/canopy)
   } catch (eUI) { console.warn('ตั้งค่าหน้าจอเริ่มต้นพลาด (ไม่กระทบการใช้งาน):', eUI); }
   // PWA service worker — แคชไฟล์แอปไว้ใช้ตอนออฟไลน์
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
