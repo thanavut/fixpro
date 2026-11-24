@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=117">
+<link rel="manifest" href="manifest.webmanifest?v=119">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -448,6 +448,8 @@ select.form-select { padding: 6px 12px; border: 1.5px solid var(--border); borde
   backdrop-filter: blur(4px);
 }
 .modal-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
+#modal-dirty-confirm { z-index: 1200; } /* v119: กล่องยืนยัน "ยังไม่ได้บันทึก" ต้องวางทับฟอร์มที่เปิดค้างเสมอ — เดิม .modal-overlay ทุกใบ z-index:1000 เท่ากัน ใบนี้อยู่หน้าสุดของ HTML จึงถูก modal-customer/modal-job (ใบหลังกว่า) วางทับแบบโปร่งแสง = เจ้าของร้านเห็นกล่องลอยหลังเบลอแต่กดปุ่มไม่ได้ ("ปุ่มปิดกับยกเลิกไม่ทำงานเมื่อแก้ไขยอดเงินแล้วกดปิดหรือยกเลิก") — wiring closeModal/dirty-discard ถูกอยู่แล้ว ปัญหาเดียวคือชั้น stacking */
+#modal-dirty-confirm { z-index: 1200; } /* v119: กล่องยืนยัน "ยังไม่ได้บันทึก" ต้องวางทับฟอร์มที่เปิดค้างเสมอ — เดิม .modal-overlay ทุกใบ z-index:1000 เท่ากัน ใบนี้อยู่หน้าสุดของ HTML จึงถูก modal-customer/modal-job (ใบหลังกว่า) วางทับแบบโปร่งแสง = เจ้าของร้านเห็นกล่องลอยหลังเบลอแต่กดปุ่มไม่ได้ ("ปุ่มปิดกับยกเลิกไม่ทำงานเมื่อแก้ไขยอดเงินแล้วกดปิดหรือยกเลิก") — wiring closeModal/dirty-discard ถูกอยู่แล้ว ปัญหาเดียวคือชั้น stacking */
 .modal {
   background: var(--surface); border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   width: 100%; max-width: 560px; max-height: 92vh; max-height: var(--app-vh, 92dvh);
@@ -2295,6 +2297,8 @@ function jobPartsName(j) { return (j && j.partsName ? String(j.partsName).trim()
 // v98: ทุนอะไหล่ (จำนวนเงิน บาท) = ราคาที่ร้าน"ซื้อ"อะไหล่มา (ต่างจาก parts = ค่าอะไหล่ที่"ลูกค้าจ่าย") — ไม่รวมในยอดเก็บเงิน ใช้คำนวณกำไรในหน้ารายงาน (งานเก่าไม่มี partsCost = 0)
 function jobPartsCost(j) { return parseFloat(j && j.partsCost) || 0; }
 function jobTotal(j) { return (parseFloat(j && j.cost) || 0) + jobTravel(j) + jobParts(j) - jobDiscount(j); }
+function jobNet(j) { return jobTotal(j) - jobPartsCost(j); } // v119: ยอดรวมสุทธิของงาน = ยอดเก็บเงิน − ทุนอะไหล่ (ร้านซื้อมา) ตามคำสั่งเจ้าของร้าน "ยอดรวมต้องหักค่าอะไหล่ออกด้วยสิ" — ใช้แสดงในการ์ด/ตาราง/งานล่าสุดเท่านั้น ส่วนยอดเก็บเงินจริงจากลูกค้า (ใบเส็จ/LINE/รอเก็บเงิน/สถิติ) ยัง jobTotal เดิม
+function jobNet(j) { return jobTotal(j) - jobPartsCost(j); } // v119: ยอดรวมสุทธิของงาน = ยอดเก็บเงิน − ทุนอะไหล่ (ร้านซื้อมา) ตามคำสั่งเจ้าของร้าน "ยอดรวมต้องหักค่าอะไหล่ออกด้วยสิ" — ใช้แสดงในการ์ด/ตาราง/งานล่าสุดเท่านั้น ส่วนยอดเก็บเงินจริงจากลูกค้า (ใบเส็จ/LINE/รอเก็บเงิน/สถิติ) ยัง jobTotal เดิม
 // v53: งานหนึ่งงานมีได้หลายรายการซ่อม — items = [{name, price}] บันทึกคู่กับ cost (= ผลรวมรายการ ไม่รวมค่าเดินทาง)
 // งานเก่าไม่มี items = jobItems() คืน null ทุกจุดแสดงเหมือนเดิม ไม่มีการแปลงข้อมูลเดิม
 function jobItems(j) { return (j && Array.isArray(j.items) && j.items.length > 0) ? j.items : null; }
@@ -3004,7 +3008,7 @@ function renderDashboard() {
           return '<div class="reminder-item" data-jid="' + escAttr(j.id) + '" onclick="jumpToJob(\'' + escAttr(j.id) + '\')">' + // v83: กดการ์ดงานล่าสุด = เด้งไปงานนั้น (เดิมเปิดประวัติลูกค้า)
             '<div style="flex:1;min-width:0;"><div class="reminder-name">' + esc(cust?.name||j.customerPhone) + '</div>' +
             '<div class="reminder-detail">' + formatDate(j.serviceDate) + (j.deviceInfo ? ' · 📦 ' + esc(j.deviceInfo) : '') + '</div></div>' +
-            '<div style="text-align:right;flex-shrink:0;"><div style="font-weight:700;color:var(--success);">' + (jobTotal(j)?jobTotal(j).toLocaleString()+' ฿':'-') + '</div></div></div>';
+            '<div style="text-align:right;flex-shrink:0;"><div style="font-weight:700;color:var(--success);">' + (jobTotal(j)||jobNet(j)?jobNet(j).toLocaleString()+' ฿':'-') + '</div></div></div>'; // v119: ยอด = สุทธิหลังหักทุน
         }).join('');
   }
 }
@@ -3247,7 +3251,7 @@ function renderJobs() {
       // v84: ย้ายคอลัมน์ "ประเภทงาน" ขึ้นหน้า "ยี่ห้อ" + เปลี่ยนชื่อคอลัมน์จาก "ประเภท" เป็น "ประเภทงาน" (ตรงลำดับ CSV: วันที่→ลูกค้า→ประเภทงาน→อุปกรณ์) — สถานะยังเป็น td[7] เท่าเดิม
       container.innerHTML = statsHTML + '<div class="cust-table"><div class="table-wrap table-wrap-scrollable" id="jobs-table-wrap"><table>' +
         '<thead><tr><th data-sort="cust">ลูกค้า</th><th data-sort="type">ประเภทงาน</th><th data-sort="brand">ยี่ห้อ</th><th data-sort="model">รุ่น</th><th data-sort="desc">อาการ/รายละเอียด</th><th data-sort="date">วันที่</th><th data-sort="amount" data-sort-type="num" style="text-align:right;">ยอด (บาท)</th><th data-sort="status">สถานะ</th><th style="text-align:right;">จัดการ</th></tr></thead><tbody>' +
-        _fpSortRows(list, 'jobs', { cust: function(j) { return custMap[j.customerPhone] ? custMap[j.customerPhone].name : ''; }, type: function(j) { return typeLabel(j.serviceType); }, brand: function(j) { return j.brand || j.deviceInfo || ''; }, model: function(j) { return j.model || ''; }, desc: function(j) { return ((j.symptom || '') + ' ' + (j.description || '')).trim(); }, date: function(j) { return j.serviceDate || ''; }, amount: function(j) { return jobTotal(j); }, status: function(j) { return j.status || 'done'; } }).map(function(j) { // v87: เรียงคอลัมน์ได้
+        _fpSortRows(list, 'jobs', { cust: function(j) { return custMap[j.customerPhone] ? custMap[j.customerPhone].name : ''; }, type: function(j) { return typeLabel(j.serviceType); }, brand: function(j) { return j.brand || j.deviceInfo || ''; }, model: function(j) { return j.model || ''; }, desc: function(j) { return ((j.symptom || '') + ' ' + (j.description || '')).trim(); }, date: function(j) { return j.serviceDate || ''; }, amount: function(j) { return jobTotal(j) - jobPartsCost(j); }, status: function(j) { return j.status || 'done'; } }).map(function(j) { // v87: เรียงคอลัมน์ได้ · v119: amount เรียงตามเลขที่โชว์ (สุทธิหลังหักทุน)
         var cust = custMap[j.customerPhone];
         var st = j.status || 'done';
         var desc = String(j.symptom || j.description || '-');
@@ -3260,7 +3264,7 @@ function renderJobs() {
           '<td style="font-size:12px;color:var(--text2);max-width:120px;overflow:hidden;text-overflow:ellipsis;"' + (model ? ' title="' + esc(model) + '"' : '') + '>' + (model ? esc(model) : '<span style="color:var(--text3);">-</span>') + '</td>' +
           '<td style="font-size:12px;color:var(--text2);max-width:340px;overflow:hidden;text-overflow:ellipsis;" title="' + esc(desc) + '">' + esc(desc) + '</td>' +
           '<td style="font-size:12px;color:var(--text2);">' + formatDate(j.serviceDate) + '</td>' +
-          '<td style="font-size:12px;font-weight:700;color:var(--success);text-align:right;">' + (jobTotal(j) ? jobTotal(j).toLocaleString() : '0') + '</td>' +
+          '<td style="font-size:12px;font-weight:700;color:var(--success);text-align:right;">' + (jobTotal(j) || jobNet(j) ? jobNet(j).toLocaleString() : '0') + '</td>' + // v119: ยอด = สุทธิหลังหักทุนอะไหล่ (ตรงกับการ์ดหน้าลูกค้า)
           '<td><span class="badge ' + (STATUS_COLORS[st] || 'badge-gray') + ' tb-badge" style="font-size:12px;">' + esc(STATUS_LABELS[st] || st) + '</span></td>' +
           '<td><div class="table-actions" onclick="event.stopPropagation()"><button type="button" class="btn btn-ghost btn-icon-sm" title="ดูข้อมูล/ประวัติงาน" onclick="showCustomerDetail(\'' + escAttr(j.customerPhone) + '\')"><i class="fas fa-eye"></i></button>' +
           '<button type="button" class="btn btn-ghost btn-icon-sm" title="แก้ไขงาน" onclick="openEditJob(\'' + escAttr(j.id) + '\')"><i class="fas fa-edit"></i></button>' +
@@ -3278,7 +3282,7 @@ function renderJobs() {
         (j.status === 'unpaid' ? ' <button type="button" class="paid-quick-btn" title="ตั้งสถานะเสร็จ + จดวันที่เก็บเงินวันนี้" onclick="event.stopPropagation();markJobPaid(\'' + escAttr(j.id) + '\')">✓ เก็บเงิน</button>' : '') + '</div>' + // v97: ปุ่มเก็บเงินเร็ว เฉพาะงาน unpaid
         (j.deviceInfo ? '<div style="font-size:11px;color:var(--text3);">📦 ' + esc(j.deviceInfo) + '</div>' : '') +
         '</div>' +
-        '<div class="customer-meta"><div class="job-count" style="font-size:16px;color:var(--success);">' + (jobTotal(j)?jobTotal(j).toLocaleString():'0') + '</div><div class="job-label">บาท</div></div></div>';
+        '<div class="customer-meta"><div class="job-count" style="font-size:16px;color:var(--success);">' + (jobTotal(j)||jobNet(j)?jobNet(j).toLocaleString():'0') + '</div><div class="job-label">บาท</div></div></div>'; // v119: ยอด = สุทธิหลังหักทุน
     }).join('');
     }
   }
@@ -3510,11 +3514,11 @@ function renderJobCard(j) {
       jobItems(j).map(it => '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12.5px;color:var(--text2);margin-top:3px;"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">🧾 ' + esc(it.name) + '</span><span style="flex-shrink:0;font-weight:700;color:var(--text);">' + (parseFloat(it.price)||0).toLocaleString() + ' ฿</span></div>').join('') +
       (jobTravel(j) > 0 ? '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12.5px;color:var(--text2);margin-top:3px;"><span>🚗 ค่าเดินทาง</span><span style="flex-shrink:0;font-weight:700;color:var(--text);">' + jobTravel(j).toLocaleString() + ' ฿</span></div>' : '') +
       (jobParts(j) > 0 ? '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12.5px;color:var(--text2);margin-top:3px;"><span>📦 ค่าอะไหล่' + (jobPartsName(j) ? ' (' + esc(jobPartsName(j)) + ')' : '') + '</span><span style="flex-shrink:0;font-weight:700;color:var(--text);">' + jobParts(j).toLocaleString() + ' ฿</span></div>' : '') + // v76: ชื่ออะไหล่ + ค่าอะไหล่แต่ละงาน
-      (jobPartsCost(j) > 0 ? '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12.5px;color:var(--text2);margin-top:3px;"><span>🏷️ ทุนอะไหล่</span><span style="flex-shrink:0;font-weight:700;color:var(--danger);">' + jobPartsCost(j).toLocaleString() + ' ฿</span></div>' : '') + // v99: ทุนอะไหล่ต่องาน (เจ้าของเห็นในหน้าลูกค้าเท่านั้น — ใบเสร็จ/LINE ลูกค้าไม่โชว์)
+      (jobPartsCost(j) > 0 ? '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12.5px;color:var(--text2);margin-top:3px;"><span>🏷️ หัก ทุนอะไหล่</span><span style="flex-shrink:0;font-weight:700;color:var(--danger);">-' + jobPartsCost(j).toLocaleString() + ' ฿</span></div>' : '') + // v99: ทุนอะไหล่ต่องาน · v119: เปลี่ยนจากแถวข้อมูลเป็น "ขั้นตอนหัก" จริง (-240) เพราะยอดรวมด้านล่างถูกหักทุนแล้ว (เจ้าของเห็นในหน้าลูกค้าเท่านั้น — ใบเสร็จ/LINE ลูกค้าไม่โชว์)
       (jobDiscount(j) > 0 ? '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12.5px;color:var(--text2);margin-top:3px;"><span>🎁 ส่วนลด</span><span style="flex-shrink:0;font-weight:700;color:var(--danger);">-' + jobDiscount(j).toLocaleString() + ' ฿</span></div>' : '') + // v59: ส่วนลดแต่ละงาน
       '</div>' : '') +
     '<div style="display:flex;align-items:center;gap:8px;margin-top:6px;">' +
-    (jobTotal(j) ? '<span class="timeline-cost">' + jobTotal(j).toLocaleString() + ' ฿</span>' : '') +
+    ((jobTotal(j) || jobNet(j)) ? '<span class="timeline-cost">' + jobNet(j).toLocaleString() + ' ฿</span>' : '') + // v119: ยอดรวม = ยอดเก็บ − ทุนอะไหล่ (jobNet) — ถ้าหักแล้วลบเป็นศูนย์แต่ยอดเก็บ > 0 ยังโชว์ 0 ให้เห็นว่างานได้ 0 จริง
     '<span class="badge ' + (STATUS_COLORS[j.status] || (j.status ? 'badge-gray' : 'badge-green')) + '">' + esc(STATUS_LABELS[j.status] || (j.status ? j.status : '✅ เสร็จ')) + '</span>' +
     (isRemindType(j.serviceType) && j.nextDate ? '<span class="badge badge-amber"><i class="fas fa-bell"></i> ' + formatDate(j.nextDate) + '</span>' : '') +
     '</div>' +
@@ -3953,13 +3957,16 @@ var _exitShownAt = 0;       // เวลาที่เปิดหน้าต�
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
 var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
-var APP_VERSION = 'v117';
+var APP_VERSION = 'v119';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
 function _jtTopOpenModal() {
   var open = document.querySelectorAll('.modal-overlay.open');
-  return open.length ? open[open.length - 1].id : null;
+  if (!open.length) return null; // v119: เลือกตาม z-index จริง (กล่อง dirty-confirm 1200 > ฟอร์ม 1000) — กดย้อนกลับระหว่างมีกล่องยืนยัน = ปิดกล่อง ("กลับไปแก้ต่อ") ไม่ใช่เด้งในวง; เสมอกัน = ใบหลังของ DOM ตามเดิม
+  var top = open[0], topZ = -1;
+  open.forEach(function(el) { var z = parseInt(getComputedStyle(el).zIndex, 10) || 1000; if (z >= topZ) { topZ = z; top = el; } });
+  return top.id;
 }
 function _basePath() { return location.pathname + location.search; }
 // ติดตั้งรั้ง: ให้ URL ท้ายด้วย #g เสมอ — การเพิ่ม #g จะสร้าง "ชั้น" ในประวัติ
