@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=120">
+<link rel="manifest" href="manifest.webmanifest?v=121">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -1227,6 +1227,54 @@ body::after {
 .stat-card:hover::after { transform: translateX(300%); }
 .photo-thumb img { transition: transform .3s ease; }
 .photo-thumb:hover img { transform: scale(1.07); }
+}
+
+/* ============================================================
+   v121 — 3D ชุดคุ้มที่สุด (การ์ดสถิติ tilt + การ์ดลอย + ปุ่มจม + โมดัลพับ + เลขยอดลอย)
+   เฉพาะจอ >= 1024px เท่านั้น (แนวเดียวกับ FX เดิม v51 ของแอป) — มือถือ 0% กระทบ
+   ต่อยอด FX เดิม v51 (hover ยกการ์ด) ไม่ลบอะไร — prefers-reduced-motion ยกเลิกท้ายบล็อก
+   ============================================================ */
+@media (min-width: 1024px) {
+  /* 1) การ์ดสถิติหน้าแรก: 3D จริง — tilt ตามเมาส์จาก JS + ไอคอนลอยชั้นหน้า */
+  #dash-stats { perspective: 900px; }
+  .stat-card {
+    transform-style: preserve-3d;
+    transition: transform .15s ease-out, box-shadow .25s ease;
+    will-change: transform;
+  }
+  .stat-card:hover { transform: translateY(-3px) translateZ(8px); box-shadow: 0 14px 28px rgba(15,23,42,.14); }
+  .stat-card:active { transform: scale(0.97) !important; } /* คงกดจมเหมือนเดิมแม้ inline tilt ทับ */
+  .stat-card .stat-icon { transition: transform .25s ease; transform: translateZ(12px); }
+  .stat-card:hover .stat-icon { transform: translateZ(24px) scale(1.1); }
+
+  /* 2) การ์ดลูกค้า + การ์ดงานในไทม์ไลน์: hover ยกลอย + เงาลึกขึ้น (เดิม v51 มี -1px/เงา — เพิ่มมิติเล็กน้อย) */
+  .customer-card:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(15,23,42,.12); }
+  .timeline-card { transition: box-shadow .2s ease, transform .2s ease; }
+  .timeline-card:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(15,23,42,.10); }
+
+  /* 3) ปุ่มหลัก: hover ยกขึ้นนิด + กดแล้วจมลงเหมือนปุ่มจริง (เงา inset) */
+  .btn { will-change: transform; }
+  .btn:hover { transform: translateY(-1px); }
+  .btn:active { transform: translateY(1px) scale(.985); box-shadow: inset 0 2px 6px rgba(0,0,0,.20); }
+
+  /* 4) โมดัล: เปิดแบบพับเข้ามา (rotateX เล็ก + เฟด) — มือถือคง modalIn เดิม */
+  .modal-overlay { perspective: 1100px; }
+  .modal { transform-origin: 50% 14%; }
+  .modal-overlay.open .modal { animation: jtModal3D .32s cubic-bezier(.22,1,.36,1); }
+  @keyframes jtModal3D {
+    from { opacity: 0; transform: translateY(18px) rotateX(5deg) scale(.985); }
+    to { opacity: 1; transform: none; }
+  }
+
+  /* 5) ตารางหน้าประวัติงาน: ชี้แถวแล้วเลขยอดเก็บ/รายได้ลอยขึ้นชัดขึ้น */
+  .jt-amt { display: inline-block; transition: transform .18s ease, text-shadow .18s ease; }
+  .cust-table tbody tr:hover .jt-amt { transform: translateY(-1px); text-shadow: 0 1px 5px rgba(46,125,50,.45); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stat-card, .stat-card:hover, .stat-card:active, .stat-card .stat-icon, .stat-card:hover .stat-icon,
+  .customer-card:hover, .timeline-card, .timeline-card:hover, .btn, .btn:hover, .btn:active,
+  .jt-amt, .cust-table tbody tr:hover .jt-amt { transform: none !important; transition: none !important; animation: none !important; text-shadow: none !important; }
+  .modal-overlay.open .modal { animation: none !important; }
 }
 </style>
 </head>
@@ -3272,7 +3320,7 @@ function renderJobs() {
           '<td style="font-size:12px;color:var(--text2);max-width:120px;overflow:hidden;text-overflow:ellipsis;"' + (model ? ' title="' + esc(model) + '"' : '') + '>' + (model ? esc(model) : '<span style="color:var(--text3);">-</span>') + '</td>' +
           '<td style="font-size:12px;color:var(--text2);max-width:340px;overflow:hidden;text-overflow:ellipsis;" title="' + esc(desc) + '">' + esc(desc) + '</td>' +
           '<td style="font-size:12px;color:var(--text2);">' + formatDate(j.serviceDate) + '</td>' +
-          '<td style="font-size:12px;text-align:right;"><div style="font-weight:700;color:var(--success);">' + (jobTotal(j) ? jobTotal(j).toLocaleString() : '0') + '</div>' + (jobPartsCost(j) > 0 ? '<div style="font-size:10.5px;color:var(--text2);">รายได้ ' + jobNet(j).toLocaleString() + '</div>' : '') + '</td>' + // v120: เลขหลัก = ยอดเก็บเงิน (รวมอะไหล่) + แถวเสริม "รายได้ x" เมื่อจดทุน — เลขคู่พร้อมป้ายทุกที่ตามคำสั่งเจ้าของร้าน
+          '<td style="font-size:12px;text-align:right;"><div class="jt-amt" style="font-weight:700;color:var(--success);">' + (jobTotal(j) ? jobTotal(j).toLocaleString() : '0') + '</div>' + (jobPartsCost(j) > 0 ? '<div style="font-size:10.5px;color:var(--text2);">รายได้ ' + jobNet(j).toLocaleString() + '</div>' : '') + '</td>' + // v120: เลขหลัก = ยอดเก็บเงิน (รวมอะไหล่) + แถวเสริม "รายได้ x" เมื่อจดทุน — เลขคู่พร้อมป้ายทุกที่ตามคำสั่งเจ้าของร้าน
           '<td><span class="badge ' + (STATUS_COLORS[st] || 'badge-gray') + ' tb-badge" style="font-size:12px;">' + esc(STATUS_LABELS[st] || st) + '</span></td>' +
           '<td><div class="table-actions" onclick="event.stopPropagation()"><button type="button" class="btn btn-ghost btn-icon-sm" title="ดูข้อมูล/ประวัติงาน" onclick="showCustomerDetail(\'' + escAttr(j.customerPhone) + '\')"><i class="fas fa-eye"></i></button>' +
           '<button type="button" class="btn btn-ghost btn-icon-sm" title="แก้ไขงาน" onclick="openEditJob(\'' + escAttr(j.id) + '\')"><i class="fas fa-edit"></i></button>' +
@@ -3973,7 +4021,7 @@ var _exitShownAt = 0;       // เวลาที่เปิดหน้าต�
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
 var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
-var APP_VERSION = 'v120';
+var APP_VERSION = 'v121';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -5793,6 +5841,36 @@ async function syncOfflineQueue() {
     toast('ซิงค์ไม่สำเร็จ — ใช้ข้อมูลในเครื่องชั่วคราว', 'warning');
   }
 }
+
+/* ============ v121: 3D tilt การ์ดสถิติหน้าแรก — เฉพาะจอ >= 1024px (เคารพ prefers-reduced-motion) ============ */
+(function () {
+  try {
+    var mq3d = window.matchMedia('(min-width: 1024px)');
+    var rm3d = window.matchMedia('(prefers-reduced-motion: reduce)');
+    function bindTilt() { if (mq3d.matches && !rm3d.matches) startTilt(); }
+    function startTilt() {
+      var box = document.getElementById('dash-stats');
+      if (!box || box.__tiltBound) return;
+      box.__tiltBound = true;
+      var cur = null;
+      box.addEventListener('mousemove', function (e) {
+        var card = e.target.closest ? e.target.closest('.stat-card') : null;
+        if (!card) { if (cur) { cur.style.transform = ''; cur = null; } return; }
+        if (cur && cur !== card) cur.style.transform = '';
+        cur = card;
+        var r = card.getBoundingClientRect();
+        var px = (e.clientX - r.left) / r.width - 0.5;
+        var py = (e.clientY - r.top) / r.height - 0.5;
+        var ry = Math.max(-4, Math.min(4, px * 8)); // ±4° เท่านั้น — เบา ไม่รกสายตา
+        var rx = Math.max(-4, Math.min(4, -py * 8));
+        card.style.transform = 'perspective(700px) rotateX(' + rx.toFixed(2) + 'deg) rotateY(' + ry.toFixed(2) + 'deg) translateY(-2px)';
+      });
+      box.addEventListener('mouseleave', function () { if (cur) { cur.style.transform = ''; cur = null; } });
+    }
+    bindTilt();
+    if (mq3d.addEventListener) mq3d.addEventListener('change', bindTilt);
+  } catch (e3d) { /* 3D เป็นของแต่ง — พังก็ไม่กระทบการทำงาน */ }
+})();
 </script>
 </body>
 </html>
