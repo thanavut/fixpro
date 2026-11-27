@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=121">
+<link rel="manifest" href="manifest.webmanifest?v=122">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -1242,19 +1242,19 @@ body::after {
     transition: transform .15s ease-out, box-shadow .25s ease;
     will-change: transform;
   }
-  .stat-card:hover { transform: translateY(-3px) translateZ(8px); box-shadow: 0 14px 28px rgba(15,23,42,.14); }
+  .stat-card:hover { transform: translateY(-5px) translateZ(14px); box-shadow: 0 18px 36px rgba(15,23,42,.18); }
   .stat-card:active { transform: scale(0.97) !important; } /* คงกดจมเหมือนเดิมแม้ inline tilt ทับ */
-  .stat-card .stat-icon { transition: transform .25s ease; transform: translateZ(12px); }
-  .stat-card:hover .stat-icon { transform: translateZ(24px) scale(1.1); }
+  .stat-card .stat-icon { transition: transform .25s ease; transform: translateZ(18px); }
+  .stat-card:hover .stat-icon { transform: translateZ(34px) scale(1.14); }
 
   /* 2) การ์ดลูกค้า + การ์ดงานในไทม์ไลน์: hover ยกลอย + เงาลึกขึ้น (เดิม v51 มี -1px/เงา — เพิ่มมิติเล็กน้อย) */
-  .customer-card:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(15,23,42,.12); }
+  .customer-card:hover { transform: translateY(-4px); box-shadow: 0 14px 30px rgba(15,23,42,.16); }
   .timeline-card { transition: box-shadow .2s ease, transform .2s ease; }
-  .timeline-card:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(15,23,42,.10); }
+  .timeline-card:hover { transform: translateY(-4px); box-shadow: 0 14px 28px rgba(15,23,42,.14); }
 
   /* 3) ปุ่มหลัก: hover ยกขึ้นนิด + กดแล้วจมลงเหมือนปุ่มจริง (เงา inset) */
   .btn { will-change: transform; }
-  .btn:hover { transform: translateY(-1px); }
+  .btn:hover { transform: translateY(-2px); }
   .btn:active { transform: translateY(1px) scale(.985); box-shadow: inset 0 2px 6px rgba(0,0,0,.20); }
 
   /* 4) โมดัล: เปิดแบบพับเข้ามา (rotateX เล็ก + เฟด) — มือถือคง modalIn เดิม */
@@ -1262,13 +1262,13 @@ body::after {
   .modal { transform-origin: 50% 14%; }
   .modal-overlay.open .modal { animation: jtModal3D .32s cubic-bezier(.22,1,.36,1); }
   @keyframes jtModal3D {
-    from { opacity: 0; transform: translateY(18px) rotateX(5deg) scale(.985); }
+    from { opacity: 0; transform: translateY(24px) rotateX(8deg) scale(.985); }
     to { opacity: 1; transform: none; }
   }
 
   /* 5) ตารางหน้าประวัติงาน: ชี้แถวแล้วเลขยอดเก็บ/รายได้ลอยขึ้นชัดขึ้น */
   .jt-amt { display: inline-block; transition: transform .18s ease, text-shadow .18s ease; }
-  .cust-table tbody tr:hover .jt-amt { transform: translateY(-1px); text-shadow: 0 1px 5px rgba(46,125,50,.45); }
+  .cust-table tbody tr:hover .jt-amt { transform: translateY(-2px); text-shadow: 0 2px 8px rgba(46,125,50,.55); }
 }
 @media (prefers-reduced-motion: reduce) {
   .stat-card, .stat-card:hover, .stat-card:active, .stat-card .stat-icon, .stat-card:hover .stat-icon,
@@ -4021,7 +4021,7 @@ var _exitShownAt = 0;       // เวลาที่เปิดหน้าต�
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
 var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
-var APP_VERSION = 'v121';
+var APP_VERSION = 'v122';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -5861,9 +5861,9 @@ async function syncOfflineQueue() {
         var r = card.getBoundingClientRect();
         var px = (e.clientX - r.left) / r.width - 0.5;
         var py = (e.clientY - r.top) / r.height - 0.5;
-        var ry = Math.max(-4, Math.min(4, px * 8)); // ±4° เท่านั้น — เบา ไม่รกสายตา
-        var rx = Math.max(-4, Math.min(4, -py * 8));
-        card.style.transform = 'perspective(700px) rotateX(' + rx.toFixed(2) + 'deg) rotateY(' + ry.toFixed(2) + 'deg) translateY(-2px)';
+        var ry = Math.max(-8, Math.min(8, px * 14)); // v122: ±8° ชัดกะตาแต่ยังไม่วูบวาบ (เดิม v121 ±4° เนียนเกิน)
+        var rx = Math.max(-8, Math.min(8, -py * 14));
+        card.style.transform = 'perspective(700px) rotateX(' + rx.toFixed(2) + 'deg) rotateY(' + ry.toFixed(2) + 'deg) translateY(-3px)';
       });
       box.addEventListener('mouseleave', function () { if (cur) { cur.style.transform = ''; cur = null; } });
     }
