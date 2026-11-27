@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E7D32">
 <meta name="description" content="FixPro — ระบบจัดการงานช่าง: จัดการลูกค้า งานซ่อม แจ้งเตือนบำรุงรักษา รายงานรายได้ และใบเสร็จ ใช้งานได้ทั้งออนไลน์และออฟไลน์">
-<link rel="manifest" href="manifest.webmanifest?v=122">
+<link rel="manifest" href="manifest.webmanifest?v=123">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>FixPro</title>
@@ -1275,6 +1275,21 @@ body::after {
   .customer-card:hover, .timeline-card, .timeline-card:hover, .btn, .btn:hover, .btn:active,
   .jt-amt, .cust-table tbody tr:hover .jt-amt { transform: none !important; transition: none !important; animation: none !important; text-shadow: none !important; }
   .modal-overlay.open .modal { animation: none !important; }
+}
+
+/* ============================================================
+   v123 — 3D เห็นได้ทันทีตอนเปิดหน้า (ไม่ต้องชี้เมาส์ก่อน): การ์ดสถิติหน้าแรกพับเข้ามาทีละใบ
+   เฉพาะจอ >= 1024px เท่านั้น (มือถือ 0% กระทบ) — prefers-reduced-motion ถูกบล็อก v121 ยกเลิกให้แล้ว
+   ============================================================ */
+@media (min-width: 1024px) {
+  #dash-stats .stat-card { animation: jtStatIn .5s cubic-bezier(.22,1,.36,1) backwards; }
+  #dash-stats .stat-card:nth-child(2) { animation-delay: .07s; }
+  #dash-stats .stat-card:nth-child(3) { animation-delay: .14s; }
+  #dash-stats .stat-card:nth-child(4) { animation-delay: .21s; }
+  @keyframes jtStatIn {
+    from { opacity: 0; transform: translateY(18px) rotateX(12deg) scale(.96); }
+    to { opacity: 1; transform: none; }
+  }
 }
 </style>
 </head>
@@ -4021,7 +4036,7 @@ var _exitShownAt = 0;       // เวลาที่เปิดหน้าต�
 var _lastBackHandledAt = 0; // เวลาที่จัดการ "กดย้อนกลับ" ล่าสุด — กัน popstate+hashchange จับซ้ำ
 var _expectNoHash = false;  // ผู้ใช้เพิ่งยืนยันปิดแอป — ตำแหน่งประวัติที่ไม่มีรั้งโดยตั้งใจ
 var _exiting = false;       // v73: กำลังถอยออกจากแอปหลังยืนยันปิด — งดเฝ้ายาม/งดถามใหม่จนกว่าจะหลุดนอกแอป
-var APP_VERSION = 'v122';
+var APP_VERSION = 'v123';
 var _GUARD = '#g';
 var _hashAtBoot = location.hash; // hash ก่อนติดตั้งรั้ง (แยกกรณีโหลดซ้ำจากกรณีโหลดใหม่)
 var _guardOk = false;            // รั้งพร้อมชั้นฐานเรียบร้อยหรือยัง
@@ -5746,8 +5761,24 @@ document.addEventListener('DOMContentLoaded', function() {
   updateFabVisibility();
   applyJobTypes();
   collapseAdvancedSettings();
-  var av = document.getElementById('app-version');
-  if (av) av.textContent = 'FixPro ' + APP_VERSION;
+  /* v123: แถบวินิจฉัย 3D ท้ายหน้า — เวอร์ชัน + ความกว้างจอจริง (px) + สถานะ 3D พร้อมเหตุผลถ้าปิด อัปเดตเมื่อย่อ/ขยายหน้าต่าง
+     (ที่มา: เจ้าของร้านดูจากคอมฯ แล้ว "ไม่เห็น 3D" — จอ 3200x1800 @ Windows scale 250% เห็นจริงแค่ 1280px ตรรกะ
+     ซูมเบราว์เซอร์เกิน 100% นิดเดียว = หล่นต่ำกว่า 1024px = 3D ปิดทั้งชุดโดยไม่รู้ตัว / อีกเคส = Windows ปิด Animation effects → prefers-reduced-motion) */
+  (function () {
+    function jt3dDiag() {
+      try {
+        var el = document.getElementById('app-version');
+        if (!el) return;
+        var w = window.innerWidth;
+        var rm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var on = w >= 1024 && !rm;
+        el.textContent = 'FixPro ' + APP_VERSION + ' · จอ ' + w + 'px · ' + (on ? '3D เปิดอยู่ (ชี้การ์ดสถิติหน้าแรกเพื่อดู)' : '3D ปิด (' + (rm ? 'เครื่องตั้งค่าลดการเคลื่อนไหว' : 'จอแคบกว่า 1024px — กด Ctrl+0 หรือขยายหน้าต่าง') + ')');
+        el.title = on ? '3D พร้อมใช้: เอาเมาส์วนบนการ์ดสถิติหน้าแรก การ์ดจะเอียงตามเมาส์ ±12° + ชี้การ์ดลูกค้า/ปุ่มจะยกลอย + เปิดใบเสร็จจะพับเข้ามา' : (rm ? 'Windows/เบราว์เซอร์ตั้งค่าลดการเคลื่อนไหว (Animation effects) จึงปิด 3D ตามกฎ — เปิดคืนได้ที่ Settings → Display → Animation effects' : 'กด Ctrl+0 (ซูม 100%) หรือขยายหน้าต่างให้กว้างเกิน 1024px แล้ว 3D จะเปิดทันที');
+      } catch (e3d) {}
+    }
+    jt3dDiag();
+    if (!window.__jt3dDiagBound) { window.__jt3dDiagBound = true; window.addEventListener('resize', jt3dDiag); }
+  })();
   renderInstallUI();
 });
 
@@ -5861,8 +5892,8 @@ async function syncOfflineQueue() {
         var r = card.getBoundingClientRect();
         var px = (e.clientX - r.left) / r.width - 0.5;
         var py = (e.clientY - r.top) / r.height - 0.5;
-        var ry = Math.max(-8, Math.min(8, px * 14)); // v122: ±8° ชัดกะตาแต่ยังไม่วูบวาบ (เดิม v121 ±4° เนียนเกิน)
-        var rx = Math.max(-8, Math.min(8, -py * 14));
+        var ry = Math.max(-12, Math.min(12, px * 22)); // v123: ±12° เห็นชัดทันที (v122 ±8°, v121 ±4° เนียนเกินไป)
+        var rx = Math.max(-12, Math.min(12, -py * 22));
         card.style.transform = 'perspective(700px) rotateX(' + rx.toFixed(2) + 'deg) rotateY(' + ry.toFixed(2) + 'deg) translateY(-3px)';
       });
       box.addEventListener('mouseleave', function () { if (cur) { cur.style.transform = ''; cur = null; } });
